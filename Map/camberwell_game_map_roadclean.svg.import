@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ckj7tcx3t1ala"
-path="res://.godot/imported/camberwell_game_map_clean_no_gray_blue_blobs.svg-4cc47bf9ac80f5c36822f9426741529b.ctex"
+uid="uid://u5oocced7163"
+path="res://.godot/imported/camberwell_game_map_roadclean.svg-2ffab685fe677b1d0d2a35aeea2fe911.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Map/camberwell_game_map_clean_no_gray_blue_blobs.svg"
-dest_files=["res://.godot/imported/camberwell_game_map_clean_no_gray_blue_blobs.svg-4cc47bf9ac80f5c36822f9426741529b.ctex"]
+source_file="res://Map/camberwell_game_map_roadclean.svg"
+dest_files=["res://.godot/imported/camberwell_game_map_roadclean.svg-2ffab685fe677b1d0d2a35aeea2fe911.ctex"]
 
 [params]
 
