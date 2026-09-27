@@ -1,14 +1,19 @@
-[gd_scene load_steps=4 format=3 uid="uid://vu3o5p5e144v"]
+[gd_scene load_steps=5 format=3 uid="uid://vu3o5p5e144v"]
 
 [ext_resource type="PackedScene" uid="uid://cydoy4mfk37xm" path="res://CamberwellMap.tscn" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://doolnlopfcpoj" path="res://Script/main.gd" id="1_h2yge"]
-[ext_resource type="PackedScene" uid="uid://crd0rkyqqrc7i" path="res://canterburyMap.tscn" id="2_h2yge"]
+[ext_resource type="PackedScene" uid="uid://bx1a76y7hxbwa" path="res://hawthorn_east_map.tscn" id="3_1bvp3"]
+[ext_resource type="PackedScene" uid="uid://y3tdaktx1mby" path="res://surrey_hill_Map.tscn" id="4_lquwl"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_h2yge")
 
-[node name="Camberwell" parent="." instance=ExtResource("1_0xm2m")]
+[node name="MapChunk" type="Node2D" parent="."]
 
-[node name="Canterbury" parent="." instance=ExtResource("2_h2yge")]
-z_index = -1
-position = Vector2(-1, -1556)
+[node name="Camberwell" parent="MapChunk" instance=ExtResource("1_0xm2m")]
+
+[node name="Hawthorn_EastMap" parent="MapChunk" instance=ExtResource("3_1bvp3")]
+position = Vector2(-924, -1)
+
+[node name="Surrey_Hill" parent="." instance=ExtResource("4_lquwl")]
+position = Vector2(2052, -275)

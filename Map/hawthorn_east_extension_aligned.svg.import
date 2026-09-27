@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://q04xyjrfxpro"
-path="res://.godot/imported/canterbury_game_map_roadclean.svg-e116ea06707d1d38c8e68f05bdc7d0bb.ctex"
+uid="uid://cu47yywh3nro1"
+path="res://.godot/imported/hawthorn_east_extension_aligned.svg-57ac3abb303fb59ec65844ccd4ec58ce.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Map/canterbury_game_map_roadclean.svg"
-dest_files=["res://.godot/imported/canterbury_game_map_roadclean.svg-e116ea06707d1d38c8e68f05bdc7d0bb.ctex"]
+source_file="res://Map/hawthorn_east_extension_aligned.svg"
+dest_files=["res://.godot/imported/hawthorn_east_extension_aligned.svg-57ac3abb303fb59ec65844ccd4ec58ce.ctex"]
 
 [params]
 

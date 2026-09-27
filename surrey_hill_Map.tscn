@@ -1,0 +1,42 @@
+[gd_scene load_steps=2 format=3 uid="uid://y3tdaktx1mby"]
+
+[ext_resource type="Texture2D" uid="uid://bbjjrmqg3rj4l" path="res://Map/surrey_hills_camberwell_extension_only.svg" id="1_f75we"]
+
+[node name="Surrey_Hill" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(52, 274)
+texture = ExtResource("1_f75we")
+centered = false
+
+[node name="StaticBody2D" type="StaticBody2D" parent="Sprite2D"]
+
+[node name="Block1" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+polygon = PackedVector2Array(-2, -1, 0, 317, 312, 365, 369, -1)
+
+[node name="Block2" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+polygon = PackedVector2Array(384, -1, 327, 369, 1229, 499, 1308, -1)
+
+[node name="Block3" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+polygon = PackedVector2Array(1326, -2, 1249, 486, 1257, 501, 1764, 576, 1764, 0)
+
+[node name="Block4" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+polygon = PackedVector2Array(-3, 338, 311, 383, 214, 1084, -2, 1053)
+
+[node name="Block5" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+polygon = PackedVector2Array(322, 384, 466, 406, 369, 1106, 226, 1086)
+
+[node name="Block6" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+polygon = PackedVector2Array(483, 407, 1227, 514, 1189, 875, 1144, 1204, 1136, 1224, 1122, 1235, 606, 1156, 464, 1121, 386, 1108)
+
+[node name="Block7" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+polygon = PackedVector2Array(1244, 516, 1764, 591, 1767, 1313, 1158, 1221, 1207, 869)
+
+[node name="Block8" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+polygon = PackedVector2Array(-2, 1071, 366, 1123, 256, 1900, -1, 1900)
+
+[node name="Block9" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+polygon = PackedVector2Array(384, 1126, 273, 1901, 1030, 1900, 1055, 1738, 1114, 1305, 1075, 1247, 1053, 1237, 604, 1173, 554, 1160, 466, 1142)
+
+[node name="Block10" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+polygon = PackedVector2Array(1121, 1271, 1134, 1289, 1050, 1899, 1766, 1899, 1764, 1331, 1151, 1241, 1127, 1260)
