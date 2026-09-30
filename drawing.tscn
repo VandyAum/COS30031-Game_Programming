@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://ccg3mp5xcq6ki"]
+
+[ext_resource type="Script" uid="uid://bpdixeithsxj7" path="res://drawing.gd" id="1_jortj"]
+
+[node name="Drawing" type="Node2D" unique_id=1114527525]
+script = ExtResource("1_jortj")
+
+[node name="Line" type="Line2D" parent="." unique_id=1151995881]
+width = 3.0
+default_color = Color(0.8338114, 0, 0.22254446, 1)
