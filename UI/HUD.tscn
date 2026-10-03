@@ -1,9 +1,232 @@
 [gd_scene format=3 uid="uid://b775te0qa2655"]
 
-[node name="Hud" type="Control" unique_id=71769570]
+[ext_resource type="Texture2D" uid="uid://b5ie2jlacmhwc" path="res://UI/Icons/local_fire_department_128dp.svg" id="1_ijstf"]
+[ext_resource type="Texture2D" uid="uid://ctk1iajotahle" path="res://UI/Images/DTP_LOGO.svg" id="1_yixhe"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yixhe"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.9, 0.9, 0.9, 1)
+corner_detail = 1
+shadow_color = Color(0, 0, 0, 0.23529412)
+shadow_size = 10
+shadow_offset = Vector2(2, 0)
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ijstf"]
+content_margin_left = 20.0
+content_margin_top = 4.0
+content_margin_right = 20.0
+content_margin_bottom = 4.0
+bg_color = Color(0.7666196, 0.76661956, 0.76661956, 1)
+border_color = Color(0.175, 0.175, 0.175, 1)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_right = 25
+corner_radius_bottom_left = 25
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4n7mi"]
+content_margin_left = 10.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+bg_color = Color(0.6052743, 0.6052743, 0.6052743, 1)
+border_color = Color(1, 1, 1, 0.75)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_right = 25
+corner_radius_bottom_left = 25
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uk570"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.73300564, 0.73300534, 0.7330054, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gppie"]
+content_margin_left = 2.0
+content_margin_top = 2.0
+content_margin_right = 2.0
+content_margin_bottom = 2.0
+bg_color = Color(0.1, 0.1, 0.1, 0.3)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_right = 25
+corner_radius_bottom_left = 25
+corner_detail = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f2wx0"]
+content_margin_left = 2.0
+content_margin_top = 2.0
+content_margin_right = 2.0
+content_margin_bottom = 2.0
+bg_color = Color(1, 0.5254902, 0, 1)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_right = 25
+corner_radius_bottom_left = 25
+corner_detail = 6
+
+[sub_resource type="FontVariation" id="FontVariation_yixhe"]
+
+[node name="HUD" type="Control" unique_id=71769570]
 layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -4.0
+offset_bottom = 4.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="IncidentPanel" type="Panel" parent="." unique_id=1566422587]
+layout_mode = 1
+anchors_preset = -1
+anchor_bottom = 1.0
+offset_top = 102.0
+offset_right = 450.0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_yixhe")
+
+[node name="MarginContainer" type="MarginContainer" parent="IncidentPanel" unique_id=787575941]
+layout_mode = 1
+anchors_preset = -1
+anchor_bottom = 1.0
+offset_right = 450.0
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="IncidentPanel/MarginContainer" unique_id=2053547642]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="IncidentPanel/MarginContainer/VBoxContainer" unique_id=1240882946]
+layout_mode = 2
+theme_override_constants/margin_bottom = 25
+
+[node name="TabBar" type="TabBar" parent="IncidentPanel/MarginContainer/VBoxContainer/MarginContainer" unique_id=1183409134]
+layout_mode = 2
+theme_override_colors/font_selected_color = Color(0.07683588, 0.07683579, 0.07683582, 1)
+theme_override_colors/font_unselected_color = Color(0.48178947, 0.48178947, 0.48178947, 1)
+theme_override_constants/tab_separation = 4
+theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_ijstf")
+theme_override_styles/tab_selected = SubResource("StyleBoxFlat_4n7mi")
+current_tab = 0
+tab_alignment = 1
+tab_count = 4
+tab_0/title = "     All     "
+tab_1/title = "  Fire  "
+tab_2/title = "Medical"
+tab_3/title = "Police"
+
+[node name="Panel" type="Panel" parent="IncidentPanel/MarginContainer/VBoxContainer" unique_id=1300670146]
+custom_minimum_size = Vector2(2.32, 150)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_uk570")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="IncidentPanel/MarginContainer/VBoxContainer/Panel" unique_id=1937038593]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="IncidentPanel/MarginContainer/VBoxContainer/Panel/HBoxContainer" unique_id=303666340]
+self_modulate = Color(1, 0.5254902, 0, 1)
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("1_ijstf")
+stretch_mode = 5
+
+[node name="MarginContainer" type="MarginContainer" parent="IncidentPanel/MarginContainer/VBoxContainer/Panel/HBoxContainer" unique_id=1610106245]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_right = 25
+
+[node name="VBoxContainer" type="VBoxContainer" parent="IncidentPanel/MarginContainer/VBoxContainer/Panel/HBoxContainer/MarginContainer" unique_id=1545121410]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 0
+
+[node name="Label" type="Label" parent="IncidentPanel/MarginContainer/VBoxContainer/Panel/HBoxContainer/MarginContainer/VBoxContainer" unique_id=1973565819]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 34
+text = "Fire"
+
+[node name="Label2" type="Label" parent="IncidentPanel/MarginContainer/VBoxContainer/Panel/HBoxContainer/MarginContainer/VBoxContainer" unique_id=692475308]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.32544094, 0.3254409, 0.32544076, 1)
+theme_override_font_sizes/font_size = 18
+text = "Incident Description..."
+
+[node name="MarginContainer" type="MarginContainer" parent="IncidentPanel/MarginContainer/VBoxContainer/Panel/HBoxContainer/MarginContainer/VBoxContainer" unique_id=1340904879]
+layout_mode = 2
+theme_override_constants/margin_top = 20
+
+[node name="ProgressBar" type="ProgressBar" parent="IncidentPanel/MarginContainer/VBoxContainer/Panel/HBoxContainer/MarginContainer/VBoxContainer/MarginContainer" unique_id=815778555]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/background = SubResource("StyleBoxFlat_gppie")
+theme_override_styles/fill = SubResource("StyleBoxFlat_f2wx0")
+value = 25.0
+show_percentage = false
+
+[node name="NavigationBar" type="ColorRect" parent="." unique_id=439445890]
+clip_contents = true
+custom_minimum_size = Vector2(450, 0)
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+offset_bottom = 102.600006
+color = Color(0.23219998, 0.29813337, 0.43, 1)
+
+[node name="HbxNavContainer" type="HBoxContainer" parent="NavigationBar" unique_id=345093710]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset_ratio = Vector2(-1, 0)
+theme_override_constants/separation = 45
+
+[node name="MarginContainer" type="MarginContainer" parent="NavigationBar/HbxNavContainer" unique_id=1049682204]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 10
+
+[node name="ImgTransportVicLogo" type="TextureRect" parent="NavigationBar/HbxNavContainer/MarginContainer" unique_id=1847315523]
+layout_mode = 2
+texture = ExtResource("1_yixhe")
+expand_mode = 3
+stretch_mode = 4
+
+[node name="LblGameName" type="Label" parent="NavigationBar/HbxNavContainer" unique_id=598346862]
+layout_mode = 2
+theme_override_fonts/font = SubResource("FontVariation_yixhe")
+theme_override_font_sizes/font_size = 38
+text = "The Race Against Time"
