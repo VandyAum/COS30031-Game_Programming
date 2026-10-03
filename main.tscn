@@ -9,8 +9,10 @@
 [node name="Main" type="Node2D" unique_id=1954988479]
 script = ExtResource("1_h2yge")
 
-[node name="Drawing" parent="." unique_id=1114527525 instance=ExtResource("2_lquwl")]
+[node name="Drawing" parent="." unique_id=1114527525 node_paths=PackedStringArray("main2", "camberwell") instance=ExtResource("2_lquwl")]
 z_index = 1
+main2 = NodePath("..")
+camberwell = NodePath("../MapChunk/Camberwell")
 
 [node name="MapChunk" type="Node2D" parent="." unique_id=1725131052]
 

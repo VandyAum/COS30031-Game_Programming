@@ -5,9 +5,12 @@ extends Node2D
 @onready var camberwell = $MapChunk/Camberwell
 @onready var camberwell_map = $MapChunk/Camberwell/Map
 
+@onready var Draw = $Draw
 
+var test_var: String = "hello"
 
 func _ready():
+	test_var = "hellooo"
 	fit_maps_to_screen()
 
 
@@ -32,3 +35,6 @@ func fit_maps_to_screen():
 	var map_scale = min(scale_x, scale_y)
 
 	camberwell.scale = Vector2(map_scale, map_scale)
+
+func get_test() -> String:
+	return test_var
