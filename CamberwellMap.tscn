@@ -89,3 +89,197 @@ polygon = PackedVector2Array(0, 183, 130, 203, 112, 323, -2, 306)
 polygon = PackedVector2Array(0, 318, 111, 336, 52, 760, 0, 705)
 
 [node name="Locations" type="Node2D" parent="." unique_id=521421413]
+
+[node name="RoadPoints" type="Node2D" parent="." unique_id=1310611307]
+
+[node name="Point1" type="Marker2D" parent="RoadPoints" unique_id=515222274]
+position = Vector2(163, 41)
+gizmo_extents = 439.8
+
+[node name="Point2" type="Marker2D" parent="RoadPoints" unique_id=2131899559]
+position = Vector2(540, 360)
+gizmo_extents = 439.8
+
+[node name="Point3" type="Marker2D" parent="RoadPoints" unique_id=1893560466]
+position = Vector2(127, 289)
+gizmo_extents = 439.8
+
+[node name="Point4" type="Marker2D" parent="RoadPoints" unique_id=140058514]
+position = Vector2(141, 195)
+gizmo_extents = 439.8
+
+[node name="Point5" type="Marker2D" parent="RoadPoints" unique_id=621209165]
+position = Vector2(708, 85)
+gizmo_extents = 439.8
+
+[node name="Point6" type="Marker2D" parent="RoadPoints" unique_id=1351407530]
+position = Vector2(585, 105)
+gizmo_extents = 439.8
+
+[node name="Point7" type="Marker2D" parent="RoadPoints" unique_id=380379910]
+position = Vector2(54, 181)
+gizmo_extents = 439.8
+
+[node name="Point8" type="Marker2D" parent="RoadPoints" unique_id=249893236]
+position = Vector2(43, 319)
+gizmo_extents = 439.8
+
+[node name="Point9" type="Marker2D" parent="RoadPoints" unique_id=1052321628]
+position = Vector2(501, 605)
+gizmo_extents = 439.8
+
+[node name="Point10" type="Marker2D" parent="RoadPoints" unique_id=1767578943]
+position = Vector2(91, 539)
+gizmo_extents = 439.8
+
+[node name="Point11" type="Marker2D" parent="RoadPoints" unique_id=520308718]
+position = Vector2(57, 772)
+gizmo_extents = 439.8
+
+[node name="Point12" type="Marker2D" parent="RoadPoints" unique_id=1478443951]
+position = Vector2(462, 834)
+gizmo_extents = 439.8
+
+[node name="Point13" type="Marker2D" parent="RoadPoints" unique_id=864818237]
+position = Vector2(839, 143)
+gizmo_extents = 439.8
+
+[node name="Point14" type="Marker2D" parent="RoadPoints" unique_id=2084771361]
+position = Vector2(1368, 217)
+gizmo_extents = 439.8
+
+[node name="Point15" type="Marker2D" parent="RoadPoints" unique_id=799539946]
+position = Vector2(1408, 12)
+gizmo_extents = 439.8
+
+[node name="Point16" type="Marker2D" parent="RoadPoints" unique_id=874258101]
+position = Vector2(384, 1119)
+gizmo_extents = 439.8
+
+[node name="Point17" type="Marker2D" parent="RoadPoints" unique_id=780669498]
+position = Vector2(9, 1074)
+gizmo_extents = 439.8
+
+[node name="Point18" type="Marker2D" parent="RoadPoints" unique_id=2071172921]
+position = Vector2(1578, 251)
+gizmo_extents = 439.8
+
+[node name="Point19" type="Marker2D" parent="RoadPoints" unique_id=1355558892]
+position = Vector2(1809, 285)
+gizmo_extents = 439.8
+
+[node name="Point20" type="Marker2D" parent="RoadPoints" unique_id=2058749718]
+position = Vector2(1611, 255)
+gizmo_extents = 439.8
+
+[node name="Point21" type="Marker2D" parent="RoadPoints" unique_id=1864875909]
+position = Vector2(2015, 314)
+gizmo_extents = 439.8
+
+[node name="Point22" type="Marker2D" parent="RoadPoints" unique_id=777176800]
+position = Vector2(1942, 826)
+gizmo_extents = 439.8
+
+[node name="Point23" type="Marker2D" parent="RoadPoints" unique_id=1823912446]
+position = Vector2(1744, 803)
+gizmo_extents = 439.8
+
+[node name="Point24" type="Marker2D" parent="RoadPoints" unique_id=244487593]
+position = Vector2(1534, 761)
+gizmo_extents = 439.8
+
+[node name="Point25" type="Marker2D" parent="RoadPoints" unique_id=1367193239]
+position = Vector2(1081, 684)
+gizmo_extents = 439.8
+
+[node name="Point26" type="Marker2D" parent="RoadPoints" unique_id=1801151018]
+position = Vector2(1114, 505)
+gizmo_extents = 439.8
+
+[node name="Point27" type="Marker2D" parent="RoadPoints" unique_id=2084416106]
+position = Vector2(971, 517)
+gizmo_extents = 439.8
+
+[node name="Point28" type="Marker2D" parent="RoadPoints" unique_id=626134506]
+position = Vector2(904, 360)
+gizmo_extents = 439.8
+
+[node name="Point29" type="Marker2D" parent="RoadPoints" unique_id=1329313779]
+position = Vector2(897, 313)
+gizmo_extents = 439.8
+
+[node name="Point30" type="Marker2D" parent="RoadPoints" unique_id=1554416077]
+position = Vector2(855, 250)
+gizmo_extents = 439.8
+
+[node name="Point31" type="Marker2D" parent="RoadPoints" unique_id=1120238709]
+position = Vector2(835, 203)
+gizmo_extents = 439.8
+
+[node name="Point32" type="Marker2D" parent="RoadPoints" unique_id=1688854435]
+position = Vector2(1017, 916)
+gizmo_extents = 439.8
+
+[node name="Point33" type="Marker2D" parent="RoadPoints" unique_id=2143157204]
+position = Vector2(1495, 987)
+gizmo_extents = 439.8
+
+[node name="Point34" type="Marker2D" parent="RoadPoints" unique_id=420629503]
+position = Vector2(1705, 1006)
+gizmo_extents = 439.8
+
+[node name="Point35" type="Marker2D" parent="RoadPoints" unique_id=1016837480]
+position = Vector2(1635, 1502)
+gizmo_extents = 439.8
+
+[node name="Point36" type="Marker2D" parent="RoadPoints" unique_id=1778627604]
+position = Vector2(1604, 1597)
+gizmo_extents = 439.8
+
+[node name="Point37" type="Marker2D" parent="RoadPoints" unique_id=1964444312]
+position = Vector2(1617, 1716)
+gizmo_extents = 439.8
+
+[node name="Point38" type="Marker2D" parent="RoadPoints" unique_id=1509924349]
+position = Vector2(1577, 1895)
+gizmo_extents = 439.8
+
+[node name="Point39" type="Marker2D" parent="RoadPoints" unique_id=1673966201]
+position = Vector2(464, 1226)
+gizmo_extents = 439.8
+
+[node name="Point40" type="Marker2D" parent="RoadPoints" unique_id=2088524074]
+position = Vector2(362, 1898)
+gizmo_extents = 439.8
+
+[node name="Point41" type="Marker2D" parent="RoadPoints" unique_id=297497335]
+position = Vector2(799, 1605)
+gizmo_extents = 439.8
+
+[node name="Point42" type="Marker2D" parent="RoadPoints" unique_id=1388529635]
+position = Vector2(979, 1181)
+gizmo_extents = 439.8
+
+[node name="Point43" type="Marker2D" parent="RoadPoints" unique_id=410543194]
+position = Vector2(1003, 1256)
+gizmo_extents = 439.8
+
+[node name="Point44" type="Marker2D" parent="RoadPoints" unique_id=1444295136]
+position = Vector2(1021, 1402)
+gizmo_extents = 439.8
+
+[node name="Point45" type="Marker2D" parent="RoadPoints" unique_id=1426653286]
+position = Vector2(1146, 1643)
+gizmo_extents = 439.8
+
+[node name="Point46" type="Marker2D" parent="RoadPoints" unique_id=1329783290]
+position = Vector2(1170, 1649)
+gizmo_extents = 439.8
+
+[node name="Point47" type="Marker2D" parent="RoadPoints" unique_id=1993443760]
+position = Vector2(1233, 1776)
+gizmo_extents = 439.8
+
+[node name="Point48" type="Marker2D" parent="RoadPoints" unique_id=1727819446]
+position = Vector2(1227, 1802)
+gizmo_extents = 439.8

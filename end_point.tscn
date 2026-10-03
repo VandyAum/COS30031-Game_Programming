@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://chxkxw0rvnjgv"]
+
+[ext_resource type="Script" uid="uid://dfl5red7u6kcs" path="res://end_point.gd" id="1_jy4fe"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_hdp8f"]
+font_size = 30
+font_color = Color(0.9610608, 0.20017672, 0.16297731, 1)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_miwbt"]
+radius = 8.062258
+
+[node name="End_Points" type="Area2D" unique_id=1034302195]
+script = ExtResource("1_jy4fe")
+
+[node name="Label" type="Label" parent="." unique_id=2134072145]
+offset_left = -10.0
+offset_top = -25.0
+offset_right = 30.0
+offset_bottom = 17.0
+text = "●"
+label_settings = SubResource("LabelSettings_hdp8f")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1508457693]
+shape = SubResource("CircleShape2D_miwbt")

@@ -1,22 +1,22 @@
 [gd_scene format=3 uid="uid://vu3o5p5e144v"]
 
 [ext_resource type="PackedScene" uid="uid://cydoy4mfk37xm" path="res://CamberwellMap.tscn" id="1_0xm2m"]
-[ext_resource type="Script" uid="uid://doolnlopfcpoj" path="res://Script/main.gd" id="1_h2yge"]
 [ext_resource type="PackedScene" uid="uid://ccg3mp5xcq6ki" path="res://drawing.tscn" id="2_lquwl"]
 [ext_resource type="PackedScene" uid="uid://bx1a76y7hxbwa" path="res://hawthorn_east_map.tscn" id="3_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://y3tdaktx1mby" path="res://surrey_hill_Map.tscn" id="4_lquwl"]
+[ext_resource type="PackedScene" uid="uid://df6svmy0mtp63" path="res://Crew_Point.tscn" id="6_7mycd"]
+[ext_resource type="PackedScene" uid="uid://chxkxw0rvnjgv" path="res://end_point.tscn" id="7_272bh"]
 
 [node name="Main" type="Node2D" unique_id=1954988479]
-script = ExtResource("1_h2yge")
 
-[node name="Drawing" parent="." unique_id=1114527525 node_paths=PackedStringArray("main3", "main2", "camberwell") instance=ExtResource("2_lquwl")]
+[node name="Drawing" parent="." unique_id=1114527525 node_paths=PackedStringArray("crew_points", "end_points", "camberwell") instance=ExtResource("2_lquwl")]
 z_index = 1
-main3 = NodePath("..")
-main2 = NodePath("..")
+crew_points = NodePath("../Crew_Points")
+end_points = NodePath("../End_Points")
 camberwell = NodePath("../MapChunk/Camberwell")
+crew_speed = 500
 
 [node name="MapChunk" type="Node2D" parent="." unique_id=1725131052]
-visible = false
 
 [node name="Camberwell" parent="MapChunk" unique_id=1084306728 instance=ExtResource("1_0xm2m")]
 
@@ -25,3 +25,9 @@ position = Vector2(-924, -1)
 
 [node name="Surrey_Hill" parent="MapChunk" unique_id=2132268439 instance=ExtResource("4_lquwl")]
 position = Vector2(2052, -275)
+
+[node name="Crew_Points" parent="." unique_id=33737465 instance=ExtResource("6_7mycd")]
+position = Vector2(138, 195)
+
+[node name="End_Points" parent="." unique_id=1034302195 instance=ExtResource("7_272bh")]
+position = Vector2(1180, 701)
