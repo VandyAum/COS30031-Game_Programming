@@ -1,4 +1,4 @@
-extends Node2D
+class_name main extends Node2D
 
 @onready var map_chunks = $MapChunks
 
