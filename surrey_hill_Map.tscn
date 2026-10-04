@@ -1,42 +1,76 @@
-[gd_scene load_steps=2 format=3 uid="uid://y3tdaktx1mby"]
+[gd_scene format=3 uid="uid://y3tdaktx1mby"]
 
+[ext_resource type="Script" uid="uid://cnpu7nmlo4bpc" path="res://surrey_hill_map.gd" id="1_c2pun"]
 [ext_resource type="Texture2D" uid="uid://bbjjrmqg3rj4l" path="res://Map/surrey_hills_camberwell_extension_only.svg" id="1_f75we"]
 
-[node name="Surrey_Hill" type="Node2D"]
+[node name="Surrey_Hill" type="Node2D" unique_id=574892390]
+script = ExtResource("1_c2pun")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(52, 274)
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=54475509]
 texture = ExtResource("1_f75we")
 centered = false
 
-[node name="StaticBody2D" type="StaticBody2D" parent="Sprite2D"]
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=628016998]
+position = Vector2(1, 0)
 
-[node name="Block1" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+[node name="Block1" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=2083995360]
 polygon = PackedVector2Array(-2, -1, 0, 317, 312, 365, 369, -1)
 
-[node name="Block2" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+[node name="Block2" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1727202077]
 polygon = PackedVector2Array(384, -1, 327, 369, 1229, 499, 1308, -1)
 
-[node name="Block3" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+[node name="Block3" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=547986988]
 polygon = PackedVector2Array(1326, -2, 1249, 486, 1257, 501, 1764, 576, 1764, 0)
 
-[node name="Block4" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+[node name="Block4" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=396387815]
 polygon = PackedVector2Array(-3, 338, 311, 383, 214, 1084, -2, 1053)
 
-[node name="Block5" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+[node name="Block5" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1887719385]
 polygon = PackedVector2Array(322, 384, 466, 406, 369, 1106, 226, 1086)
 
-[node name="Block6" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+[node name="Block6" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=360101172]
 polygon = PackedVector2Array(483, 407, 1227, 514, 1189, 875, 1144, 1204, 1136, 1224, 1122, 1235, 606, 1156, 464, 1121, 386, 1108)
 
-[node name="Block7" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+[node name="Block7" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=551015336]
 polygon = PackedVector2Array(1244, 516, 1764, 591, 1767, 1313, 1158, 1221, 1207, 869)
 
-[node name="Block8" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+[node name="Block8" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1459103964]
 polygon = PackedVector2Array(-2, 1071, 366, 1123, 256, 1900, -1, 1900)
 
-[node name="Block9" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+[node name="Block9" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=439983142]
 polygon = PackedVector2Array(384, 1126, 273, 1901, 1030, 1900, 1055, 1738, 1114, 1305, 1075, 1247, 1053, 1237, 604, 1173, 554, 1160, 466, 1142)
 
-[node name="Block10" type="CollisionPolygon2D" parent="Sprite2D/StaticBody2D"]
+[node name="Block10" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=876967104]
 polygon = PackedVector2Array(1121, 1271, 1134, 1289, 1050, 1899, 1766, 1899, 1764, 1331, 1151, 1241, 1127, 1260)
+
+[node name="RoadPoints" type="Node2D" parent="." unique_id=70578454]
+
+[node name="Points1" type="Marker2D" parent="RoadPoints" unique_id=193397489]
+position = Vector2(320, 374)
+
+[node name="Points2" type="Marker2D" parent="RoadPoints" unique_id=379651779]
+position = Vector2(219, 1092)
+
+[node name="Points3" type="Marker2D" parent="RoadPoints" unique_id=1808480289]
+position = Vector2(476, 400)
+
+[node name="Points4" type="Marker2D" parent="RoadPoints" unique_id=1369865998]
+position = Vector2(1239, 506)
+
+[node name="Points5" type="Marker2D" parent="RoadPoints" unique_id=1228033346]
+position = Vector2(378, 1114)
+
+[node name="Points6" type="Marker2D" parent="RoadPoints" unique_id=74642362]
+position = Vector2(1101, 1255)
+
+[node name="Points7" type="Marker2D" parent="RoadPoints" unique_id=1598671303]
+position = Vector2(1152, 1224)
+
+[node name="Points8" type="Marker2D" parent="RoadPoints" unique_id=1936681018]
+position = Vector2(1123, 1306)
+
+[node name="Points9" type="Marker2D" parent="RoadPoints" unique_id=245387406]
+position = Vector2(265, 1886)
+
+[node name="Points10" type="Marker2D" parent="RoadPoints" unique_id=1286613379]
+position = Vector2(1041, 1890)
