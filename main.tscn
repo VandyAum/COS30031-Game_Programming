@@ -1,19 +1,66 @@
-[gd_scene load_steps=5 format=3 uid="uid://vu3o5p5e144v"]
+[gd_scene format=3 uid="uid://vu3o5p5e144v"]
 
 [ext_resource type="PackedScene" uid="uid://cydoy4mfk37xm" path="res://CamberwellMap.tscn" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://doolnlopfcpoj" path="res://Script/main.gd" id="1_h2yge"]
-[ext_resource type="PackedScene" uid="uid://bx1a76y7hxbwa" path="res://hawthorn_east_map.tscn" id="3_1bvp3"]
+[ext_resource type="PackedScene" uid="uid://bx1a76y7hxbwa" path="res://Hawthorn_East_Map.tscn" id="3_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://y3tdaktx1mby" path="res://surrey_hill_Map.tscn" id="4_lquwl"]
+[ext_resource type="Script" uid="uid://0sb5brua44qe" path="res://Script/player.gd" id="5_lquwl"]
+[ext_resource type="Texture2D" uid="uid://daosetb03rf6u" path="res://icon.svg" id="6_272bh"]
+[ext_resource type="Script" uid="uid://yojjqs38k088" path="res://Script/incident.gd" id="7_272bh"]
 
-[node name="Main" type="Node2D"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_hal82"]
+radius = 60.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_4ox2j"]
+radius = 100.0
+
+[node name="Main" type="Node2D" unique_id=1800620630]
 script = ExtResource("1_h2yge")
 
-[node name="MapChunk" type="Node2D" parent="."]
+[node name="MapChunk" type="Node2D" parent="." unique_id=131223256]
 
-[node name="Camberwell" parent="MapChunk" instance=ExtResource("1_0xm2m")]
+[node name="Camberwell" parent="MapChunk" unique_id=1634047219 instance=ExtResource("1_0xm2m")]
 
-[node name="Hawthorn_EastMap" parent="MapChunk" instance=ExtResource("3_1bvp3")]
+[node name="Hawthorn_EastMap" parent="MapChunk" unique_id=1208446374 instance=ExtResource("3_1bvp3")]
 position = Vector2(-924, -1)
 
-[node name="Surrey_Hill" parent="." instance=ExtResource("4_lquwl")]
+[node name="Surrey_Hill" parent="MapChunk" unique_id=148460301 instance=ExtResource("4_lquwl")]
 position = Vector2(2052, -275)
+
+[node name="Player" type="CharacterBody2D" parent="." unique_id=376667844]
+z_index = 10
+position = Vector2(640, 360)
+collision_mask = 2
+script = ExtResource("5_lquwl")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=1074003398]
+position = Vector2(0, -22)
+one_way_collision = true
+
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=1733193444]
+ignore_rotation = false
+enabled = false
+zoom = Vector2(1.1, 1.1)
+limit_left = 0
+limit_top = 0
+
+[node name="Sprite2D" type="Sprite2D" parent="Player" unique_id=534477367]
+scale = Vector2(0.15, 0.15)
+texture = ExtResource("6_272bh")
+
+[node name="Incident1" type="Area2D" parent="." unique_id=176547298]
+position = Vector2(700, 350)
+script = ExtResource("7_272bh")
+
+[node name="Trigger" type="Area2D" parent="Incident1" unique_id=1091877816]
+position = Vector2(500, 350)
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="Incident1/Trigger" unique_id=184574848]
+position = Vector2(-500, -350)
+shape = SubResource("CircleShape2D_hal82")
+debug_color = Color(2.4546682e-06, 0.43760157, 0.5142826, 0.41960785)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Incident1/Trigger" unique_id=302376877]
+shape = SubResource("CircleShape2D_4ox2j")
+
+[connection signal="body_entered" from="Incident1/Trigger" to="." method="_on_trigger_body_entered"]
