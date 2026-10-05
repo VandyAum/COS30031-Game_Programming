@@ -2,12 +2,9 @@
 
 [ext_resource type="Script" uid="uid://ck8ja8hyd4wpr" path="res://Script/CamberwellMap.gd" id="1_3vi7k"]
 [ext_resource type="Texture2D" uid="uid://u5oocced7163" path="res://Map/camberwell_game_map_roadclean.svg" id="2_3h1ab"]
+[ext_resource type="Script" uid="uid://045hycnf4t1k" path="res://Script/level_exit.gd" id="3_xqsrv"]
 
-[sub_resource type="Curve2D" id="Curve2D_tysa7"]
-_data = {
-"points": PackedVector2Array(0, 0, 0, 0, 1166, 600, 0, 0, 0, 0, 1253, 611, 0, 0, 0, 0, 1326, 623, 0, 0, 0, 0, 1398, 634)
-}
-point_count = 4
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hal82"]
 
 [node name="Camberwell" type="Node2D" unique_id=695900705]
 script = ExtResource("1_3vi7k")
@@ -102,11 +99,8 @@ polygon = PackedVector2Array(0, 318, 111, 336, 52, 760, 0, 705)
 [node name="Locations" type="Node2D" parent="." unique_id=2035295067]
 position = Vector2(-190, -81)
 
-[node name="Roads" type="Node2D" parent="." unique_id=1125651224]
+[node name="LevelExit" type="Area2D" parent="." unique_id=807895491]
+script = ExtResource("3_xqsrv")
 
-[node name="Road_1" type="Path2D" parent="Roads" unique_id=831476509]
-curve = SubResource("Curve2D_tysa7")
-
-[node name="Playerfollow" type="PathFollow2D" parent="Roads/Road_1" unique_id=571297520]
-position = Vector2(1166, 600)
-rotation = 0.12576942
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LevelExit" unique_id=645570852]
+shape = SubResource("RectangleShape2D_hal82")

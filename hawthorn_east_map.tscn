@@ -1,6 +1,9 @@
 [gd_scene format=3 uid="uid://bx1a76y7hxbwa"]
 
 [ext_resource type="Texture2D" uid="uid://cu47yywh3nro1" path="res://Map/hawthorn_east_extension_aligned.svg" id="1_xiyce"]
+[ext_resource type="Script" uid="uid://045hycnf4t1k" path="res://Script/level_exit.gd" id="2_bi43x"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hghut"]
 
 [node name="Hawthorn_East_Map" type="Node2D" unique_id=2138146967]
 
@@ -34,9 +37,6 @@ polygon = PackedVector2Array(986, 794, 947, 1066, 1011, 1078, 1011, 820)
 [node name="Block8" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1131920148]
 polygon = PackedVector2Array(943, 1088, 1011, 1098, 1013, 1854, 831, 1826)
 
-[node name="Block9" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=876396118]
-polygon = PackedVector2Array(829, 1844, 819, 1902, 1011, 1901, 1012, 1871)
-
 [node name="Block10" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=115013729]
 polygon = PackedVector2Array(461, 710, 421, 984, 703, 1024, 741, 751)
 
@@ -60,3 +60,12 @@ polygon = PackedVector2Array(-1, 1752, 27, 1756, 24, 1785, 195, 1810, 284, 1823,
 
 [node name="Block17" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1307525968]
 polygon = PackedVector2Array(1011, 631, 991, 768, 1011, 771)
+
+[node name="Block9" type="CollisionPolygon2D" parent="." unique_id=876396118]
+polygon = PackedVector2Array(829, 1844, 819, 1902, 1011, 1901, 1012, 1871)
+
+[node name="LevelExit" type="Area2D" parent="." unique_id=1625271863]
+script = ExtResource("2_bi43x")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LevelExit" unique_id=500190224]
+shape = SubResource("RectangleShape2D_hghut")
