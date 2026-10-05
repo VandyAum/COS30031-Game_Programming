@@ -11,11 +11,16 @@
 [node name="Main" type="Node2D" unique_id=1954988479]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=2118934091]
+position = Vector2(643, 368)
+limit_left = -925
+limit_top = 0
+limit_right = 3875
+limit_bottom = 1890
 script = ExtResource("1_272bh")
 
-[node name="Drawing" parent="." unique_id=1114527525 node_paths=PackedStringArray("crew_points", "end_points", "camberwell", "surreyHill", "EHawthorn") instance=ExtResource("2_lquwl")]
+[node name="Drawing" parent="." unique_id=1114527525 node_paths=PackedStringArray("locations", "end_points", "camberwell", "surreyHill", "EHawthorn") instance=ExtResource("2_lquwl")]
 z_index = 1
-crew_points = NodePath("../Crew_Points")
+locations = NodePath("../Station")
 end_points = NodePath("../End_Points")
 camberwell = NodePath("../MapChunk/Camberwell")
 surreyHill = NodePath("../MapChunk/Surrey_Hill")
@@ -32,8 +37,13 @@ position = Vector2(-924, -1)
 [node name="Surrey_Hill" parent="MapChunk" unique_id=2132268439 instance=ExtResource("4_lquwl")]
 position = Vector2(2113, 2)
 
-[node name="Crew_Points" parent="." unique_id=33737465 instance=ExtResource("6_7mycd")]
-position = Vector2(138, 195)
+[node name="Station" type="Node2D" parent="." unique_id=1158133330]
+
+[node name="Crew_Points" parent="Station" unique_id=33737465 instance=ExtResource("6_7mycd")]
+position = Vector2(59, 766)
+
+[node name="Crew_Points2" parent="Station" unique_id=85054974 instance=ExtResource("6_7mycd")]
+position = Vector2(129, 101)
 
 [node name="End_Points" parent="." unique_id=1034302195 instance=ExtResource("7_272bh")]
-position = Vector2(1180, 701)
+position = Vector2(1182, 701)

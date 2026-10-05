@@ -10,57 +10,127 @@ script = ExtResource("1_kdgyc")
 texture = ExtResource("1_xiyce")
 centered = false
 
-[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=888786381]
+[node name="MapCover" type="Node2D" parent="." unique_id=789415027]
 
-[node name="Block1" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=548031705]
-polygon = PackedVector2Array(-1, -2, 0, 160, 277, 202, 306, -1)
+[node name="Base" type="Polygon2D" parent="MapCover" unique_id=1470960330]
+polygon = PackedVector2Array(-1, -1, 1012, 0, 1011, 1901, 0, 1900)
 
-[node name="Block2" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1013778939]
-polygon = PackedVector2Array(326, -1, 314, 73, 1011, 180, 1011, -1)
+[node name="Cover1" type="Polygon2D" parent="MapCover" unique_id=1115323454]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(-1, -1, 305, 0, 277, 202, 0, 160)
 
-[node name="Block3" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1028079488]
-polygon = PackedVector2Array(313, 88, 295, 206, 1011, 320, 1012, 199)
+[node name="Cover2" type="Polygon2D" parent="MapCover" unique_id=2102030809]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(325, -1, 314, 73, 1012, 180, 1012, 0)
 
-[node name="Block4" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=625917064]
-polygon = PackedVector2Array(-1, 180, 272, 221, 207, 655, -1, 624)
+[node name="Cover3" type="Polygon2D" parent="MapCover" unique_id=1286452563]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(312, 88, 295, 206, 1012, 320, 1012, 198)
 
-[node name="Block5" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=715426117]
-polygon = PackedVector2Array(292, 224, 228, 657, 959, 764, 484, 254)
+[node name="Cover4" type="Polygon2D" parent="MapCover" unique_id=100040685]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(0, 180, 272, 221, 207, 655, 0, 624)
 
-[node name="Block6" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=305071684]
-polygon = PackedVector2Array(515, 258, 1012, 334, 1012, 504, 973, 753)
+[node name="Cover5" type="Polygon2D" parent="MapCover" unique_id=1975420341]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(292, 224, 484, 254, 958, 763, 228, 656)
 
-[node name="Block7" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=538801525]
-polygon = PackedVector2Array(986, 794, 947, 1066, 1011, 1078, 1011, 820)
+[node name="Cover6" type="Polygon2D" parent="MapCover" unique_id=631075863]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(515, 258, 1012, 334, 1012, 510, 973, 753)
 
-[node name="Block8" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=640466011]
-polygon = PackedVector2Array(943, 1088, 1011, 1098, 1013, 1854, 831, 1826)
+[node name="Cover7" type="Polygon2D" parent="MapCover" unique_id=746346072]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(1012, 630, 991, 768, 1012, 771)
 
-[node name="Block9" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=190825505]
-polygon = PackedVector2Array(829, 1844, 819, 1902, 1011, 1901, 1012, 1871)
+[node name="Cover8" type="Polygon2D" parent="MapCover" unique_id=82958959]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(0, 641, 206, 673, 46, 1758, 27, 1755, 24, 1785, 284, 1823, 274, 1900, -1, 1900)
 
-[node name="Block10" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=298164006]
-polygon = PackedVector2Array(461, 710, 421, 984, 703, 1024, 741, 751)
+[node name="Cover9" type="Polygon2D" parent="MapCover" unique_id=1446491235]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(223, 676, 440, 708, 284, 1805, 61, 1769)
 
-[node name="Block11" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1052388486]
+[node name="Cover10" type="Polygon2D" parent="MapCover" unique_id=141129569]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(461, 710, 741, 751, 703, 1024, 421, 983)
+
+[node name="Cover11" type="Polygon2D" parent="MapCover" unique_id=598823891]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
 polygon = PackedVector2Array(755, 753, 968, 785, 927, 1058, 717, 1027)
 
-[node name="Block12" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=155405104]
+[node name="Cover12" type="Polygon2D" parent="MapCover" unique_id=1044463894]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(419, 998, 924, 1073, 811, 1823, 545, 1783, 508, 1786, 487, 1785, 305, 1801)
+
+[node name="Cover13" type="Polygon2D" parent="MapCover" unique_id=382160302]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(301, 1829, 293, 1900, 800, 1900, 807, 1842, 543, 1802)
+
+[node name="Cover14" type="Polygon2D" parent="MapCover" unique_id=471653197]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(829, 1844, 819, 1900, 1011, 1900, 1011, 1871)
+
+[node name="Cover15" type="Polygon2D" parent="MapCover" unique_id=145582484]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(986, 794, 1012, 821, 1012, 1078, 947, 1066)
+
+[node name="Cover16" type="Polygon2D" parent="MapCover" unique_id=71208256]
+color = Color(0.5372549, 0.5372549, 0.5372549, 1)
+polygon = PackedVector2Array(943, 1088, 1012, 1098, 1011, 1854, 831, 1824)
+
+[node name="Collision" type="StaticBody2D" parent="." unique_id=888786381]
+visible = false
+
+[node name="Block1" type="CollisionPolygon2D" parent="Collision" unique_id=548031705]
+polygon = PackedVector2Array(-1, -2, 0, 160, 277, 202, 306, -1)
+
+[node name="Block2" type="CollisionPolygon2D" parent="Collision" unique_id=1013778939]
+polygon = PackedVector2Array(326, -1, 314, 73, 1011, 180, 1011, -1)
+
+[node name="Block3" type="CollisionPolygon2D" parent="Collision" unique_id=1028079488]
+polygon = PackedVector2Array(313, 88, 295, 206, 1011, 320, 1012, 199)
+
+[node name="Block4" type="CollisionPolygon2D" parent="Collision" unique_id=625917064]
+polygon = PackedVector2Array(-1, 180, 272, 221, 207, 655, -1, 624)
+
+[node name="Block5" type="CollisionPolygon2D" parent="Collision" unique_id=715426117]
+polygon = PackedVector2Array(292, 224, 228, 657, 959, 764, 484, 254)
+
+[node name="Block6" type="CollisionPolygon2D" parent="Collision" unique_id=305071684]
+polygon = PackedVector2Array(515, 258, 1012, 334, 1012, 504, 973, 753)
+
+[node name="Block7" type="CollisionPolygon2D" parent="Collision" unique_id=538801525]
+polygon = PackedVector2Array(986, 794, 947, 1066, 1011, 1078, 1011, 820)
+
+[node name="Block8" type="CollisionPolygon2D" parent="Collision" unique_id=640466011]
+polygon = PackedVector2Array(943, 1088, 1011, 1098, 1013, 1854, 831, 1826)
+
+[node name="Block9" type="CollisionPolygon2D" parent="Collision" unique_id=190825505]
+polygon = PackedVector2Array(829, 1844, 819, 1902, 1011, 1901, 1012, 1871)
+
+[node name="Block10" type="CollisionPolygon2D" parent="Collision" unique_id=298164006]
+polygon = PackedVector2Array(461, 710, 421, 984, 703, 1024, 741, 751)
+
+[node name="Block11" type="CollisionPolygon2D" parent="Collision" unique_id=1052388486]
+polygon = PackedVector2Array(755, 753, 968, 785, 927, 1058, 717, 1027)
+
+[node name="Block12" type="CollisionPolygon2D" parent="Collision" unique_id=155405104]
 polygon = PackedVector2Array(419, 998, 924, 1073, 810, 1824, 545, 1783, 508, 1786, 487, 1785, 305, 1801)
 
-[node name="Block13" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=955632860]
+[node name="Block13" type="CollisionPolygon2D" parent="Collision" unique_id=955632860]
 polygon = PackedVector2Array(301, 1829, 293, 1902, 800, 1899, 807, 1842, 543, 1802)
 
-[node name="Block14" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1509107249]
+[node name="Block14" type="CollisionPolygon2D" parent="Collision" unique_id=1509107249]
 polygon = PackedVector2Array(223, 676, 440, 708, 284, 1805, 61, 1769, 122, 1376)
 
-[node name="Block15" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1254566331]
+[node name="Block15" type="CollisionPolygon2D" parent="Collision" unique_id=1254566331]
 polygon = PackedVector2Array(-1, 642, 206, 673, 46, 1758, -1, 1752)
 
-[node name="Block16" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=848201915]
+[node name="Block16" type="CollisionPolygon2D" parent="Collision" unique_id=848201915]
 polygon = PackedVector2Array(-1, 1752, 27, 1756, 24, 1785, 195, 1810, 284, 1823, 274, 1900, -1, 1900)
 
-[node name="Block17" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1029729729]
+[node name="Block17" type="CollisionPolygon2D" parent="Collision" unique_id=1029729729]
 polygon = PackedVector2Array(1011, 631, 991, 768, 1011, 771)
 
 [node name="RoadPoints" type="Node2D" parent="." unique_id=1325337130]

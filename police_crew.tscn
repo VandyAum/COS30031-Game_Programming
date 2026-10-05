@@ -4,14 +4,14 @@
 [ext_resource type="Texture2D" uid="uid://bvn15n5na2agp" path="res://Assets/Police car.svg" id="2_h05mw"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_j3xpk"]
-size = Vector2(161, 64)
+size = Vector2(88, 36)
 
 [node name="CharacterBody2D" type="CharacterBody2D" unique_id=1442356974]
 script = ExtResource("1_h55ag")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=460056079]
+scale = Vector2(0.55345905, 0.58730155)
 texture = ExtResource("2_h05mw")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=493135127]
-position = Vector2(0, 1)
 shape = SubResource("RectangleShape2D_j3xpk")
