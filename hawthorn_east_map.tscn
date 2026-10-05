@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://bx1a76y7hxbwa"]
+[gd_scene format=3 uid="uid://mdx3mnnisvpt"]
 
 [ext_resource type="Script" uid="uid://c6fi0vamxg811" path="res://hawthorn_east_map.gd" id="1_kdgyc"]
 [ext_resource type="Texture2D" uid="uid://cu47yywh3nro1" path="res://Map/hawthorn_east_extension_aligned.svg" id="1_xiyce"]

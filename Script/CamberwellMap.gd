@@ -71,9 +71,9 @@ func create_location(feature):
 
 	var label = Label.new()
 
-    label.text = "●"
-    label.position = Vector2(-20, -35)
-    label.add_theme_font_size_override("font_size", 70)
-    label.add_theme_color_override("font_color", Color.RED)
+	label.text = "●"
+	label.position = Vector2(-20, -35)
+	label.add_theme_font_size_override("font_size", 70)
+	label.add_theme_color_override("font_color", Color.RED)
 
-    marker.add_child(label)
+	marker.add_child(label)
