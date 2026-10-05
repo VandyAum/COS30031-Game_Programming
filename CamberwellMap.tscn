@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ck8ja8hyd4wpr" path="res://Script/CamberwellMap.gd" id="1_3vi7k"]
 [ext_resource type="Texture2D" uid="uid://u5oocced7163" path="res://Map/camberwell_game_map_roadclean.svg" id="2_3h1ab"]
+[ext_resource type="PackedScene" uid="uid://df6svmy0mtp63" path="res://Crew_Point.tscn" id="3_xqsrv"]
 
 [node name="Camberwell" type="Node2D" unique_id=1887466279]
 script = ExtResource("1_3vi7k")
@@ -195,9 +196,6 @@ polygon = PackedVector2Array(0, 183, 130, 203, 112, 323, -2, 306)
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Collision" unique_id=212502572]
 polygon = PackedVector2Array(0, 318, 111, 336, 52, 760, 0, 705)
 
-[node name="Locations" type="Node2D" parent="." unique_id=521421413]
-visible = false
-
 [node name="RoadPoints" type="Node2D" parent="." unique_id=1310611307]
 
 [node name="Point1" type="Marker2D" parent="RoadPoints" unique_id=515222274]
@@ -355,3 +353,11 @@ position = Vector2(1105, 539)
 
 [node name="Point52" type="Marker2D" parent="RoadPoints" unique_id=234766411]
 position = Vector2(1081, 181)
+
+[node name="Locations" type="Node2D" parent="." unique_id=521421413]
+visible = false
+
+[node name="CamberwellPoliceStation" parent="Locations" unique_id=33737465 instance=ExtResource("3_xqsrv")]
+position = Vector2(1220, 336.7)
+location_name = "Camberwell Police Station"
+location_type = "police"

@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bx1a76y7hxbwa" path="res://hawthorn_east_map.tscn" id="3_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://y3tdaktx1mby" path="res://surrey_hill_Map.tscn" id="4_lquwl"]
 [ext_resource type="PackedScene" uid="uid://df6svmy0mtp63" path="res://Crew_Point.tscn" id="6_7mycd"]
+[ext_resource type="Script" uid="uid://d13t7wufuhs44" path="res://incident.gd" id="7_5vw27"]
 [ext_resource type="PackedScene" uid="uid://chxkxw0rvnjgv" path="res://end_point.tscn" id="7_272bh"]
 
 [node name="Main" type="Node2D" unique_id=1954988479]
@@ -21,7 +22,7 @@ script = ExtResource("1_272bh")
 [node name="Drawing" parent="." unique_id=1114527525 node_paths=PackedStringArray("locations", "end_points", "camberwell", "surreyHill", "EHawthorn") instance=ExtResource("2_lquwl")]
 z_index = 1
 locations = NodePath("../Station")
-end_points = NodePath("../End_Points")
+end_points = NodePath("../Incident")
 camberwell = NodePath("../MapChunk/Camberwell")
 surreyHill = NodePath("../MapChunk/Surrey_Hill")
 EHawthorn = NodePath("../MapChunk/Hawthorn_East")
@@ -39,11 +40,33 @@ position = Vector2(2113, 2)
 
 [node name="Station" type="Node2D" parent="." unique_id=1158133330]
 
-[node name="Crew_Points" parent="Station" unique_id=33737465 instance=ExtResource("6_7mycd")]
-position = Vector2(59, 766)
+[node name="Crew_Points1" parent="Station" unique_id=33737465 instance=ExtResource("6_7mycd")]
+position = Vector2(61, 776)
 
 [node name="Crew_Points2" parent="Station" unique_id=85054974 instance=ExtResource("6_7mycd")]
-position = Vector2(129, 101)
+position = Vector2(165, 37)
 
-[node name="End_Points" parent="." unique_id=1034302195 instance=ExtResource("7_272bh")]
-position = Vector2(1182, 701)
+[node name="Crew_Points3" parent="Station" unique_id=62810092 instance=ExtResource("6_7mycd")]
+position = Vector2(2001, 1046)
+
+[node name="Incident" type="Node2D" parent="." unique_id=1677553392]
+position = Vector2(61, 776)
+script = ExtResource("7_5vw27")
+
+[node name="End_Points1" parent="Incident" unique_id=1034302195 instance=ExtResource("7_272bh")]
+position = Vector2(1121, -75)
+
+[node name="End_Points2" parent="Incident" unique_id=169220232 instance=ExtResource("7_272bh")]
+position = Vector2(1053, -92)
+
+[node name="End_Points3" parent="Incident" unique_id=1127435239 instance=ExtResource("7_272bh")]
+position = Vector2(960, -92)
+
+[node name="End_Points4" parent="Incident" unique_id=1763154515 instance=ExtResource("7_272bh")]
+position = Vector2(1190, -67)
+
+[node name="End_Points5" parent="Incident" unique_id=685769315 instance=ExtResource("7_272bh")]
+position = Vector2(1271, -49)
+
+[node name="End_Points6" parent="Incident" unique_id=502573100 instance=ExtResource("7_272bh")]
+position = Vector2(1336, -32)

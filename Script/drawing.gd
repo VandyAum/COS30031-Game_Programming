@@ -5,7 +5,7 @@ extends Node2D
 
 # For the points
 @export var locations : Node2D
-@export var end_points : Area2D
+@export var end_points : Node2D
 @export var camberwell : Camberwell
 @export var surreyHill : surreyHill
 @export var EHawthorn: EHawthorn
@@ -13,6 +13,7 @@ extends Node2D
 @onready var surreyHill_road_points = surreyHill.get_node("RoadPoints")
 @onready var ehawthorn_road_points = EHawthorn.get_node("RoadPoints")
 var start_point = null
+var end_point = null
 
 # For police crew
 var crew_scene = preload("res://police_crew.tscn")
@@ -37,14 +38,7 @@ func _process(delta: float) -> void:
 		draw()
 	if is_following_path:
 		move_crew(delta)
-#	Tempory for now
-	if Input.is_action_just_pressed("clear_draw"):
-		if line.points.size() > 0 and !is_drawing:
-			line.clear_points()
-			crew.queue_free()
-			crew_spawned = false
-			#crew = crew_scene.instantiate()
-			is_drawing = true
+			
 func draw():
 	# This is responsible for check if the point is clicked
 	if line.points.size() == 0:
@@ -88,13 +82,21 @@ func draw():
 				)
 		
 	if drawing_started:
-		end_points.can_clicked = true
-		if end_points.clicked:
+		# This is for allowing which incident can be clicked on
+		for point in end_points.get_children():
+			if point.visible:
+				point.can_clicked = true
+			else:
+				point.can_clicked = false
+				
+		end_point = get_clicked_end_point()
+		
+		if end_point != null:
 			# This is where the snapping occur
 	
 			snap_line_to_road()
 			
-			var end_position = line.to_local(end_points.global_position)
+			var end_position = line.to_local(end_point.global_position)
 			line.set_point_position(line.points.size() - 1, end_position)
 			
 			is_drawing = false
@@ -104,10 +106,7 @@ func draw():
 				is_following_path = true
 			if !crew_spawned:
 				add_child(crew)
-				if line.points.size() == 0:
-					return
-				else:
-					crew.position = line.points[0]
+				crew.position = line.points[0]
 				crew_spawned = true
 	
 func move_crew(delta):
@@ -125,7 +124,28 @@ func move_crew(delta):
 	)
 	if crew.position.distance_to(target_position) < 5:
 		path_index += 1
-		
+
+func get_clicked_location():
+	for point in locations.get_children():
+		if point.clicked:
+			return point
+
+	return null
+
+func get_clicked_end_point():	
+	for point in end_points.get_children():
+		if point.clicked:
+			return point
+
+	return null
+
+# ChatGPT
+# prompt: 
+# 	this is the map with added collision to right i want the player to be able
+# 	would just snap the path to the closest road making the path  short if
+# 	possible is it possible without path finding
+# This is what i got from GenAI
+	
 func get_closest_valid_road_point(position, previous_position):
 	var closest_point = null
 	var closest_distance = INF
@@ -153,11 +173,13 @@ func get_closest_valid_road_point(position, previous_position):
 
 	return closest_point
 
-
+#ChatGPT
 func snap_line_to_road():
 	if line.points.size() == 0:
 		return
+		
 	var previous_position = line.to_global(line.points[0])
+	
 	for i in range(1, line.points.size() - 1):
 		var line_point_global = line.to_global(line.points[i])
 
@@ -185,9 +207,3 @@ func check_collision(from_position, to_position):
 
 	return result
 	
-func get_clicked_location():
-	for point in locations.get_children():
-		if point.clicked:
-			return point
-
-	return null

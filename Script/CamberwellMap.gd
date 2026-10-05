@@ -73,6 +73,3 @@ func create_location(feature):
 
 	label.text = "●"
 	label.position = Vector2(-20, -35)
-
-func test():
-	print("Test")
