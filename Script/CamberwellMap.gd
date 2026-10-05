@@ -1,8 +1,7 @@
-extends Node2D
+class_name Camberwell extends Node2D
 
 @onready var Map = $Map
 @onready var Location = $Locations
-
 const Location_IDS = [5,11,20,43,51]
 
 const MIN_LONGITUDE = 145.056520
@@ -72,9 +71,9 @@ func create_location(feature):
 
 	var label = Label.new()
 
-	label.text = "●"
-	label.position = Vector2(-20, -35)
-	label.add_theme_font_size_override("font_size", 70)
-	label.add_theme_color_override("font_color", Color.RED)
+    label.text = "●"
+    label.position = Vector2(-20, -35)
+    label.add_theme_font_size_override("font_size", 70)
+    label.add_theme_color_override("font_color", Color.RED)
 
-	marker.add_child(label)
+    marker.add_child(label)

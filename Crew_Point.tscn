@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://df6svmy0mtp63"]
+
+[ext_resource type="Script" uid="uid://cmxju77317nbv" path="res://Script/crew_point.gd" id="1_7cs7h"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_7cs7h"]
+font_size = 30
+font_color = Color(0.35868376, 0.97625464, 0.491468, 1)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_e0vs3"]
+radius = 8.0
+
+[node name="Crew_Points" type="Area2D" unique_id=33737465]
+script = ExtResource("1_7cs7h")
+
+[node name="Label" type="Label" parent="." unique_id=2000726821]
+offset_left = -9.0
+offset_top = -24.0
+offset_right = 31.0
+offset_bottom = 18.0
+text = "●"
+label_settings = SubResource("LabelSettings_7cs7h")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1381133826]
+shape = SubResource("CircleShape2D_e0vs3")

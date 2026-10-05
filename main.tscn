@@ -1,66 +1,39 @@
 [gd_scene format=3 uid="uid://vu3o5p5e144v"]
 
 [ext_resource type="PackedScene" uid="uid://cydoy4mfk37xm" path="res://CamberwellMap.tscn" id="1_0xm2m"]
-[ext_resource type="Script" uid="uid://doolnlopfcpoj" path="res://Script/main.gd" id="1_h2yge"]
-[ext_resource type="PackedScene" uid="uid://bx1a76y7hxbwa" path="res://Hawthorn_East_Map.tscn" id="3_1bvp3"]
+[ext_resource type="Script" uid="uid://vn48f0lyoxpe" path="res://camera.gd" id="1_272bh"]
+[ext_resource type="PackedScene" uid="uid://ccg3mp5xcq6ki" path="res://drawing.tscn" id="2_lquwl"]
+[ext_resource type="PackedScene" uid="uid://bx1a76y7hxbwa" path="res://hawthorn_east_map.tscn" id="3_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://y3tdaktx1mby" path="res://surrey_hill_Map.tscn" id="4_lquwl"]
-[ext_resource type="Script" uid="uid://0sb5brua44qe" path="res://Script/player.gd" id="5_lquwl"]
-[ext_resource type="Texture2D" uid="uid://daosetb03rf6u" path="res://icon.svg" id="6_272bh"]
-[ext_resource type="Script" uid="uid://yojjqs38k088" path="res://Script/incident.gd" id="7_272bh"]
+[ext_resource type="PackedScene" uid="uid://df6svmy0mtp63" path="res://Crew_Point.tscn" id="6_7mycd"]
+[ext_resource type="PackedScene" uid="uid://chxkxw0rvnjgv" path="res://end_point.tscn" id="7_272bh"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_hal82"]
-radius = 60.0
+[node name="Main" type="Node2D" unique_id=1954988479]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_4ox2j"]
-radius = 100.0
+[node name="Camera2D" type="Camera2D" parent="." unique_id=2118934091]
+script = ExtResource("1_272bh")
 
-[node name="Main" type="Node2D" unique_id=1800620630]
-script = ExtResource("1_h2yge")
+[node name="Drawing" parent="." unique_id=1114527525 node_paths=PackedStringArray("crew_points", "end_points", "camberwell", "surreyHill", "EHawthorn") instance=ExtResource("2_lquwl")]
+z_index = 1
+crew_points = NodePath("../Crew_Points")
+end_points = NodePath("../End_Points")
+camberwell = NodePath("../MapChunk/Camberwell")
+surreyHill = NodePath("../MapChunk/Surrey_Hill")
+EHawthorn = NodePath("../MapChunk/Hawthorn_East")
+crew_speed = 500
 
-[node name="MapChunk" type="Node2D" parent="." unique_id=131223256]
+[node name="MapChunk" type="Node2D" parent="." unique_id=1725131052]
 
-[node name="Camberwell" parent="MapChunk" unique_id=1634047219 instance=ExtResource("1_0xm2m")]
+[node name="Camberwell" parent="MapChunk" unique_id=1084306728 instance=ExtResource("1_0xm2m")]
 
-[node name="Hawthorn_EastMap" parent="MapChunk" unique_id=1208446374 instance=ExtResource("3_1bvp3")]
+[node name="Hawthorn_East" parent="MapChunk" unique_id=1410543495 instance=ExtResource("3_1bvp3")]
 position = Vector2(-924, -1)
 
-[node name="Surrey_Hill" parent="MapChunk" unique_id=148460301 instance=ExtResource("4_lquwl")]
-position = Vector2(2052, -275)
+[node name="Surrey_Hill" parent="MapChunk" unique_id=2132268439 instance=ExtResource("4_lquwl")]
+position = Vector2(2113, 2)
 
-[node name="Player" type="CharacterBody2D" parent="." unique_id=376667844]
-z_index = 10
-position = Vector2(100, 360)
-collision_mask = 2
-script = ExtResource("5_lquwl")
+[node name="Crew_Points" parent="." unique_id=33737465 instance=ExtResource("6_7mycd")]
+position = Vector2(138, 195)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=1074003398]
-position = Vector2(0, -22)
-one_way_collision = true
-
-[node name="Camera2D" type="Camera2D" parent="Player" unique_id=1733193444]
-ignore_rotation = false
-enabled = false
-zoom = Vector2(1.1, 1.1)
-limit_left = 0
-limit_top = 0
-
-[node name="Sprite2D" type="Sprite2D" parent="Player" unique_id=534477367]
-scale = Vector2(0.15, 0.15)
-texture = ExtResource("6_272bh")
-
-[node name="Incident1" type="Area2D" parent="." unique_id=176547298]
-position = Vector2(700, 350)
-script = ExtResource("7_272bh")
-
-[node name="Trigger" type="Area2D" parent="Incident1" unique_id=1091877816]
-position = Vector2(500, 350)
-
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="Incident1/Trigger" unique_id=184574848]
-position = Vector2(-500, -350)
-shape = SubResource("CircleShape2D_hal82")
-debug_color = Color(2.4546682e-06, 0.43760157, 0.5142826, 0.41960785)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Incident1/Trigger" unique_id=302376877]
-shape = SubResource("CircleShape2D_4ox2j")
-
-[connection signal="body_entered" from="Incident1/Trigger" to="." method="_on_trigger_body_entered"]
+[node name="End_Points" parent="." unique_id=1034302195 instance=ExtResource("7_272bh")]
+position = Vector2(1180, 701)
