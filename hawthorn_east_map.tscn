@@ -80,7 +80,6 @@ color = Color(0.5372549, 0.5372549, 0.5372549, 1)
 polygon = PackedVector2Array(943, 1088, 1012, 1098, 1011, 1854, 831, 1824)
 
 [node name="Collision" type="StaticBody2D" parent="." unique_id=888786381]
-visible = false
 
 [node name="Block1" type="CollisionPolygon2D" parent="Collision" unique_id=548031705]
 polygon = PackedVector2Array(-1, -2, 0, 160, 277, 202, 306, -1)

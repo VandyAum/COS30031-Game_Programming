@@ -23,9 +23,10 @@ var path_index := 1
 var is_following_path := false
 @export var crew_speed := 200
 
-#For drawing
+# For drawing
 var is_drawing := true
 var drawing_started := false
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -38,9 +39,15 @@ func _process(delta: float) -> void:
 		draw()
 	if is_following_path:
 		move_crew(delta)
+	if crew.is_returning and crew.is_solved:
+		is_following_path = true
+		#if end_point != null:
+			#
+			#end_point.deactivate()
+			#end_points.show_new_random_point()
 			
 func draw():
-	# This is responsible for check if the point is clicked
+	# This is responsible for checking which station you clicked on
 	if line.points.size() == 0:
 		var clicked_location = get_clicked_location()
 		if clicked_location != null:
@@ -59,7 +66,7 @@ func draw():
 		if line.points.size() > 2:
 			line.remove_point(line.points.size() - 1)
 	if line.points.size() > 0:
-		#	NEED TO STUDY THIS BLOCK HERE
+		#	is what allow the draw to not go through the wall
 		if line.points.size() >= 2:
 			var previous_point = line.points[line.points.size() - 2]
 
@@ -91,9 +98,15 @@ func draw():
 				
 		end_point = get_clicked_end_point()
 		
+		# checking when player are done drawing
 		if end_point != null:
+			# This will stop the incident from disappearing after the player is done
+			# drawing
+			end_point.timer.stop()
+			end_point.can_clicked = false
+			
 			# This is where the snapping occur
-	
+			
 			snap_line_to_road()
 			
 			var end_position = line.to_local(end_point.global_position)
@@ -104,16 +117,66 @@ func draw():
 			if line.points.size() > 1:
 				path_index = 1
 				is_following_path = true
-			if !crew_spawned:
+			if !crew_spawned and line.points.size() > 0:
 				add_child(crew)
 				crew.position = line.points[0]
 				crew_spawned = true
 	
 func move_crew(delta):
+	if crew.is_returning:
+		
+		# This sets the path for returning
+		if path_index >= line.points.size():
+			path_index = line.points.size() - 2
+		# check when to stop returning movement
+		if path_index < 0:
+			is_following_path = false
+			crew.is_returning = false
+			
+			crew.queue_free()
+			crew = crew_scene.instantiate()
+			crew_spawned = false
+			
+			line.clear_points()
+			
+			is_drawing = true
+			drawing_started = false
+			
+			start_point = null
+			
+			if end_point != null:
+				end_point.deactivate()
+				end_points.show_new_random_point()
+			
+			end_point = null
+			crew.is_solved = false
+
+			return
+		
+		var target_position = line.points[path_index]
+		var direction = target_position - crew.position
+
+		crew.rotation = direction.angle()
+
+		crew.position = crew.position.move_toward(
+			target_position,
+			crew_speed * delta
+		)
+
+		if crew.position.distance_to(target_position) < 5:
+			path_index -= 1
+		
+		
+		
+		return	
 	if path_index >= line.points.size():
 		is_following_path = false
+		
+		# This get the crew to solve the incident
+		
+		crew.start_solving()
 		return
-
+	
 	var target_position = line.points[path_index]
 	var direction = target_position - crew.position
 	crew.rotation = direction.angle()
