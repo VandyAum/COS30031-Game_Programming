@@ -16,8 +16,8 @@ func _ready():
 	load_locations()
 	
 func geo_to_map_position(longitude: float, latitude: float) -> Vector2:
-	var map_size = Map.texture.get_size()
 
+	var map_size = Map.get_rect().size
 	var usable_width = map_size.x - MAP_MARGIN * 2.0
 	var usable_height = map_size.y - MAP_MARGIN * 2.0
 
@@ -58,7 +58,8 @@ func load_locations():
 			create_location(feature)
 
 func create_location(feature):
-	var marker = Node2D.new()
+	var marker = Area2D.new()
+	marker.set_script(load("res://Script/location.gd"))
 
 	marker.name = str(feature["name"])
 
@@ -68,6 +69,16 @@ func create_location(feature):
 	)
 
 	Location.add_child(marker)
+	
+	var collision_shape = CollisionShape2D.new()
+	
+	var circle = CircleShape2D.new()
+	
+	circle.radius = 40.0
+	
+	collision_shape.shape = circle
+	
+	marker.add_child(collision_shape)
 
 	var label = Label.new()
 

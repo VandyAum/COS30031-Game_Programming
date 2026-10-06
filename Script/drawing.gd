@@ -4,14 +4,18 @@ extends Node2D
 @onready var line = $Line
 
 # For the points
-@export var locations : Node2D
-@export var end_points : Area2D
-@export var camberwell : Camberwell
-@export var surreyHill : surreyHill
-@export var EHawthorn: EHawthorn
-@onready var road_points = camberwell.get_node("RoadPoints")
-@onready var surreyHill_road_points = surreyHill.get_node("RoadPoints")
-@onready var ehawthorn_road_points = EHawthorn.get_node("RoadPoints")
+
+@export var end_points: Area2D
+
+@onready var camberwell: Node2D = $"../MapChunk/Camberwell"
+@onready var surrey_hill: Node2D = $"../MapChunk/Surrey_Hill"
+@onready var e_hawthorn: Node2D = $"../MapChunk/Hawthorn_East"
+
+@onready var locations: Node2D = $"../MapChunk/Camberwell/Locations"
+
+@onready var road_points: Node2D = $"../MapChunk/Camberwell/RoadPoints"
+@onready var surreyHill_road_points: Node2D = $"../MapChunk/Surrey_Hill/RoadPoints"
+@onready var ehawthorn_road_points: Node2D = $"../MapChunk/Hawthorn_East/RoadPoints"
 var start_point = null
 
 # For police crew
@@ -126,7 +130,7 @@ func move_crew(delta):
 	if crew.position.distance_to(target_position) < 5:
 		path_index += 1
 		
-func get_closest_valid_road_point(position, previous_position):
+func get_closest_valid_road_point(check_position, previous_position):
 	var closest_point = null
 	var closest_distance = INF
 
@@ -145,7 +149,7 @@ func get_closest_valid_road_point(position, previous_position):
 			)
 
 			if collision.is_empty():
-				var distance = position.distance_to(point.global_position)
+				var distance = check_position.distance_to(point.global_position)
 
 				if distance < closest_distance:
 					closest_distance = distance
@@ -185,9 +189,13 @@ func check_collision(from_position, to_position):
 
 	return result
 	
-func get_clicked_location():
-	for point in locations.get_children():
-		if point.clicked:
-			return point
+#func get_clicked_location():
+	#for point in locations.get_children():
+	#	if point.has_method("is_clicked") and point.is_clicked():
+	#		return point
 
+	#return null
+func get_clicked_location():
 	return null
+
+	
