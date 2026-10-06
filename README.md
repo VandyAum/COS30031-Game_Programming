@@ -75,3 +75,5 @@ fictional); no endorsement by the State of Victoria is implied. The exact
 datasets, layers and retrieval dates are listed in
 [Map/world/ATTRIBUTION.md](Map/world/ATTRIBUTION.md), and the credit line is
 shown in-game bottom-right.
+
+Vehicle Sprite: https://tokka.itch.io/top-down-car BY tokka from itch.io
