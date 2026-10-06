@@ -1,4 +1,4 @@
-class_name Incident
+"""class_name Incident
 extends RefCounted
 
 # Used to infer the type of incident
@@ -28,3 +28,4 @@ func _init(type: IncidentType, title: String, decription: String, location: Vect
 	lastUpdate = issued
 	isCrewAttending = false
 	
+"""

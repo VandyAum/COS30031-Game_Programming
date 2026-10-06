@@ -1,11 +1,5 @@
 [gd_scene format=3 uid="uid://b775te0qa2655"]
 
-; Edited (Claude Opus 5.5) at Leah's request: removed the Transport Victoria
-; (DTP) logo - a government logo implies endorsement, which the CC BY data
-; licence does not allow. Layout otherwise unchanged (Jessie's design).
-
-[ext_resource type="Texture2D" uid="uid://b5ie2jlacmhwc" path="res://UI/Icons/local_fire_department_128dp.svg" id="1_ijstf"]
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yixhe"]
 content_margin_left = 0.0
 content_margin_top = 0.0
@@ -113,12 +107,12 @@ tab_1/title = "  Fire  "
 tab_2/title = "Medical"
 tab_3/title = "Police"
 
-[node name="IncidentCard" parent="IncidentPanel/MarginContainer/VBoxContainer" unique_id=240210475 instance=ExtResource("1_ijstf")]
+[node name="IncidentCard" parent="IncidentPanel/MarginContainer/VBoxContainer" unique_id=240210475]
 layout_mode = 2
 
 [node name="NavigationBar" type="ColorRect" parent="." unique_id=439445890]
-clip_contents = true
 custom_minimum_size = Vector2(450, 0)
+clip_contents = true
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 1.0

@@ -22,7 +22,7 @@ corner_detail = 5
 [sub_resource type="GDScript" id="GDScript_ms4yf"]
 resource_name = "IncidentCard"
 script/source = "extends Panel
-
+\"\"\"
 var incident: Incident:
 	set(value):
 		incident = value
@@ -70,6 +70,7 @@ func initate_type(texture: Texture2D, colour: Color) -> void:
 func update() -> void:
 	@warning_ignore(\"standalone_expression\")
 	progress.incident.elapsedActiveSeconds
+	\"\"\"
 "
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gppie"]
@@ -97,8 +98,8 @@ corner_radius_bottom_left = 25
 corner_detail = 6
 
 [node name="IncidentCard" type="Panel" unique_id=240210475]
-clip_contents = true
 custom_minimum_size = Vector2(350, 150)
+clip_contents = true
 theme_override_styles/panel = SubResource("StyleBoxFlat_uk570")
 script = SubResource("GDScript_ms4yf")
 
