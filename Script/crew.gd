@@ -31,9 +31,17 @@ enum State { AVAILABLE, EN_ROUTE, ON_SCENE, RETURNING, COOLDOWN }
 
 const STATE_NAMES := ["Available", "En route", "On scene", "Returning", "Cooldown"]
 const SIGHT_INTERVAL := 0.15
-const CAR_TEXTURE := preload("res://Assets/Police car.svg")
+const POLICE_TEXTURE := preload("res://Assets/police_car.png")
+const AMBULANCE_TEXTURE := preload("res://Assets/ambulance.png")
+const FIRE_TEXTURE := preload("res://Assets/fire_truck.png")
+
+const CREW_TEXTURES := {
+	&"police": POLICE_TEXTURE,
+	&"ambulance": AMBULANCE_TEXTURE,
+	&"fire": FIRE_TEXTURE
+}
 ## Tint applied to the (black and white) car sprite per crew type.
-const TINTS := {&"police": Color(1, 1, 1), &"ambulance": Color(1.0, 0.93, 0.62), &"fire": Color(1.0, 0.36, 0.26)}
+#const TINTS := {&"police": Color(1, 1, 1), &"ambulance": Color(1.0, 0.93, 0.62), &"fire": Color(1.0, 0.36, 0.26)}
 
 var type: CrewType
 var station: Node2D
@@ -69,9 +77,9 @@ func _ready() -> void:
 	_body = Node2D.new()
 	add_child(_body)
 	var car := Sprite2D.new()
-	car.texture = CAR_TEXTURE
+	car.texture = CREW_TEXTURES.get(type.id, POLICE_TEXTURE)
 	car.scale = Vector2(0.32, 0.34)
-	car.modulate = TINTS.get(type.id, Color.WHITE)
+	#car.modulate = TINTS.get(type.id, Color.WHITE)
 	_body.add_child(car)
 
 	global_position = station.global_position
