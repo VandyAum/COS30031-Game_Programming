@@ -110,30 +110,16 @@ func _ready() -> void:
 	_areas = JSON.parse_string(FileAccess.get_file_as_string(AREAS_PATH))
 	_roads = JSON.parse_string(FileAccess.get_file_as_string(ROADS_PATH))
 
-	var q := str(JavaScriptBridge.eval("location.search")) if OS.has_feature("web") else ""  # TMPDEBUG
-	print("TMPDEBUG flags: ", q)
 	_add_rect("Land", Rect2(Vector2.ZERO, Stage.world_size), LAND, 0)
-	if not "noareas" in q:
-		_add_polygon_layer("Parks", _areas["parks"], PARK, PATTERN_PARK)
-		_add_polygon_layer("Water", _areas["water"], WATER, PATTERN_WATER)
+	_add_polygon_layer("Parks", _areas["parks"], PARK, PATTERN_PARK)
+	_add_polygon_layer("Water", _areas["water"], WATER, PATTERN_WATER)
 	_add_line_layer("Waterways", _draw_waterways)
-	if not "nobuild" in q:
-		_add_buildings()
-	if not "nofoot" in q:
-		_add_polygon_layer("Footprints", _areas["footprints"], FOOTPRINT, -1)
+	_add_buildings()
+	_add_polygon_layer("Footprints", _areas["footprints"], FOOTPRINT, -1)
 	_add_line_layer("Rail", _draw_rail)
-	if not "noroads" in q:
-		_add_line_layer("Roads", _draw_roads)
+	_add_line_layer("Roads", _draw_roads)
 	_add_line_layer("Suburbs", _draw_suburbs)
 	_add_colour_filter()
-	if "nofilter" in q:
-		_filter.visible = false
-	if "nooverlay" in q:
-		get_node("../RoadOverlay").queue_free()
-	if "nolabels" in q:
-		get_node("../RoadLabels").queue_free()
-	if "nophys" in q:
-		get_node("../ScenePhysics").queue_free()
 	_add_fog()
 	_add_credit()
 
