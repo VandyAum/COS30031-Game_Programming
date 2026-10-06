@@ -26,10 +26,27 @@ class_name Crew extends Node2D
 #    screen at any zoom, hidden while parked. Show the remaining route ahead
 #    of it as a thin line in its type colour (nothing behind it, so the
 #    revealed traffic is visible). Provide status_text() for the UI."
+# Follow-up prompt (milestone 2 - obstacles and redraws):
+#   "Before driving onto each road of its route, the crew checks the TRUE
+#    world: if the road is blocked (and the blockage isn't its own incident,
+#    e.g. the crash it is going to), it stops at the junction in a new
+#    BLOCKED state, looks around (Knowledge.sight, so the blockage appears on
+#    the player's map) and emits Events.crew_blocked. Time keeps running
+#    while it waits. If the road clears it carries on by itself. While
+#    blocked, draw a pulsing red alert badge with an exclamation mark. Add
+#    reroute(points, edges, incident) for a route the player redraws from the
+#    crew's current position, and a 'held' flag that pauses it while the
+#    player is drawing that new route. A crew driving home on its own that
+#    hits a blockage just pathfinds around it. Include the blockage reason
+#    and road in status_text()."
+# Follow-up prompt: "A crew standing at a junction next to a blockage got
+#    stuck: a zero-length step 'on' the blocked road counted as driving onto
+#    it, and the route home snapped onto the blocked road. Skip zero-length
+#    steps before checking for blockages, and snap away from avoided roads."
 
-enum State { AVAILABLE, EN_ROUTE, ON_SCENE, RETURNING, COOLDOWN }
+enum State { AVAILABLE, EN_ROUTE, ON_SCENE, RETURNING, COOLDOWN, BLOCKED }
 
-const STATE_NAMES := ["Available", "En route", "On scene", "Returning", "Cooldown"]
+const STATE_NAMES := ["Available", "En route", "On scene", "Returning", "Cooldown", "Blocked"]
 const SIGHT_INTERVAL := 0.15
 const CAR_TEXTURE := preload("res://Assets/Police car.svg")
 ## Tint applied to the (black and white) car sprite per crew type.
@@ -40,6 +57,9 @@ var station: Node2D
 var callsign := ""
 var state := State.AVAILABLE
 var incident: Node2D = null
+## Paused while the player redraws this crew's route.
+var held := false
+var blocked_edge := -1
 
 var _points := PackedVector2Array()
 var _edges := PackedInt32Array()
@@ -48,6 +68,8 @@ var _cooldown := 0.0
 var _sight_timer := 0.0
 var _body: Node2D
 var _trail: Line2D
+var _alert_t := 0.0
+var _waiting_on := -1     # blocked road a returning crew already tried to avoid
 
 
 func setup(crew_type: CrewType, home: Node2D, number: int) -> void:
@@ -85,9 +107,16 @@ func _process(delta: float) -> void:
 		_body.scale = Vector2.ONE * clampf(1.0 / cam.zoom.x, 0.6, 1.6)
 	queue_redraw()
 
+	if held:
+		return
 	match state:
 		State.EN_ROUTE, State.RETURNING:
 			_drive(delta)
+		State.BLOCKED:
+			_alert_t += delta
+			if not _blocks_us(blocked_edge):
+				blocked_edge = -1
+				_set_state(State.EN_ROUTE)   # road cleared: carry on
 		State.COOLDOWN:
 			_cooldown -= delta
 			if _cooldown <= 0.0:
@@ -106,6 +135,15 @@ func _draw() -> void:
 	if type.icon:
 		var r := Rect2(c - Vector2(8, 8) * s, Vector2(16, 16) * s)
 		draw_texture_rect(type.icon, r, false, Color.WHITE)
+	if state == State.BLOCKED:
+		# Pulsing alert: the crew has hit something the map didn't show.
+		var a := Vector2(18, -30) * s
+		var pulse := 0.5 + 0.5 * sin(_alert_t * 8.0)
+		draw_circle(a, (14.0 + 6.0 * pulse) * s, Color(0.9, 0.15, 0.15, 0.35 * (1.0 - pulse)))
+		draw_circle(a, 11.0 * s, Color("d62828"))
+		draw_circle(a, 11.0 * s, Color.WHITE, false, 2.0 * s)
+		draw_rect(Rect2(a + Vector2(-1.6, -7) * s, Vector2(3.2, 9) * s), Color.WHITE)
+		draw_circle(a + Vector2(0, 5) * s, 1.8 * s, Color.WHITE)
 
 
 # --- Commands ------------------------------------------------------------------
@@ -125,22 +163,61 @@ func dispatch(points: PackedVector2Array, edges: PackedInt32Array, target: Node2
 ## Called by the incident when the job is finished (or we were the wrong crew).
 func go_home() -> void:
 	incident = null
-	var from: Variant = RoadGraph.snap(global_position, 300.0)
+	_route_home({})
+	_set_state(State.RETURNING)
+
+
+func _route_home(avoid: Dictionary) -> void:
+	if avoid.is_empty():
+		_waiting_on = -1
+	var from: Variant = RoadGraph.snap(global_position, 300.0, avoid)
 	var to: Variant = RoadGraph.snap(station.global_position, 300.0)
 	var path := PackedVector2Array([global_position])
 	var edges := PackedInt32Array([-1])
 	if from != null and to != null:
-		var r = RoadGraph.route(from, to)
+		var r = RoadGraph.route(from, to, avoid)
 		path.append_array(r.points)
 		edges.append_array(r.point_edges)
 	path.append(station.global_position)
 	edges.append(-1)
 	_follow(path, edges)
-	_set_state(State.RETURNING)
+
+
+# True if the real world has this road blocked by something other than our
+# own incident (a crew may drive onto the crash it is attending).
+func _blocks_us(edge: int) -> bool:
+	return edge >= 0 and World.is_blocked(edge) and (World.blocked_by(edge) == null or World.blocked_by(edge) != incident)
+
+
+func _stop_blocked(edge: int) -> void:
+	blocked_edge = edge
+	_alert_t = 0.0
+	Knowledge.sight(global_position)      # now the player can see why
+	Knowledge.observe(edge)
+	_set_state(State.BLOCKED)
+	Events.crew_blocked.emit(self, edge)
+
+
+## A route the player redrew from the crew's current position.
+func reroute(points: PackedVector2Array, edges: PackedInt32Array, target: Node2D) -> void:
+	incident = target
+	held = false
+	blocked_edge = -1
+	_follow(points, edges)
+	_set_state(State.EN_ROUTE)
+	Events.crew_dispatched.emit(self, target)
+
+
+func is_redrawable() -> bool:
+	return state == State.EN_ROUTE or state == State.BLOCKED
 
 
 func status_text() -> String:
 	match state:
+		State.BLOCKED:
+			var road: String = RoadGraph.edge_name[blocked_edge] if blocked_edge >= 0 else ""
+			return "BLOCKED: %s%s - redraw route" % [World.block_reason(blocked_edge).to_lower(),
+				(" on " + road) if road != "" else ""]
 		State.COOLDOWN:
 			return "Cooldown %ds" % ceili(_cooldown)
 		State.EN_ROUTE, State.RETURNING:
@@ -165,13 +242,25 @@ func _drive(delta: float) -> void:
 	if _index >= _points.size():
 		_finish_leg()
 		return
+	var edge := _edges[_index]
+	if global_position.distance_to(_points[_index]) < 0.5:
+		_index += 1            # already there (e.g. a junction point): not driving onto it
+		return
+	if _blocks_us(edge):
+		if state == State.RETURNING:
+			# Nobody to ask: find another way, or wait if there is none.
+			if _waiting_on != edge:
+				_waiting_on = edge
+				_route_home({edge: true})
+			return
+		_stop_blocked(edge)
+		return
 	var target := _points[_index]
 	var to_target := target - global_position
 	if to_target.length() > 0.01:
 		_body.rotation = to_target.angle()
 
 	var speed := type.speed_mps * float(Stage.meta["px_per_m"])
-	var edge := _edges[_index]
 	if edge >= 0:
 		speed *= maxf(World.speed_multiplier(edge), 0.15)   # true traffic
 	global_position = global_position.move_toward(target, speed * delta)

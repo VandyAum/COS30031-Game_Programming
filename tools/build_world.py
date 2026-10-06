@@ -48,6 +48,17 @@
 #    (4) Record exactly which datasets were used (official data.vic titles,
 #    WFS layer names, custodians, licence, retrieval dates and the changes we
 #    made) in world_meta.json and a generated Map/world/ATTRIBUTION.md."
+# Follow-up prompt (stations and railway stations):
+#   "Add more Features of Interest to foi.json: (1) every emergency facility
+#    from the full Vicmap FOI point layer (foi_point), merged with the unit's
+#    extract without duplicates (same subtype within 60 m); (2) railway
+#    stations from Vicmap rail infrastructure (rail_station points, which are
+#    unnamed): name each '<suburb> Station' after the suburb it sits in, or
+#    after the nearest road when a suburb already has one; (3) a short list
+#    of clearly fictional emergency stations so the tutorial has an
+#    ambulance and stage 1 has a fire station, as the spec's tutorial is an
+#    EMS call. All names go through the fictional namer. Mark fictional
+#    stations in the data and the attribution."
 # Follow-up prompt: "Scale stage 3 down by about 25% (1.5x stage 2 instead of
 #    2x), and only keep decor roads that are at least partly inside the world
 #    rectangle now that the cached download can be bigger than the world."
@@ -158,6 +169,10 @@ SOURCES = [
      "lakes, wetlands, river areas"),
     ("locality_polygon", "Vicmap Admin - Locality Polygon", "vicmap-admin", VICMAP,
      "suburb outlines and labels"),
+    ("tr_rail_infrastructure", "Vicmap Transport - Rail Infrastructure Point",
+     "vicmap-transport", VICMAP, "railway station locations"),
+    ("foi_point", "Vicmap Features - Features of Interest (FOI) Point",
+     "vicmap-features-of-interest", VICMAP, "police, ambulance, fire and SES stations"),
     ("parkres", "Parks and Conservation Reserves (PARKRES)", "parks-and-conservation-reserves-parkres",
      DEECA, "state parks and reserves"),
 ]
@@ -165,8 +180,16 @@ FOI_SOURCE = ("Vicmap Features of Interest", "vicmap-features-of-interest", VICM
               "Features of Interest (supplied as the unit's Boroondara student game extract "
               "of FOI_INDEX_EXTENT)")
 CHANGES = ("Reprojected to a local game grid, clipped to the play area, simplified and "
-           "stylised (parcels drawn as building boxes), and all place, road and facility "
-           "names replaced with fictional names. This is a game, not an emergency map.")
+           "stylised (parcels drawn as building boxes), all place, road and facility "
+           "names replaced with fictional names, and a few fictional emergency stations "
+           "added. This is a game, not an emergency map.")
+
+# Fictional stations (metres east/south of the junction), so early stages have
+# every crew type. Clearly marked as fictional in foi.json.
+FICTIONAL_STATIONS = [
+    ("Junction Ambulance Post", "ambulance station", 180.0, -210.0),
+    ("Cambermere Fire Station", "fire station", 1250.0, 520.0),
+]
 
 # --- Roads ------------------------------------------------------------------
 # Vicmap class_code: 0 freeway, 1 highway, 2 arterial, 3 sub-arterial,
@@ -812,6 +835,48 @@ def main():
         fois.append({"id": feat["id"], "name": namer.foi(feat["name"]), "type": feat["feature_type"],
                      "subtype": feat["feature_subtype"], "x": round(x, 1), "y": round(y, 1),
                      "s": stage_of(x, y)})
+    # Extra emergency stations from the full FOI point layer (deduplicated).
+    next_id = 1000
+    for feat in load("foi_point"):
+        lon, lat = feat["geometry"]["coordinates"][0] if feat["geometry"]["type"] == "MultiPoint" \
+            else feat["geometry"]["coordinates"]
+        x, y = proj(lon, lat)
+        sub = feat["properties"]["feature_subtype"]
+        if any(f["subtype"] == sub and math.dist((f["x"], f["y"]), (x, y)) < 60 * PX_PER_M for f in fois):
+            continue
+        label = re.sub(r"^Vicses (.+)$", r"SES \1 Unit", feat["properties"]["name_label"])
+        fois.append({"id": next_id, "name": namer.foi(label),
+                     "type": "emergency facility", "subtype": sub,
+                     "x": round(x, 1), "y": round(y, 1), "s": stage_of(x, y)})
+        next_id += 1
+    for name, sub, east, south in FICTIONAL_STATIONS:
+        x, y = (east - _W0) * PX_PER_M, (south - _N0) * PX_PER_M
+        fois.append({"id": next_id, "name": name, "type": "emergency facility", "subtype": sub,
+                     "x": round(x, 1), "y": round(y, 1), "s": stage_of(x, y), "fictional": True})
+        next_id += 1
+
+    # Railway stations (unnamed in Vicmap): name after suburb, else nearest road.
+    sub_polys = [(f["properties"]["locality_name"].title(), ring)
+                 for f in load("locality_polygon") for ring in rings(f["geometry"])]
+    used_names = set()
+    for feat in load("tr_rail_infrastructure"):
+        c = feat["geometry"]["coordinates"]
+        lon, lat = c[0] if feat["geometry"]["type"] == "MultiPoint" else c
+        x, y = proj(lon, lat)
+        if not (0 <= x <= WORLD_W and 0 <= y <= WORLD_H):
+            continue
+        name = next((namer.place(n) for n, ring in sub_polys if point_in_poly(x, y, ring)), "")
+        if not name or name in used_names:
+            # Nearest road with a distinctive (not generic/unnamed) name.
+            named = [e for e in edges if e["n"] and e["n"].split()[0] not in KEEP_BASES | {"Unnamed", "The"}]
+            best = min(named, key=lambda e: min(math.dist((x, y), p) for p in e["pts"]))
+            name = " ".join(w for w in best["n"].split() if w not in ROAD_TYPES and w not in TAILS)
+        used_names.add(name)
+        fois.append({"id": next_id, "name": name + " Station", "type": "transport terminal",
+                     "subtype": "railway station", "x": round(x, 1), "y": round(y, 1),
+                     "s": stage_of(x, y)})
+        next_id += 1
+
     with open(os.path.join(OUT, "foi.json"), "w", encoding="utf-8") as f:
         json.dump(fois, f, indent=1)
 

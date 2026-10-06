@@ -19,6 +19,10 @@ class_name Incident extends Node2D
 #    ring while unassigned, a white selection ring, and a progress arc while
 #    the crew is on scene. Emit Events.incident_updated on every change for
 #    the incidents panel."
+# Follow-up prompt (milestone 2): "Road incidents that block their road call
+#    World.block() on spawn and World.unblock() when resolved. Add unassign()
+#    for when the player redirects the crew elsewhere, and make status_text()
+#    say when the assigned crew is stuck at a blockage."
 
 enum Status { REPORTED, ASSIGNED, ON_SCENE, RESOLVED }
 const STATUS_NAMES := ["Reported", "Crew en route", "Crew on scene", "Resolved"]
@@ -33,19 +37,23 @@ var note := ""                 # e.g. wrong crew sent
 var selected := false
 var progress := 0.0            # 0..1 while on scene
 var reported_at := 0.0
+var road_edge := -1            # for ROAD incidents: the road it is on
 
 var _pulse := 0.0
 var _fade := 1.0
 
 
-func setup(t: IncidentType, ct: CrewType, pos: Vector2, place_name: String) -> void:
+func setup(t: IncidentType, ct: CrewType, pos: Vector2, place_name: String, edge := -1) -> void:
 	type = t
+	road_edge = edge
 	crew_type = ct
 	position = pos
 	place = place_name
 	description = t.descriptions.pick_random().replace("{place}", place_name)
 	reported_at = Knowledge.clock
 	add_to_group("incidents")
+	if t.blocks_road and edge >= 0:
+		World.block(edge, t.display_name, self)
 
 
 func title() -> String:
@@ -54,6 +62,8 @@ func title() -> String:
 
 func status_text() -> String:
 	var s: String = STATUS_NAMES[status]
+	if crew and status == Status.ASSIGNED and crew.state == Crew.State.BLOCKED:
+		return "%s %s" % [crew.callsign, crew.status_text()]
 	if crew and status in [Status.ASSIGNED, Status.ON_SCENE]:
 		s += " (%s)" % crew.callsign
 	if note != "" and status == Status.REPORTED:
@@ -70,6 +80,16 @@ func assign(c: Crew) -> void:
 	note = ""
 	status = Status.ASSIGNED
 	Events.incident_updated.emit(self)
+
+
+func unassign() -> void:
+	crew = null
+	status = Status.REPORTED
+	Events.incident_updated.emit(self)
+
+
+func is_crew_blocked() -> bool:
+	return crew != null and status == Status.ASSIGNED and crew.state == Crew.State.BLOCKED
 
 
 ## Returns true if this crew can work the incident.
@@ -110,6 +130,8 @@ func _process(delta: float) -> void:
 func _resolve() -> void:
 	status = Status.RESOLVED
 	progress = 1.0
+	if road_edge >= 0 and World.blocked_by(road_edge) == self:
+		World.unblock(road_edge)
 	Events.incident_resolved.emit(self)
 	Events.incident_updated.emit(self)
 	if crew:

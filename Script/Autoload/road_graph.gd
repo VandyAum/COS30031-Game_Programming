@@ -36,6 +36,10 @@ extends Node
 # Follow-up prompt: "Add edges_near(pos, radius) returning every playable road
 #    with any part within radius, using the same spatial grid, for crew
 #    sightings."
+# Follow-up prompt (milestone 2): "Let route() take a set of edges to avoid
+#    (e.g. a blockage a returning crew has just hit), by making their step
+#    cost huge in the AStar for that one query. snap() can also skip a set
+#    of edges, so a crew standing next to a blockage doesn't snap onto it."
 
 const GRAPH_PATH := "res://Map/world/roads.json"
 const GRID_CELL := 96.0
@@ -69,8 +73,10 @@ class Route:
 # AStar2D whose step cost is the real road length between two intersections.
 class RoadAStar extends AStar2D:
 	var graph: Node
+	var avoid := {}            # edge id -> true, for the current query only
 	func _compute_cost(from_id: int, to_id: int) -> float:
-		return graph.edge_length(graph.edge_between(from_id, to_id))
+		var e: int = graph.edge_between(from_id, to_id)
+		return 1.0e7 if avoid.has(e) else graph.edge_length(e)
 	func _estimate_cost(from_id: int, to_id: int) -> float:
 		return get_point_position(from_id).distance_to(get_point_position(to_id))
 
@@ -196,7 +202,7 @@ func point_at(edge: int, dist: float) -> Vector2:
 
 ## Closest point on any road to a world position. Returns null if no road is
 ## within max_radius pixels.
-func snap(world_pos: Vector2, max_radius := 400.0) -> RoadPos:
+func snap(world_pos: Vector2, max_radius := 400.0, avoid := {}) -> RoadPos:
 	var best: RoadPos = null
 	var best_d2 := max_radius * max_radius
 	var c := _cell(world_pos)
@@ -212,7 +218,7 @@ func snap(world_pos: Vector2, max_radius := 400.0) -> RoadPos:
 				for i in range(0, list.size(), 2):
 					var e := list[i]
 					var s := list[i + 1]
-					if edge_stage[e] > Stage.current:
+					if edge_stage[e] > Stage.current or avoid.has(e):
 						continue
 					var k := e * 65536 + s
 					if checked.has(k):
@@ -255,7 +261,14 @@ func edges_near(world_pos: Vector2, radius: float) -> PackedInt32Array:
 
 
 ## Shortest route along roads between two snapped positions.
-func route(from: RoadPos, to: RoadPos) -> Route:
+func route(from: RoadPos, to: RoadPos, avoid := {}) -> Route:
+	_astar.avoid = avoid
+	var r := _route(from, to)
+	_astar.avoid = {}
+	return r
+
+
+func _route(from: RoadPos, to: RoadPos) -> Route:
 	var r := Route.new()
 	if from == null or to == null:
 		return r

@@ -13,6 +13,9 @@ class_name IncidentType extends Resource
 #    classes) or at a Feature of Interest (with allowed FOI types/subtypes).
 #    Include description templates with a {place} token that the incident
 #    panel shows, written like a caller would say it. Comment each field."
+# Follow-up prompt (milestone 2): "Add blocks_road: road incidents such as
+#    car crashes block the road they are on until resolved (spec: 'Car crash -
+#    static, blocks its road')."
 
 enum Where { ROAD, FOI }
 
@@ -28,6 +31,9 @@ enum Where { ROAD, FOI }
 @export var weight := 1.0
 ## Where it happens.
 @export var where := Where.ROAD
+## For ROAD: the incident blocks its road until resolved (crews sent to it
+## can still reach it).
+@export var blocks_road := false
 ## For ROAD: allowed road classes (0 local, 1 collector, 2 arterial, 3 freeway).
 @export var road_classes: Array[int] = [0, 1, 2]
 ## For FOI: allowed FOI feature_type or feature_subtype values.

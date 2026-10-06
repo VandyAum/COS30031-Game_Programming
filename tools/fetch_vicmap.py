@@ -20,6 +20,10 @@
 #    council boundary, so take the download box from build_world.FETCH_BOUNDS
 #    (stage 3 + margin) instead of hard-coding Boroondara's extent, and drop
 #    the council boundary layer, which is no longer used."
+# Follow-up prompt: "Also fetch railway station locations (tr_rail_infrastructure,
+#    rail_station points) and every emergency facility from the full Vicmap
+#    FOI point layer (foi_point), which has more police/ambulance/fire
+#    stations than the unit's FOI extract."
 #
 # Data: Vicmap (c) State of Victoria (Department of Transport and Planning);
 # PARKRES (c) State of Victoria (DEECA). Licensed CC BY 4.0.
@@ -58,6 +62,9 @@ LAYERS = {
     "parkres": (["prims_id", "name_short", "area_type", "geom"], "prims_id", None),
     "hy_watercourse": (["ufi", "name", "feature_type_code", "geom"], "ufi", None),
     "hy_water_area_polygon": (["ufi", "name", "feature_type_code", "geom"], "ufi", None),
+    "tr_rail_infrastructure": (["ufi", "feature_type_code", "geom"], "ufi", "feature_type_code='rail_station'"),
+    "foi_point": (["ufi", "feature_type", "feature_subtype", "name_label", "geom"], "ufi",
+                  "feature_type='emergency facility'"),
 }
 
 

@@ -13,6 +13,10 @@ extends Node2D
 #    uses: stations in play, all crews, and whether a crew type currently
 #    has any station in play (so incidents only spawn if they can be
 #    answered)."
+# Follow-up prompt (milestone 2): "Crews know their own neighbourhood: at
+#    the start and whenever a stage opens, every station in play reveals the
+#    area around it (Knowledge.sight with a larger radius) so the fog of war
+#    starts lifted around stations."
 
 const FOI_PATH := "res://Map/world/foi.json"
 
@@ -41,6 +45,16 @@ func _ready() -> void:
 				counts[t.id] = n + t.crews_per_station
 				add_child(st)
 	print("Stations: %d (%s)" % [get_stations().size(), counts])
+	_reveal_home_areas.call_deferred()
+	Events.stage_changed.connect(func(_s: int) -> void: _reveal_home_areas())
+
+
+## Radius in metres each station reveals around itself.
+@export var home_reveal_m := 260.0
+
+func _reveal_home_areas() -> void:
+	for s in stations_in_play():
+		Knowledge.sight(s.global_position, home_reveal_m)
 
 
 ## Every CrewType resource in Data/crew_types (works in exported builds too).

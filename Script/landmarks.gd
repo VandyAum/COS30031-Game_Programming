@@ -23,7 +23,9 @@ const FOI_PATH := "res://Map/world/foi.json"
 const INK := Color("33373d")
 const LABEL_ZOOM := 0.75          # names appear at this zoom and closer
 
-enum Glyph { MEDICAL, SCHOOL, SHOP, TREE, WORSHIP, CIVIC, HOUSE, INDUSTRY, STAR }
+enum Glyph { MEDICAL, SCHOOL, SHOP, TREE, WORSHIP, CIVIC, HOUSE, INDUSTRY, STAR, TRAIN }
+## Drawn by Stations instead.
+const STATION_SUBTYPES := ["police station", "ambulance station", "fire station"]
 
 ## feature_type -> glyph (subtypes checked first, below).
 const TYPE_GLYPHS := {
@@ -35,6 +37,7 @@ const TYPE_GLYPHS := {
 	"cultural centre": Glyph.CIVIC, "community venue": Glyph.CIVIC, "admin facility": Glyph.CIVIC,
 	"residential building": Glyph.HOUSE,
 	"storage facility": Glyph.INDUSTRY, "dumping ground": Glyph.INDUSTRY, "communication service": Glyph.INDUSTRY,
+	"transport terminal": Glyph.TRAIN,
 }
 const SUBTYPE_GLYPHS := {"child care": Glyph.SCHOOL, "aged care": Glyph.MEDICAL}
 
@@ -48,7 +51,7 @@ func _ready() -> void:
 	var world := Rect2(Vector2.ZERO, Stage.world_size)
 	for f: Dictionary in fois:
 		var p := Vector2(f["x"], f["y"])
-		if f["type"] == "emergency facility" or not world.has_point(p):
+		if STATION_SUBTYPES.has(f["subtype"]) or not world.has_point(p):
 			continue
 		var glyph: int = SUBTYPE_GLYPHS.get(f["subtype"], TYPE_GLYPHS.get(f["type"], Glyph.STAR))
 		_places.append({"pos": p, "glyph": glyph, "name": f["name"]})
@@ -115,6 +118,16 @@ func _draw_glyph(glyph: int, c: Vector2, h: float) -> void:
 			draw_colored_polygon(PackedVector2Array([c + Vector2(-h, h), c + Vector2(-h, -h * 0.2),
 				c + Vector2(-h * 0.35, -h * 0.65), c + Vector2(-h * 0.35, -h * 0.2), c + Vector2(h * 0.3, -h * 0.65),
 				c + Vector2(h * 0.3, -h * 0.2), c + Vector2(h, -h * 0.65), c + Vector2(h, h)]), INK)
+		Glyph.TRAIN:
+			var body := StyleBoxFlat.new()
+			body.bg_color = INK
+			body.set_corner_radius_all(int(h * 0.35))
+			draw_style_box(body, Rect2(c + Vector2(-h * 0.7, -h), Vector2(h * 1.4, h * 1.5)))
+			draw_rect(Rect2(c + Vector2(-h * 0.45, -h * 0.75), Vector2(h * 0.9, h * 0.5)), Color.WHITE)
+			draw_circle(c + Vector2(-h * 0.35, h * 0.2), h * 0.15, Color.WHITE)
+			draw_circle(c + Vector2(h * 0.35, h * 0.2), h * 0.15, Color.WHITE)
+			draw_line(c + Vector2(-h * 0.5, h * 0.55), c + Vector2(-h * 0.8, h), INK, h * 0.2)
+			draw_line(c + Vector2(h * 0.5, h * 0.55), c + Vector2(h * 0.8, h), INK, h * 0.2)
 		_:
 			var star := PackedVector2Array()
 			for i in 10:

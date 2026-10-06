@@ -17,6 +17,9 @@ extends Node2D
 #    station. Keep track of the selected incident (select() emits
 #    Events.incident_selected and moves the highlight), and add a debug key
 #    (F5) that spawns one immediately."
+# Follow-up prompt (milestone 2): "Pass the road edge of ROAD incidents to
+#    the Incident so crashes can block their road, and don't place a new
+#    road incident on a road that is already blocked."
 
 const FOI_PATH := "res://Map/world/foi.json"
 
@@ -98,7 +101,7 @@ func spawn() -> Incident:
 			if c.id == t.primary_crew_type():
 				ct = c
 		var inc := Incident.new()
-		inc.setup(t, ct, spot["pos"], spot["place"])
+		inc.setup(t, ct, spot["pos"], spot["place"], spot.get("edge", -1))
 		inc.name = "%s_%d" % [t.id, Time.get_ticks_msec()]
 		add_child(inc)
 		Events.incident_spawned.emit(inc)
@@ -133,7 +136,8 @@ func _pick_location(t: IncidentType) -> Dictionary:
 
 	var edges: Array[int] = []
 	for e in RoadGraph.edge_count():
-		if RoadGraph.is_playable(e) and t.road_classes.has(RoadGraph.edge_class(e)) and RoadGraph.edge_length(e) > 30.0:
+		if RoadGraph.is_playable(e) and t.road_classes.has(RoadGraph.edge_class(e)) and RoadGraph.edge_length(e) > 30.0 \
+				and not World.is_blocked(e):
 			edges.append(e)
 	for attempt in 20:
 		if edges.is_empty():
@@ -142,7 +146,7 @@ func _pick_location(t: IncidentType) -> Dictionary:
 		var p := RoadGraph.point_at(e, _rng.randf_range(0.2, 0.8) * RoadGraph.edge_length(e))
 		if _is_free(p):
 			var road: String = RoadGraph.edge_name[e]
-			return {"pos": p, "place": road if road != "" and road != "Unnamed" else "an unnamed road"}
+			return {"pos": p, "edge": e, "place": road if road != "" and road != "Unnamed" else "an unnamed road"}
 	return {}
 
 

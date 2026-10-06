@@ -718,5 +718,286 @@
   "x": 3593.2,
   "y": 4101.6,
   "s": 2
+ },
+ {
+  "id": 1000,
+  "name": "Bark Hill Ambulance Station",
+  "type": "emergency facility",
+  "subtype": "ambulance station",
+  "x": 6369.6,
+  "y": 1140.2,
+  "s": 3
+ },
+ {
+  "id": 1001,
+  "name": "Burrwick Ambulance Station",
+  "type": "emergency facility",
+  "subtype": "ambulance station",
+  "x": 6165.6,
+  "y": 4718.8,
+  "s": 3
+ },
+ {
+  "id": 1002,
+  "name": "Malmoor Police Station",
+  "type": "emergency facility",
+  "subtype": "police station",
+  "x": 672.8,
+  "y": 4710.3,
+  "s": 3
+ },
+ {
+  "id": 1003,
+  "name": "SES Malmoor Unit",
+  "type": "emergency facility",
+  "subtype": "ses unit",
+  "x": 1548.7,
+  "y": 4181.8,
+  "s": 2
+ },
+ {
+  "id": 1004,
+  "name": "Burrwick Fire Station",
+  "type": "emergency facility",
+  "subtype": "fire station",
+  "x": 5196.7,
+  "y": 4516.9,
+  "s": 3
+ },
+ {
+  "id": 1005,
+  "name": "Glen Wattle Fire Station",
+  "type": "emergency facility",
+  "subtype": "fire station",
+  "x": 2463.6,
+  "y": 4996.0,
+  "s": 3
+ },
+ {
+  "id": 1006,
+  "name": "Junction Ambulance Post",
+  "type": "emergency facility",
+  "subtype": "ambulance station",
+  "x": 2699.6,
+  "y": 2447.8,
+  "s": 0,
+  "fictional": true
+ },
+ {
+  "id": 1007,
+  "name": "Cambermere Fire Station",
+  "type": "emergency facility",
+  "subtype": "fire station",
+  "x": 3502.1,
+  "y": 2995.3,
+  "s": 1,
+  "fictional": true
+ },
+ {
+  "id": 1008,
+  "name": "Toorabin Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 218.5,
+  "y": 2954.0,
+  "s": 255
+ },
+ {
+  "id": 1009,
+  "name": "Cambermere Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 3706.2,
+  "y": 3722.2,
+  "s": 2
+ },
+ {
+  "id": 1010,
+  "name": "Hawkthorne Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 230.3,
+  "y": 1888.2,
+  "s": 255
+ },
+ {
+  "id": 1011,
+  "name": "Sorrel Hills Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 4566.2,
+  "y": 2091.6,
+  "s": 2
+ },
+ {
+  "id": 1012,
+  "name": "Malmoor Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 1472.3,
+  "y": 4170.2,
+  "s": 2
+ },
+ {
+  "id": 1013,
+  "name": "Cabiwee Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 2590.5,
+  "y": 2278.9,
+  "s": 1
+ },
+ {
+  "id": 1014,
+  "name": "Ashmarra Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 4084.0,
+  "y": 5215.0,
+  "s": 255
+ },
+ {
+  "id": 1015,
+  "name": "Hawkthorne East Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 1743.2,
+  "y": 1933.5,
+  "s": 1
+ },
+ {
+  "id": 1016,
+  "name": "Kooranga Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 932.5,
+  "y": 3387.1,
+  "s": 3
+ },
+ {
+  "id": 1017,
+  "name": "Glen Wattle Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 4029.1,
+  "y": 4351.9,
+  "s": 3
+ },
+ {
+  "id": 1018,
+  "name": "Ashmoor Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 1123.0,
+  "y": 1856.1,
+  "s": 3
+ },
+ {
+  "id": 1019,
+  "name": "Sandmoor Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 3216.7,
+  "y": 2223.2,
+  "s": 1
+ },
+ {
+  "id": 1020,
+  "name": "Radunbin Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 2559.5,
+  "y": 4994.2,
+  "s": 3
+ },
+ {
+  "id": 1021,
+  "name": "Silverdale Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 3355.9,
+  "y": 3037.6,
+  "s": 1
+ },
+ {
+  "id": 1022,
+  "name": "Sanddale Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 3312.9,
+  "y": 2688.5,
+  "s": 1
+ },
+ {
+  "id": 1023,
+  "name": "Canterbrook Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 4076.4,
+  "y": 2106.9,
+  "s": 1
+ },
+ {
+  "id": 1024,
+  "name": "Bark Hill Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 6727.5,
+  "y": 1669.8,
+  "s": 255
+ },
+ {
+  "id": 1025,
+  "name": "Cloverham Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 2137.0,
+  "y": 4486.2,
+  "s": 3
+ },
+ {
+  "id": 1026,
+  "name": "Cagilrra Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 5227.0,
+  "y": 2069.5,
+  "s": 2
+ },
+ {
+  "id": 1027,
+  "name": "Mont Alvern Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 5353.8,
+  "y": 1977.2,
+  "s": 2
+ },
+ {
+  "id": 1028,
+  "name": "Bangira Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 5688.8,
+  "y": 1692.7,
+  "s": 3
+ },
+ {
+  "id": 1029,
+  "name": "Burrwick Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 6053.3,
+  "y": 4326.2,
+  "s": 3
+ },
+ {
+  "id": 1030,
+  "name": "Hayden Station",
+  "type": "transport terminal",
+  "subtype": "railway station",
+  "x": 6727.5,
+  "y": 1669.8,
+  "s": 255
  }
 ]

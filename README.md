@@ -8,7 +8,10 @@ Game_Programming course
      Follow-up prompt: "Update for rectangular stages, fictional names, the
      colour reveal, and add a data attribution / licence section."
      Follow-up prompt: "Document the milestone 1 systems: stations, crews,
-     incidents as data, the HUD, and how to add a new incident type." -->
+     incidents as data, the HUD, and how to add a new incident type."
+     Follow-up prompt: "Add the milestone 2 systems (changing truth,
+     blockages, obstacle stops, redraws, fog of war, landmarks, patterns)
+     and the new debug key." -->
 
 ## Map & systems (prototype)
 
@@ -51,6 +54,16 @@ Stage rectangles live at the top of `tools/build_world.py` (`STAGE_RECTS_M`).
 | `Drawing` (`Script/drawing.gd`) | Map input: select incidents, draw routes, dispatch |
 | `UI/HUD` (`Script/hud.gd` on Jessie's `UI/HUD.tscn`) | Incident cards, tabs, "Send" buttons, crew list |
 
+**Milestone 2 (information decays):** `World` keeps changing: traffic drifts
+on every road and random blockages appear and clear (car crashes also block
+their own road). Crews reveal roads and map colour within their sight
+radius; it fades over `Knowledge.fade_seconds`, and never-seen areas sit
+under a light fog. A crew that reaches a blocked road it didn't know about
+stops with a red alert; press on the crew and drag a new route from where it
+is (it waits while you draw). Land use is shown by patterns (stripes =
+shops, cross-hatch = public, dots = industrial) and Features of Interest by
+pictograms, because colour is reserved for what crews have seen.
+
 **Data:** crew types live in `Data/crew_types/*.tres` and incident types in
 `Data/incident_types/*.tres`. To add an incident, duplicate a `.tres` in the
 FileSystem dock, change its id, name, crew type, location rules and caller
@@ -60,7 +73,7 @@ descriptions in the inspector. It is picked up automatically.
 "Send ..." (or press on a station square), then hold the left mouse at the
 station and drag along the roads; release on the incident. Right-drag pans,
 wheel zooms. F1 debug HUD · F2 road network · F3 reveal all roads ·
-F4 next stage · F5 spawn an incident now.
+F4 next stage · F5 spawn an incident now · F6 block the road under the mouse.
 
 **Exporting:** add `*.json, *.bin` to the export preset's "non-resource files"
 filter so `Map/world/` is included in builds.

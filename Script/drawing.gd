@@ -58,6 +58,15 @@ extends Node2D
 #    the crew type's colour. Keep the freehand rules, spur removal, undo and
 #    status_text(). Read stations, incidents and the manager through groups
 #    instead of exported node paths."
+# Follow-up prompt (milestone 2 - redraw mid-journey):
+#   "Let the player press on a crew that is en route or stopped at a
+#    blockage and drag a NEW route starting from where the crew is now. The
+#    crew pauses ('held') while its new route is being drawn. Releasing on
+#    its incident (or another open incident, which re-assigns it) hands it
+#    the new route via Crew.reroute. Releasing anywhere else keeps the
+#    unfinished route for a blocked crew (press its end to continue) but
+#    drops it for a moving crew, which carries on with its old route.
+#    Space / clearing also releases a held crew."
 
 @onready var line = $Line
 
@@ -74,6 +83,7 @@ enum State { IDLE, DRAWING }
 var state := State.IDLE
 
 var crew: Crew = null                   # crew the route is for
+var redraw := false                     # route starts at a crew on the road, not a station
 var tips : Array = []                   # accepted RoadGraph.RoadPos samples
 var tip_sizes : Array[int] = []         # route_points.size() after each tip
 var route_points := PackedVector2Array()
@@ -121,6 +131,14 @@ func _idle():
 		state = State.DRAWING
 		return
 
+	# Redraw the route of a crew that is out on the road.
+	var moving = get_tree().get_nodes_in_group("crews").filter(func(c): return c.visible and c.is_redrawable())
+	var out_crew = _nearest(moving, mouse)
+	if out_crew != null:
+		_begin_redraw(out_crew, mouse)
+		state = State.DRAWING
+		return
+
 	# Start a route from a station.
 	var station = _nearest(get_tree().get_nodes_in_group("stations"), mouse)
 	if station != null:
@@ -156,6 +174,23 @@ func _begin(c: Crew, mouse: Vector2):
 	crew = c
 	tips = [start_pos]
 	route_points = PackedVector2Array([c.station.global_position, start_pos.point])
+	route_point_edges = PackedInt32Array([-1, start_pos.edge])
+	tip_sizes = [route_points.size()]
+	_last_sample = mouse
+	_refresh_line()
+	Events.route_drawing_started.emit(c)
+
+
+func _begin_redraw(c: Crew, mouse: Vector2):
+	var start_pos = RoadGraph.snap(c.global_position, 200.0)
+	if start_pos == null:
+		return
+	_clear_route()
+	crew = c
+	redraw = true
+	c.held = true
+	tips = [start_pos]
+	route_points = PackedVector2Array([c.global_position, start_pos.point])
 	route_point_edges = PackedInt32Array([-1, start_pos.edge])
 	tip_sizes = [route_points.size()]
 	_last_sample = mouse
@@ -257,13 +292,20 @@ func _on_release(mouse: Vector2):
 	_hint_to = Vector2.INF
 	state = State.IDLE
 	var incident = _nearest(get_tree().get_nodes_in_group("incidents"), mouse)
-	if incident != null and not incident.is_open():
+	var own = redraw and crew != null and incident == crew.incident
+	if incident != null and not incident.is_open() and not own:
 		_say("%s already has a crew" % incident.title())
 	elif incident != null:
 		var end_pos = RoadGraph.snap(incident.global_position, 200.0)
 		if end_pos != null and _extend_to(end_pos):
 			_dispatch(incident)
 			return
+	if redraw and crew != null and crew.state != Crew.State.BLOCKED:
+		_say("%s keeps its old route" % crew.callsign)
+		_clear_route()           # moving crew: drop the draft, carry on
+		return
+	if redraw and crew != null:
+		crew.held = false        # blocked crew: keep the draft, it is waiting anyway
 	_refresh_line()   # keep the unfinished route on screen
 
 
@@ -279,6 +321,9 @@ func _trim_tips(count: int):
 
 
 func _clear_route():
+	if crew != null:
+		crew.held = false
+	redraw = false
 	tips = []
 	tip_sizes = []
 	route_points = PackedVector2Array()
@@ -305,7 +350,7 @@ func _draw():
 # --- Dispatch --------------------------------------------------------------------
 
 func _dispatch(incident):
-	if crew == null or not crew.is_available():
+	if crew == null or (not redraw and not crew.is_available()) or (redraw and not crew.is_redrawable()):
 		_say("That crew is no longer available")
 		_clear_route()
 		return
@@ -314,9 +359,16 @@ func _dispatch(incident):
 	var c = crew
 	var pts = route_points
 	var edges = route_point_edges
+	var was_redraw = redraw
 	_clear_route()                      # the crew draws its own remaining route
-	incident.assign(c)
-	c.dispatch(pts, edges, incident)
+	if was_redraw:
+		if c.incident != incident and c.incident != null and is_instance_valid(c.incident):
+			c.incident.unassign()       # redirected to a different incident
+		incident.assign(c)
+		c.reroute(pts, edges, incident)
+	else:
+		incident.assign(c)
+		c.dispatch(pts, edges, incident)
 	Events.route_committed.emit(c, pts, Array(edges))
 	Events.crew_selected.emit(null)
 
@@ -329,7 +381,7 @@ func status_text() -> String:
 		return _message
 	if state == State.DRAWING:
 		var e = route_point_edges[route_point_edges.size() - 1]
-		return "Drawing %s route (%d m) - on %s" % [crew.callsign, _route_metres(), RoadGraph.edge_name[e] if e >= 0 else "?"]
+		return "%s %s route (%d m) - on %s" % ["Redrawing" if redraw else "Drawing", crew.callsign, _route_metres(), RoadGraph.edge_name[e] if e >= 0 else "?"]
 	if not tips.is_empty():
 		return "Unfinished %s route (%d m) - press near its end to keep drawing, Space to clear" % [crew.callsign, _route_metres()]
 	return "Click an incident, then drag from a station along the roads to it"

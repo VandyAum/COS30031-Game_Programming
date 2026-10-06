@@ -6,7 +6,7 @@ On-screen credit: *Map data: Vicmap © State of Victoria (Department of Transpor
 
 Licence: [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). No endorsement by the State of Victoria is implied.
 
-**Changes made:** Reprojected to a local game grid, clipped to the play area, simplified and stylised (parcels drawn as building boxes), and all place, road and facility names replaced with fictional names. This is a game, not an emergency map.
+**Changes made:** Reprojected to a local game grid, clipped to the play area, simplified and stylised (parcels drawn as building boxes), all place, road and facility names replaced with fictional names, and a few fictional emergency stations added. This is a game, not an emergency map.
 
 | Dataset | Custodian | WFS layer | Retrieved | Used for |
 | --- | --- | --- | --- | --- |
@@ -18,5 +18,7 @@ Licence: [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://cr
 | [Vicmap Hydro - Watercourse Line](https://discover.data.vic.gov.au/dataset/vicmap-hydro-watercourse-line) | © State of Victoria (Department of Transport and Planning) | `open-data-platform:hy_watercourse` | 2026-10-06 | rivers and creeks |
 | [Vicmap Hydro - Water Polygon](https://discover.data.vic.gov.au/dataset/vicmap-hydro-water-polygon) | © State of Victoria (Department of Transport and Planning) | `open-data-platform:hy_water_area_polygon` | 2026-10-06 | lakes, wetlands, river areas |
 | [Vicmap Admin - Locality Polygon](https://discover.data.vic.gov.au/dataset/vicmap-admin) | © State of Victoria (Department of Transport and Planning) | `open-data-platform:locality_polygon` | 2026-10-06 | suburb outlines and labels |
+| [Vicmap Transport - Rail Infrastructure Point](https://discover.data.vic.gov.au/dataset/vicmap-transport) | © State of Victoria (Department of Transport and Planning) | `open-data-platform:tr_rail_infrastructure` | 2026-10-06 | railway station locations |
+| [Vicmap Features - Features of Interest (FOI) Point](https://discover.data.vic.gov.au/dataset/vicmap-features-of-interest) | © State of Victoria (Department of Transport and Planning) | `open-data-platform:foi_point` | 2026-10-06 | police, ambulance, fire and SES stations |
 | [Parks and Conservation Reserves (PARKRES)](https://discover.data.vic.gov.au/dataset/parks-and-conservation-reserves-parkres) | © State of Victoria (Department of Energy, Environment and Climate Action) | `open-data-platform:parkres` | 2026-10-06 | state parks and reserves |
 | [Vicmap Features of Interest](https://discover.data.vic.gov.au/dataset/vicmap-features-of-interest) | © State of Victoria (Department of Transport and Planning) | `(supplied extract) Map/boroondara_foi_game_data.json` | supplied by unit | Features of Interest (supplied as the unit's Boroondara student game extract of FOI_INDEX_EXTENT) |

@@ -37,6 +37,15 @@ extends Control
 # Follow-up prompt: "Timing-based fitting still flickers. Put each card's
 #    contents in a PanelContainer with the design's card style so the card
 #    sizes itself to its contents automatically; remove the manual fitting."
+# Follow-up prompt (milestone 2 - obstacle alerts):
+#   "When a crew stops at an unexpected obstacle, show an attention-grabbing
+#    red alert banner under the navigation bar for as long as it is stuck:
+#    'Police 1 stopped: roadworks on Burkett Road. Drag from the crew to
+#    redraw its route.' Clicking it pans the camera to the crew. Also show the
+#    incident card's status in red while its crew is blocked."
+# Follow-up prompt: "Long crew statuses ('BLOCKED: roadworks on ...') widened
+#    the whole panel. Clip crew-row text with an ellipsis so rows never grow
+#    past the panel; the full text shows as a tooltip and on the card."
 
 const TAB_FILTER: Array[StringName] = [&"", &"fire", &"ambulance", &"police"]
 const SELECTED_BORDER := Color("1f6fd8")
@@ -49,6 +58,8 @@ const TEXT_WIDTH := 225.0
 
 var _list: VBoxContainer
 var _crew_list: VBoxContainer
+var _alerts: VBoxContainer
+var _alert_key := ""
 var _cards := {}          # Incident -> card (PanelContainer)
 var _refresh_timer := 0.0
 
@@ -79,6 +90,13 @@ func _ready() -> void:
 	pad.custom_minimum_size = Vector2(0, 16)
 	_column.add_child(pad)
 
+	_alerts = VBoxContainer.new()
+	_alerts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_alerts.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_alerts.position = Vector2(0, 116)
+	_alerts.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	add_child(_alerts)
+
 	_tabs.tab_changed.connect(func(_t: int) -> void: _rebuild())
 	for sig in [Events.incident_spawned, Events.incident_updated, Events.incident_resolved,
 			Events.incident_selected, Events.crew_state_changed, Events.stage_changed]:
@@ -97,6 +115,7 @@ func _process(delta: float) -> void:
 		_refresh_timer = 0.25
 		_update_progress()
 		_rebuild_crews()
+		_rebuild_alerts()
 
 
 func _manager() -> Node:
@@ -221,7 +240,49 @@ func _update_progress() -> void:
 		var card: PanelContainer = _cards[inc]
 		var box := card.get_node("HBoxContainer/MarginContainer/VBoxContainer")
 		(box.get_node("MarginContainer/ProgressBar") as ProgressBar).value = inc.progress * 100.0
-		(box.get_node("Status") as Label).text = inc.status_text()
+		var status: Label = box.get_node("Status")
+		status.text = inc.status_text()
+		status.add_theme_color_override("font_color",
+			Color("b3261e") if inc.note != "" or inc.is_crew_blocked() else Color(0.25, 0.25, 0.25))
+
+
+# --- Obstacle alerts ---------------------------------------------------------
+
+func _rebuild_alerts() -> void:
+	var stations := _stations()
+	if stations == null:
+		return
+	var blocked: Array = stations.all_crews().filter(func(c: Crew) -> bool: return c.state == Crew.State.BLOCKED)
+	var key := ",".join(blocked.map(func(c: Crew) -> String: return c.callsign + str(c.blocked_edge)))
+	if key == _alert_key:
+		return
+	_alert_key = key
+	for a in _alerts.get_children():
+		a.queue_free()
+	for c: Crew in blocked:
+		var b := Button.new()
+		var road: String = RoadGraph.edge_name[c.blocked_edge]
+		b.text = "  %s stopped: %s%s. Drag from the crew to redraw its route.  " % [
+			c.callsign, World.block_reason(c.blocked_edge).to_lower(), (" on " + road) if road != "" else ""]
+		b.add_theme_font_size_override("font_size", 22)
+		b.add_theme_color_override("font_color", Color.WHITE)
+		b.add_theme_color_override("font_hover_color", Color.WHITE)
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color("c1121f")
+		style.set_corner_radius_all(10)
+		style.set_content_margin_all(10)
+		style.shadow_size = 8
+		style.shadow_color = Color(0, 0, 0, 0.3)
+		b.add_theme_stylebox_override("normal", style)
+		var hover := style.duplicate()
+		hover.bg_color = Color("e01e2b")
+		b.add_theme_stylebox_override("hover", hover)
+		b.add_theme_stylebox_override("pressed", hover)
+		b.pressed.connect(func() -> void:
+			var cam := get_viewport().get_camera_2d()
+			if cam and cam.has_method("focus_on") and is_instance_valid(c):
+				cam.focus_on(c.global_position))
+		_alerts.add_child(b)
 
 
 # --- Crew list -------------------------------------------------------------------
@@ -235,7 +296,10 @@ func _rebuild_crews() -> void:
 	if _crew_list.get_child_count() == crews.size():
 		for i in crews.size():
 			var row: HBoxContainer = _crew_list.get_child(i)
-			(row.get_node("Status") as Label).text = crews[i].status_text()
+			var st: Label = row.get_node("Status")
+			st.text = crews[i].status_text()
+			st.tooltip_text = st.text
+			st.add_theme_color_override("font_color", Color("b3261e") if crews[i].state == Crew.State.BLOCKED else Color(0.3, 0.3, 0.3))
 		return
 	for c in _crew_list.get_children():
 		c.queue_free()
@@ -261,6 +325,12 @@ func _rebuild_crews() -> void:
 		var status := Label.new()
 		status.name = "Status"
 		status.text = crew.status_text()
+		status.clip_text = true
+		status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		status.custom_minimum_size = Vector2(60, 0)
+		status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		status.mouse_filter = Control.MOUSE_FILTER_PASS
 		status.add_theme_color_override("font_color", Color(0.3, 0.3, 0.3))
 		row.add_child(status)
 		_crew_list.add_child(row)

@@ -59,6 +59,11 @@ extends Node2D
 #    they survive the monochrome filter, and fade out when zoomed far out to
 #    avoid shimmering. Pass each building's land-use kind to the shader
 #    through the mesh UVs."
+# Follow-up prompt (milestone 2 - fog of war):
+#   "Add fog of war over areas no crew has ever seen: in the colour filter,
+#    blend a light mist over the map wherever the sight map's G 'seen'
+#    coverage is low, so unseen streets are faint and the mist lifts (softly)
+#    where crews have looked. Tunable colour/strength."
 
 const AREAS_PATH := "res://Map/world/areas.json"
 const BUILDINGS_PATH := "res://Map/world/buildings.bin"
@@ -87,6 +92,8 @@ const CASING := 2.5
 @export var fog_colour := Color(0.20, 0.23, 0.29, 0.82)
 ## How grey unseen areas are: 0.9 keeps a 10% hint of colour everywhere.
 @export var monochrome := 0.9
+## Mist over never-seen areas (alpha = strength).
+@export var unseen_mist := Color(0.93, 0.94, 0.96, 0.6)
 
 var _areas: Dictionary
 var _roads: Dictionary
@@ -329,17 +336,20 @@ uniform vec2 world_size;
 uniform float now;
 uniform float fade = 60.0;
 uniform float monochrome = 1.0;
+uniform vec4 mist : source_color;
 varying vec2 world_pos;
 void vertex() {
 	world_pos = VERTEX;   // node sits at the world origin
 }
 void fragment() {
 	vec3 c = texture(screen_tex, SCREEN_UV).rgb;
-	float seen = texture(sight_tex, world_pos / world_size).r;
-	float fresh = clamp(1.0 - (now - seen) / fade, 0.0, 1.0);
+	vec2 sight = texture(sight_tex, world_pos / world_size).rg;
+	float fresh = clamp(1.0 - (now - sight.r) / fade, 0.0, 1.0);
 	float grey = dot(c, vec3(0.299, 0.587, 0.114));
 	vec3 mono = mix(c, vec3(grey), monochrome);
-	COLOR = vec4(mix(mono, c, smoothstep(0.0, 1.0, fresh)), 1.0);
+	vec3 col = mix(mono, c, smoothstep(0.0, 1.0, fresh));
+	col = mix(col, mist.rgb, mist.a * (1.0 - smoothstep(0.0, 1.0, sight.g)));   // fog of war
+	COLOR = vec4(col, 1.0);
 }
 """
 
@@ -353,6 +363,7 @@ func _add_colour_filter() -> void:
 	mat.set_shader_parameter("world_size", Stage.world_size)
 	mat.set_shader_parameter("fade", Knowledge.fade_seconds)
 	mat.set_shader_parameter("monochrome", monochrome)
+	mat.set_shader_parameter("mist", unseen_mist)
 	_filter.material = mat
 
 
