@@ -1,0 +1,154 @@
+[gd_scene format=3 uid="uid://bw3jgo51kd62t"]
+
+[ext_resource type="Texture2D" uid="uid://hch17a5d35pd" path="res://UI/Icons/indeterminate_question_box_128dp.svg" id="1_yy5te"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uk570"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.73300564, 0.73300534, 0.7330054, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+corner_detail = 5
+
+[sub_resource type="GDScript" id="GDScript_ms4yf"]
+resource_name = "IncidentCard"
+script/source = "extends Panel
+
+var incident: Incident:
+	set(value):
+		incident = value
+		
+		if is_node_ready():
+			update()
+
+@onready var icon: TextureRect = %IncidentIcon
+@onready var title: Label = %IncidentTitle
+@onready var description: Label = %IncidentDescription
+@onready var progress: ProgressBar = %IncidentProgressBar
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass # Replace with function body.
+
+func update() -> void:
+	if incident == null:
+		return
+		
+	title.text = incident.title
+	description.text = incident.description
+	
+	match incident.type:
+		Incident.IncidentType.MEDICAL:
+			setup(preload(\"res://UI/Icons/local_hospital_128dp.svg\"), Color(\"#FF3434FF\"))
+			
+		Incident.IncidentType.FIRE:
+			setup(preload(\"res://UI/Icons/local_fire_department_128dp.svg\"), Color(\"#FF9034FF\"))
+			
+		Incident.IncidentType.MEDICAL:
+			setup(preload(\"res://UI/Icons/local_police_128dp.svg\"), Color(\"#3950FFFF\"))
+
+# Setup
+func setup(texture: Texture2D, colour: Color) -> void:
+	icon.texture = texture
+	icon.modulate = colour
+	progress.modulate = colour
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+#func _process(delta: float) -> void:
+#	pass
+"
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gppie"]
+content_margin_left = 2.0
+content_margin_top = 2.0
+content_margin_right = 2.0
+content_margin_bottom = 2.0
+bg_color = Color(0.1, 0.1, 0.1, 0.3)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_right = 25
+corner_radius_bottom_left = 25
+corner_detail = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f2wx0"]
+content_margin_left = 2.0
+content_margin_top = 2.0
+content_margin_right = 2.0
+content_margin_bottom = 2.0
+bg_color = Color(1, 0, 1, 1)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_right = 25
+corner_radius_bottom_left = 25
+corner_detail = 6
+
+[node name="IncidentCard" type="Panel" unique_id=240210475]
+clip_contents = true
+custom_minimum_size = Vector2(350, 150)
+theme_override_styles/panel = SubResource("StyleBoxFlat_uk570")
+script = SubResource("GDScript_ms4yf")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1857244866]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="IncidentIcon" type="TextureRect" parent="HBoxContainer" unique_id=170930219]
+unique_name_in_owner = true
+self_modulate = Color(1, 0, 1, 1)
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("1_yy5te")
+stretch_mode = 5
+
+[node name="MarginContainer" type="MarginContainer" parent="HBoxContainer" unique_id=1148241076]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_right = 25
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/MarginContainer" unique_id=351673480]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 0
+
+[node name="IncidentTitle" type="Label" parent="HBoxContainer/MarginContainer/VBoxContainer" unique_id=870495241]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 34
+text = "Title"
+
+[node name="IncidentDescription" type="Label" parent="HBoxContainer/MarginContainer/VBoxContainer" unique_id=1398495572]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.32544094, 0.3254409, 0.32544076, 1)
+theme_override_font_sizes/font_size = 18
+text = "Incident Description..."
+
+[node name="MarginContainer" type="MarginContainer" parent="HBoxContainer/MarginContainer/VBoxContainer" unique_id=1823402247]
+layout_mode = 2
+theme_override_constants/margin_top = 20
+
+[node name="IncidentProgressBar" type="ProgressBar" parent="HBoxContainer/MarginContainer/VBoxContainer/MarginContainer" unique_id=296075542]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/background = SubResource("StyleBoxFlat_gppie")
+theme_override_styles/fill = SubResource("StyleBoxFlat_f2wx0")
+value = 25.0
+show_percentage = false
