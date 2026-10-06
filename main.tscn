@@ -1,23 +1,72 @@
 [gd_scene format=3 uid="uid://vu3o5p5e144v"]
 
 [ext_resource type="PackedScene" uid="uid://cydoy4mfk37xm" path="res://CamberwellMap.tscn" id="1_0xm2m"]
-[ext_resource type="Script" uid="uid://doolnlopfcpoj" path="res://Script/main.gd" id="1_h2yge"]
+[ext_resource type="Script" uid="uid://vn48f0lyoxpe" path="res://camera.gd" id="1_272bh"]
 [ext_resource type="PackedScene" uid="uid://ccg3mp5xcq6ki" path="res://drawing.tscn" id="2_lquwl"]
 [ext_resource type="PackedScene" uid="uid://bx1a76y7hxbwa" path="res://hawthorn_east_map.tscn" id="3_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://y3tdaktx1mby" path="res://surrey_hill_Map.tscn" id="4_lquwl"]
+[ext_resource type="PackedScene" uid="uid://df6svmy0mtp63" path="res://Crew_Point.tscn" id="6_7mycd"]
+[ext_resource type="Script" uid="uid://d13t7wufuhs44" path="res://incident.gd" id="7_5vw27"]
+[ext_resource type="PackedScene" uid="uid://chxkxw0rvnjgv" path="res://end_point.tscn" id="7_272bh"]
 
 [node name="Main" type="Node2D" unique_id=1954988479]
-script = ExtResource("1_h2yge")
 
-[node name="Drawing" parent="." unique_id=1114527525 instance=ExtResource("2_lquwl")]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=2118934091]
+position = Vector2(643, 368)
+limit_left = -925
+limit_top = 0
+limit_right = 3875
+limit_bottom = 1890
+script = ExtResource("1_272bh")
+
+[node name="Drawing" parent="." unique_id=1114527525 node_paths=PackedStringArray("locations", "end_points", "camberwell", "surreyHill", "EHawthorn") instance=ExtResource("2_lquwl")]
 z_index = 1
+locations = NodePath("../Station")
+end_points = NodePath("../Incident")
+camberwell = NodePath("../MapChunk/Camberwell")
+surreyHill = NodePath("../MapChunk/Surrey_Hill")
+EHawthorn = NodePath("../MapChunk/Hawthorn_East")
+crew_speed = 500
 
 [node name="MapChunk" type="Node2D" parent="." unique_id=1725131052]
 
 [node name="Camberwell" parent="MapChunk" unique_id=1084306728 instance=ExtResource("1_0xm2m")]
 
-[node name="Hawthorn_EastMap" parent="MapChunk" unique_id=1410543495 instance=ExtResource("3_1bvp3")]
+[node name="Hawthorn_East" parent="MapChunk" unique_id=1410543495 instance=ExtResource("3_1bvp3")]
 position = Vector2(-924, -1)
 
 [node name="Surrey_Hill" parent="MapChunk" unique_id=2132268439 instance=ExtResource("4_lquwl")]
-position = Vector2(2052, -275)
+position = Vector2(2113, 2)
+
+[node name="Station" type="Node2D" parent="." unique_id=1158133330]
+
+[node name="Crew_Points1" parent="Station" unique_id=33737465 instance=ExtResource("6_7mycd")]
+position = Vector2(54, 770)
+
+[node name="Crew_Points2" parent="Station" unique_id=85054974 instance=ExtResource("6_7mycd")]
+position = Vector2(165, 37)
+
+[node name="Crew_Points3" parent="Station" unique_id=62810092 instance=ExtResource("6_7mycd")]
+position = Vector2(2001, 1046)
+
+[node name="Incident" type="Node2D" parent="." unique_id=1677553392]
+position = Vector2(-16, 762)
+script = ExtResource("7_5vw27")
+
+[node name="End_Points1" parent="Incident" unique_id=1034302195 instance=ExtResource("7_272bh")]
+position = Vector2(1121, -75)
+
+[node name="End_Points2" parent="Incident" unique_id=169220232 instance=ExtResource("7_272bh")]
+position = Vector2(956, 149)
+
+[node name="End_Points3" parent="Incident" unique_id=1127435239 instance=ExtResource("7_272bh")]
+position = Vector2(-770, -115)
+
+[node name="End_Points4" parent="Incident" unique_id=1763154515 instance=ExtResource("7_272bh")]
+position = Vector2(-482, -535)
+
+[node name="End_Points5" parent="Incident" unique_id=685769315 instance=ExtResource("7_272bh")]
+position = Vector2(1644, 230)
+
+[node name="End_Points6" parent="Incident" unique_id=502573100 instance=ExtResource("7_272bh")]
+position = Vector2(2528, -374)

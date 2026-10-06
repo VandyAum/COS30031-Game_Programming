@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://bpp4ee76cyy2o"]
+
+[ext_resource type="Script" uid="uid://npvhxia266uv" path="res://Script/police_crew.gd" id="1_h55ag"]
+[ext_resource type="Texture2D" uid="uid://bvn15n5na2agp" path="res://Assets/Police car.svg" id="2_h05mw"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_j3xpk"]
+size = Vector2(88, 36)
+
+[node name="Crew" type="CharacterBody2D" unique_id=1442356974]
+script = ExtResource("1_h55ag")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=460056079]
+scale = Vector2(0.55345905, 0.58730155)
+texture = ExtResource("2_h05mw")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=493135127]
+shape = SubResource("RectangleShape2D_j3xpk")
+
+[node name="Timer" type="Timer" parent="." unique_id=2090847744]
+wait_time = 2.0
+one_shot = true
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
