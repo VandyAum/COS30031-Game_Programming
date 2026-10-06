@@ -41,10 +41,7 @@ func _process(delta: float) -> void:
 		move_crew(delta)
 	if crew.is_returning and crew.is_solved:
 		is_following_path = true
-		#if end_point != null:
-			#
-			#end_point.deactivate()
-			#end_points.show_new_random_point()
+		
 			
 func draw():
 	# This is responsible for checking which station you clicked on
