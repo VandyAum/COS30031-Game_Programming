@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://df6svmy0mtp63" path="res://Crew_Point.tscn" id="6_7mycd"]
 [ext_resource type="Script" uid="uid://d13t7wufuhs44" path="res://incident.gd" id="7_5vw27"]
 [ext_resource type="PackedScene" uid="uid://chxkxw0rvnjgv" path="res://end_point.tscn" id="7_272bh"]
+[ext_resource type="Script" uid="uid://cj6kmsaio06kb" path="res://Script/road_overlay.gd" id="8_overlay"]
 
 [node name="Main" type="Node2D" unique_id=1954988479]
 
@@ -19,13 +20,10 @@ limit_right = 3875
 limit_bottom = 1890
 script = ExtResource("1_272bh")
 
-[node name="Drawing" parent="." unique_id=1114527525 node_paths=PackedStringArray("locations", "end_points", "camberwell", "surreyHill", "EHawthorn") instance=ExtResource("2_lquwl")]
+[node name="Drawing" parent="." unique_id=1114527525 node_paths=PackedStringArray("locations", "end_points") instance=ExtResource("2_lquwl")]
 z_index = 1
 locations = NodePath("../Station")
 end_points = NodePath("../Incident")
-camberwell = NodePath("../MapChunk/Camberwell")
-surreyHill = NodePath("../MapChunk/Surrey_Hill")
-EHawthorn = NodePath("../MapChunk/Hawthorn_East")
 crew_speed = 500
 
 [node name="MapChunk" type="Node2D" parent="." unique_id=1725131052]
@@ -33,10 +31,13 @@ crew_speed = 500
 [node name="Camberwell" parent="MapChunk" unique_id=1084306728 instance=ExtResource("1_0xm2m")]
 
 [node name="Hawthorn_East" parent="MapChunk" unique_id=1410543495 instance=ExtResource("3_1bvp3")]
-position = Vector2(-924, -1)
+position = Vector2(-927.455, 0)
 
 [node name="Surrey_Hill" parent="MapChunk" unique_id=2132268439 instance=ExtResource("4_lquwl")]
-position = Vector2(2113, 2)
+position = Vector2(2109, 0)
+
+[node name="RoadOverlay" type="Node2D" parent="."]
+script = ExtResource("8_overlay")
 
 [node name="Station" type="Node2D" parent="." unique_id=1158133330]
 

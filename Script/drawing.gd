@@ -1,129 +1,193 @@
 extends Node2D
 
+# Route drawing: click a station, click along the roads you want the crew to
+# take, then click an incident. The crew drives the drawn route.
+#
+# Original version (Vandy): free-hand line, raycasts against block collisions,
+# and ChatGPT-assisted snapping of the corners to hand-placed RoadPoints.
+#
+# AI-assisted rewrite (Claude Opus 5.5). Prompt used:
+#   "Rewrite our Godot 4.7 route drawing script to use the new RoadGraph
+#    autoload instead of raycasts and RoadPoints, keeping the same player flow
+#    and input actions: click a station (Crew_points.clicked) to start, left
+#    click ('Draw') to drop waypoints, 'Undo_Drawing' (R) removes the last
+#    waypoint, 'clear_draw' (Space) cancels, and clicking a visible incident
+#    (endPoint.clicked) finishes the route. Every click snaps to the nearest
+#    point on a road, and each leg between waypoints follows the roads exactly
+#    using RoadGraph.route(), so the route can never cut through a block. Show
+#    a live preview leg from the last waypoint to the road point under the
+#    mouse. When finished, the crew follows the polyline; its speed on each
+#    road is scaled by the TRUE traffic in World (so stale map data costs real
+#    time), and every road it drives is reported to Knowledge.observe() so the
+#    overlay lights up behind it. On arrival emit Events.crew_arrived, resolve
+#    the incident, remove the crew and allow a new route to be drawn. Proper
+#    crews, stations, return trips and cooldowns are the next task, so keep
+#    the crew handling simple and clearly marked as temporary."
 
 @onready var line = $Line
 
 # For the points
 @export var locations : Node2D
 @export var end_points : Node2D
-@export var camberwell : Camberwell
-@export var surreyHill : surreyHill
-@export var EHawthorn: EHawthorn
-@onready var road_points = camberwell.get_node("RoadPoints")
-@onready var surreyHill_road_points = surreyHill.get_node("RoadPoints")
-@onready var ehawthorn_road_points = EHawthorn.get_node("RoadPoints")
-var start_point = null
-var end_point = null
 
-# For police crew
+# For police crew (temporary: replaced by real crews/stations next task)
 var crew_scene = preload("res://police_crew.tscn")
-@onready var crew = crew_scene.instantiate()
-var crew_spawned := false
-var path_index := 1
-var is_following_path := false
+var crew : Node2D = null
 @export var crew_speed := 200
 
-#For drawing
-var is_drawing := true
-var drawing_started := false
+enum State { WAITING_FOR_STATION, DRAWING, FOLLOWING }
+var state := State.WAITING_FOR_STATION
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
+var start_point = null              # station the route starts from
+var waypoints : Array = []          # RoadGraph.RoadPos per click
+var leg_lengths : Array[int] = []   # how many points each leg added (for undo)
+var route_points := PackedVector2Array()
+var route_point_edges := PackedInt32Array()   # road edge of each point (-1 = off road)
+
+# Crew following
+var path_index := 1
+var target_incident = null
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	if is_drawing:
-		draw()
-	if is_following_path:
-		move_crew(delta)
-			
-func draw():
-	# This is responsible for check if the point is clicked
-	if line.points.size() == 0:
-		var clicked_location = get_clicked_location()
-		if clicked_location != null:
-			start_point = clicked_location
-			var point_position = line.to_local(start_point.global_position)
+	match state:
+		State.WAITING_FOR_STATION:
+			_wait_for_station()
+		State.DRAWING:
+			_draw_route()
+		State.FOLLOWING:
+			move_crew(delta)
 
-			line.add_point(point_position)
-			line.add_point(point_position)
-			
-			drawing_started = true
-			start_point.clicked = false
-			return
-	if Input.is_action_just_pressed("Draw") and line.points.size() > 0:
-		line.add_point(get_local_mouse_position())
-	if Input.is_action_just_pressed("Undo_Drawing"):
-		if line.points.size() > 2:
-			line.remove_point(line.points.size() - 1)
-	if line.points.size() > 0:
-		#	NEED TO STUDY THIS BLOCK HERE
-		if line.points.size() >= 2:
-			var previous_point = line.points[line.points.size() - 2]
 
-			var previous_global = line.to_global(previous_point)
-			var mouse_global = get_global_mouse_position()
+func _wait_for_station():
+	var clicked_location = get_clicked_location()
+	if clicked_location == null:
+		return
+	clicked_location.clicked = false
+	var start_pos = RoadGraph.snap(clicked_location.global_position)
+	if start_pos == null:
+		return
+	start_point = clicked_location
+	waypoints = [start_pos]
+	leg_lengths = []
+	route_points = PackedVector2Array([clicked_location.global_position, start_pos.point])
+	route_point_edges = PackedInt32Array([-1, start_pos.edge])
+	for point in end_points.get_children():
+		point.can_clicked = point.visible
+	state = State.DRAWING
+	Events.route_drawing_started.emit(null)
 
-			var collision = check_collision(previous_global, mouse_global)
 
-			if collision.is_empty():
-				line.set_point_position(
-					line.points.size() - 1,
-					line.to_local(mouse_global)
-				)
-			else:
-				var hit_position = collision.position
-
-				line.set_point_position(
-					line.points.size() - 1,
-					line.to_local(hit_position)
-				)
-		
-	if drawing_started:
-		# This is for allowing which incident can be clicked on
-		for point in end_points.get_children():
-			if point.visible:
-				point.can_clicked = true
-			else:
-				point.can_clicked = false
-				
-		end_point = get_clicked_end_point()
-		
-		if end_point != null:
-			# This is where the snapping occur
-	
-			snap_line_to_road()
-			
-			var end_position = line.to_local(end_point.global_position)
-			line.set_point_position(line.points.size() - 1, end_position)
-			
-			is_drawing = false
-			
-			if line.points.size() > 1:
-				path_index = 1
-				is_following_path = true
-			if !crew_spawned:
-				add_child(crew)
-				crew.position = line.points[0]
-				crew_spawned = true
-	
-func move_crew(delta):
-	if path_index >= line.points.size():
-		is_following_path = false
+func _draw_route():
+	if Input.is_action_just_pressed("clear_draw"):
+		_reset()
 		return
 
-	var target_position = line.points[path_index]
-	var direction = target_position - crew.position
-	crew.rotation = direction.angle()
+	var end_point = get_clicked_end_point()
+	if end_point != null:
+		end_point.clicked = false
+		_finish_route(end_point)
+		return
 
-	crew.position = crew.position.move_toward(
-		target_position,
-		crew_speed * delta
-	)
-	if crew.position.distance_to(target_position) < 5:
+	if Input.is_action_just_pressed("Undo_Drawing") and leg_lengths.size() > 0:
+		var n = leg_lengths.pop_back()
+		route_points.resize(route_points.size() - n)
+		route_point_edges.resize(route_point_edges.size() - n)
+		waypoints.pop_back()
+
+	var mouse_pos = RoadGraph.snap(get_global_mouse_position())
+
+	if Input.is_action_just_pressed("Draw") and mouse_pos != null:
+		_add_leg(mouse_pos)
+
+	# Show committed route + preview leg to the road under the mouse.
+	var shown = route_points.duplicate()
+	if mouse_pos != null:
+		shown.append_array(RoadGraph.route(waypoints.back(), mouse_pos).points)
+	_show(shown)
+
+
+func _add_leg(to_pos):
+	var leg = RoadGraph.route(waypoints.back(), to_pos)
+	if leg.points.is_empty():
+		return
+	route_points.append_array(leg.points)
+	route_point_edges.append_array(leg.point_edges)
+	leg_lengths.append(leg.points.size())
+	waypoints.append(to_pos)
+
+
+func _finish_route(end_point):
+	var end_pos = RoadGraph.snap(end_point.global_position)
+	if end_pos == null:
+		return
+	_add_leg(end_pos)
+	route_points.append(end_point.global_position)
+	route_point_edges.append(-1)
+	_show(route_points)
+
+	target_incident = end_point
+	crew = crew_scene.instantiate()
+	add_child(crew)
+	crew.global_position = route_points[0]
+	path_index = 1
+	state = State.FOLLOWING
+	Events.route_committed.emit(crew, route_points, Array(route_point_edges))
+
+
+func move_crew(delta):
+	if path_index >= route_points.size():
+		_arrive()
+		return
+
+	var target_position = line.to_local(route_points[path_index])
+	var direction = target_position - crew.position
+	if direction.length() > 0.01:
+		crew.rotation = direction.angle()
+
+	# True traffic slows the crew, whatever the player's map says.
+	var edge = route_point_edges[path_index]
+	var speed = crew_speed
+	if edge >= 0:
+		speed *= maxf(World.speed_multiplier(edge), 0.15)
+
+	crew.position = crew.position.move_toward(target_position, speed * delta)
+	if crew.position.distance_to(target_position) < 1.0:
+		# Report the road we just drove so the player's map refreshes.
+		if edge >= 0 and (path_index + 1 >= route_point_edges.size() or route_point_edges[path_index + 1] != edge):
+			Knowledge.observe(edge)
 		path_index += 1
+
+
+func _arrive():
+	Events.crew_arrived.emit(crew, target_incident)
+	if target_incident != null and target_incident.visible:
+		target_incident.deactivate()
+		target_incident.get_parent().show_new_random_point()
+	_reset()
+
+
+func _reset():
+	if crew != null:
+		crew.queue_free()
+		crew = null
+	line.clear_points()
+	waypoints = []
+	leg_lengths = []
+	route_points = PackedVector2Array()
+	route_point_edges = PackedInt32Array()
+	target_incident = null
+	for point in locations.get_children():
+		point.clicked = false
+	state = State.WAITING_FOR_STATION
+
+
+func _show(world_points: PackedVector2Array):
+	var local = PackedVector2Array()
+	for p in world_points:
+		local.append(line.to_local(p))
+	line.points = local
+
 
 func get_clicked_location():
 	for point in locations.get_children():
@@ -132,78 +196,9 @@ func get_clicked_location():
 
 	return null
 
-func get_clicked_end_point():	
+func get_clicked_end_point():
 	for point in end_points.get_children():
 		if point.clicked:
 			return point
 
 	return null
-
-# ChatGPT
-# prompt: 
-# 	this is the map with added collision to right i want the player to be able
-# 	would just snap the path to the closest road making the path  short if
-# 	possible is it possible without path finding
-# This is what i got from GenAI
-	
-func get_closest_valid_road_point(position, previous_position):
-	var closest_point = null
-	var closest_distance = INF
-
-	var all_road_points = [
-		road_points,
-		surreyHill_road_points,
-		ehawthorn_road_points
-	]
-
-	for road_group in all_road_points:
-		for point in road_group.get_children():
-
-			var collision = check_collision(
-				previous_position,
-				point.global_position
-			)
-
-			if collision.is_empty():
-				var distance = position.distance_to(point.global_position)
-
-				if distance < closest_distance:
-					closest_distance = distance
-					closest_point = point
-
-	return closest_point
-
-#ChatGPT
-func snap_line_to_road():
-	if line.points.size() == 0:
-		return
-		
-	var previous_position = line.to_global(line.points[0])
-	
-	for i in range(1, line.points.size() - 1):
-		var line_point_global = line.to_global(line.points[i])
-
-		#var closest_point = get_closest_road_point(line_point_global)
-		var closest_point = get_closest_valid_road_point(
-			line_point_global,
-			previous_position
-		)
-
-		if closest_point != null:
-			var snapped_position = line.to_local(closest_point.global_position)
-
-			line.set_point_position(i, snapped_position)
-			previous_position = closest_point.global_position
-
-func check_collision(from_position, to_position):
-	var space_state = get_world_2d().direct_space_state
-
-	var query = PhysicsRayQueryParameters2D.create(
-		from_position,
-		to_position
-	)
-
-	var result = space_state.intersect_ray(query)
-
-	return result
-	

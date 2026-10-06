@@ -73,3 +73,6 @@ func create_location(feature):
 
 	label.text = "●"
 	label.position = Vector2(-20, -35)
+	# AI-assisted fix (Claude Opus 5.5). Prompt: "The FOI label is built but
+	# never added to the scene, so the marker is invisible. Attach it to the marker."
+	marker.add_child(label)

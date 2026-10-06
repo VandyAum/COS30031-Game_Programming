@@ -16,12 +16,15 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 config/name="Game_Project"
 run/main_scene="uid://vu3o5p5e144v"
-config/features=PackedStringArray("4.6", "Forward Plus")
+config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
-Test="*uid://rgh1bl17cj8u"
+Events="*res://Script/Autoload/events.gd"
+RoadGraph="*res://Script/Autoload/road_graph.gd"
+World="*res://Script/Autoload/world.gd"
+Knowledge="*res://Script/Autoload/knowledge.gd"
 
 [display]
 
