@@ -5,8 +5,12 @@
 # Godot editor temp/backup files
 *.tmp
 *.translation
-export_presets.cfg
+# AI-assisted (Claude Opus 5.5): "Commit the Web export preset, ignore build output."
+# export_presets.cfg is committed (Web preset for itch.io); credentials never are.
 export_credentials.cfg
+
+# Exported builds (upload build/web as a zip to itch.io)
+build/
 
 # Claude Code / AI assistant files
 .claude/

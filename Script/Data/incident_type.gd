@@ -19,6 +19,9 @@ class_name IncidentType extends Resource
 # Follow-up prompt (milestone 3): "Add min_stage so each stage introduces its
 #    incidents as in the spec's run structure (tutorial: EMS; stage 1:
 #    crashes; stage 2: fires). Car crashes need police AND an ambulance."
+# Follow-up prompt (physics + particles): "Add the physics debris an incident
+#    scatters (DebrisType ids from Data/debris_types and how many pieces)
+#    and an optional looping particle effect at the scene (fire, rain)."
 
 enum Where { ROAD, FOI }
 
@@ -45,6 +48,11 @@ enum Where { ROAD, FOI }
 @export var foi_types: Array[String] = []
 ## What the caller says. {place} becomes the road or landmark name.
 @export var descriptions: Array[String] = ["Something is happening at {place}"]
+## Physics debris scattered at the scene (ids from Data/debris_types/).
+@export var debris: Array[StringName] = []
+@export var debris_count := 0
+## Looping particles at the scene: &"fire", &"rain", &"water" or empty.
+@export var ambient_fx: StringName = &""
 
 
 func needs(crew_type_id: StringName) -> bool:

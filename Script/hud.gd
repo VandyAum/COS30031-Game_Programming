@@ -56,6 +56,11 @@ extends Control
 #    hidden behind the news ticker. Keep the panel's content clear of the
 #    ticker, and put the crew list in its own scroll area (up to ~8 rows
 #    tall) so a long stage 3 crew list never squeezes out the incidents."
+# Follow-up prompt (merge with main): "Jessie split the incident card into
+#    its own component, UI/Components/IncidentCard.tscn (icon, title,
+#    description, progress bar), and HUD.tscn now instances it. Use that
+#    component as the card template; its nodes are IncidentIcon,
+#    IncidentTitle, IncidentDescription and IncidentProgressBar."
 
 const TAB_FILTER: Array[StringName] = [&"", &"fire", &"ambulance", &"police"]
 const SELECTED_BORDER := Color("1f6fd8")
@@ -64,7 +69,7 @@ const TEXT_WIDTH := 225.0
 
 @onready var _tabs: TabBar = $IncidentPanel/MarginContainer/VBoxContainer/MarginContainer/TabBar
 @onready var _column: VBoxContainer = $IncidentPanel/MarginContainer/VBoxContainer
-@onready var _template: Panel = $IncidentPanel/MarginContainer/VBoxContainer/Panel
+@onready var _template: Panel = $IncidentPanel/MarginContainer/VBoxContainer/IncidentCard
 
 var _list: VBoxContainer
 var _crew_list: VBoxContainer
@@ -184,13 +189,13 @@ func _make_card(inc: Incident, is_selected: bool) -> PanelContainer:
 	card.add_theme_stylebox_override("panel", style)
 	var box: VBoxContainer = card.get_node("HBoxContainer/MarginContainer/VBoxContainer")
 	box.custom_minimum_size.x = TEXT_WIDTH
-	var icon: TextureRect = card.get_node("HBoxContainer/TextureRect")
+	var icon: TextureRect = card.get_node("HBoxContainer/IncidentIcon")
 	icon.texture = inc.crew_type.icon
 	icon.self_modulate = inc.crew_type.colour
-	var title: Label = box.get_node("Label")
+	var title: Label = box.get_node("IncidentTitle")
 	title.text = inc.title()
 	title.add_theme_font_size_override("font_size", 28)
-	var desc: Label = box.get_node("Label2")
+	var desc: Label = box.get_node("IncidentDescription")
 	desc.text = inc.description
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc.custom_minimum_size.x = TEXT_WIDTH
@@ -203,7 +208,7 @@ func _make_card(inc: Incident, is_selected: bool) -> PanelContainer:
 	status.custom_minimum_size.x = TEXT_WIDTH
 	box.add_child(status)
 	box.move_child(status, 2)
-	var bar: ProgressBar = box.get_node("MarginContainer/ProgressBar")
+	var bar: ProgressBar = box.get_node("MarginContainer/IncidentProgressBar")
 	_set_bar(bar, inc)
 	(box.get_node("MarginContainer") as MarginContainer).add_theme_constant_override("margin_top", 8)
 
@@ -268,7 +273,7 @@ func _update_progress() -> void:
 			continue
 		var card: PanelContainer = _cards[inc]
 		var box := card.get_node("HBoxContainer/MarginContainer/VBoxContainer")
-		_set_bar(box.get_node("MarginContainer/ProgressBar"), inc)
+		_set_bar(box.get_node("MarginContainer/IncidentProgressBar"), inc)
 		var status: Label = box.get_node("Status")
 		status.text = inc.status_text()
 		status.add_theme_color_override("font_color",

@@ -47,11 +47,27 @@ class_name Incident extends Node2D
 #    red, and give Run a neutral reason (just what and where)."
 # Follow-up prompt: "Keep the pin the same size on screen when zoomed far
 #    out to a big stage (scale up to 4.5x instead of 1.8x)."
+# Follow-up prompt (physics): "Give each incident a scene zone: an Area2D
+#    (Scenes/incident_zone.tscn, layer 4 'incident_zones') with a radius
+#    of scene_radius_m, kept at world scale while the pin scales with the
+#    zoom. A crew whose sensor overlaps its incident's zone can park and
+#    walk in. Stop it being detected once the incident is finished."
+# Follow-up prompt (audio): "Emit Events.incident_urgent once when the
+#    timer ring passes three-quarters."
 
 enum Status { REPORTED, ASSIGNED, ON_SCENE, RESOLVED, FAILED }
 const STATUS_NAMES := ["Reported", "Crew en route", "On scene", "Resolved", "Passed on"]
 const RING_START := Color("f5a623")
 const RING_END := Color("d62828")
+const ZONE_SCENE := preload("res://Scenes/incident_zone.tscn")
+## Timer share at which the call counts as urgent (one warning sound).
+const URGENT_AT := 0.75
+
+## Crews within this many metres can park and walk in (the scene zone).
+@export var scene_radius_m := 60.0
+## Area2D the crews' sensors detect (collision layer "incident_zones").
+var zone: Area2D
+var _warned := false
 
 var type: IncidentType
 var crew_type: CrewType              # primary crew type (pin colour/icon)
@@ -85,6 +101,16 @@ func setup(t: IncidentType, types: Array[CrewType], pos: Vector2, place_name: St
 	add_to_group("incidents")
 	if t.blocks_road and edge >= 0:
 		World.block(edge, t.display_name, self)
+
+
+func _ready() -> void:
+	zone = ZONE_SCENE.instantiate()
+	zone.top_level = true            # world scale, not the pin's zoom scale
+	var shape := CircleShape2D.new()
+	shape.radius = scene_radius_m * float(Stage.meta["px_per_m"])
+	(zone.get_node("Shape") as CollisionShape2D).shape = shape
+	add_child(zone)
+	zone.global_position = global_position
 
 
 func title() -> String:
@@ -203,6 +229,9 @@ func _process(delta: float) -> void:
 			elapsed_active += delta * _timer_rate()
 			# Pulse faster as the ring fills.
 			_pulse += delta * lerpf(2.5, 9.0, timer())
+			if timer() >= URGENT_AT and not _warned:
+				_warned = true
+				Events.incident_urgent.emit(self)
 			if timer() >= 1.0:
 				fail("%s on %s" % [type.display_name.to_lower(), place])
 		Status.ON_SCENE:
@@ -241,6 +270,8 @@ func fail(reason: String) -> void:
 
 
 func _clear_road() -> void:
+	if zone:
+		zone.set_deferred("monitorable", false)    # no longer a scene to walk into
 	if road_edge >= 0 and World.blocked_by(road_edge) == self:
 		World.unblock(road_edge)
 

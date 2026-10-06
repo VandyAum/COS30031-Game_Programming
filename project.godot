@@ -6,6 +6,10 @@
 ;   [section] ; section goes between []
 ;   param=value ; assign values to parameters
 
+; Follow-up prompt (AI-assisted, Claude Opus 5.5): "Name the game, register the Sfx autoload,
+; name the 2D physics layers (barriers, vehicles, debris, incident_zones, crew_sensors), set
+; top-down physics (no gravity, damping set per debris type), and don't force fullscreen on web."
+
 config_version=5
 
 [animation]
@@ -14,7 +18,8 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 [application]
 
-config/name="Game_Project"
+config/name="The Race Against Time"
+config/description="Dispatch emergency crews across a map that goes stale. A COS30031 prototype for the DTP Vicmap Game Challenge."
 run/main_scene="uid://vu3o5p5e144v"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
@@ -27,6 +32,7 @@ RoadGraph="*res://Script/Autoload/road_graph.gd"
 World="*res://Script/Autoload/world.gd"
 Knowledge="*res://Script/Autoload/knowledge.gd"
 Run="*res://Script/Autoload/run.gd"
+Sfx="*res://Script/Autoload/sfx.gd"
 
 [display]
 
@@ -35,6 +41,7 @@ window/size/viewport_height=1080
 window/size/mode=3
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/size/mode.web=0
 
 [gui]
 
@@ -62,3 +69,16 @@ clear_draw={
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":32,"key_label":0,"unicode":32,"location":0,"echo":false,"script":null)
 ]
 }
+
+[layer_names]
+
+2d_physics/layer_1="barriers"
+2d_physics/layer_2="vehicles"
+2d_physics/layer_3="debris"
+2d_physics/layer_4="incident_zones"
+2d_physics/layer_5="crew_sensors"
+
+[physics]
+
+2d/default_gravity=0.0
+2d/default_linear_damp=0.0

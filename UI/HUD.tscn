@@ -1,5 +1,11 @@
 [gd_scene format=3 uid="uid://b775te0qa2655"]
 
+; Edited (Claude Opus 5.5) at Leah's request while merging main: the IncidentCard node had
+; lost its scene reference in a merge-conflict fix; it is an instance of Jessie's
+; UI/Components/IncidentCard.tscn, used by Script/hud.gd as the card template.
+
+[ext_resource type="PackedScene" uid="uid://bw3jgo51kd62t" path="res://UI/Components/IncidentCard.tscn" id="1_card"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yixhe"]
 content_margin_left = 0.0
 content_margin_top = 0.0
@@ -107,7 +113,7 @@ tab_1/title = "  Fire  "
 tab_2/title = "Medical"
 tab_3/title = "Police"
 
-[node name="IncidentCard" parent="IncidentPanel/MarginContainer/VBoxContainer" unique_id=240210475]
+[node name="IncidentCard" parent="IncidentPanel/MarginContainer/VBoxContainer" unique_id=240210475 instance=ExtResource("1_card")]
 layout_mode = 2
 
 [node name="NavigationBar" type="ColorRect" parent="." unique_id=439445890]

@@ -5,6 +5,7 @@
 ; failure point: car crashes don't always need an ambulance, police respond to crimes,
 ; fire crews fight fires from stage 1, and the SES handles storm damage."
 ; Follow-up prompt: "Make incidents take about 20% longer to tick down" (time limit x1.2).
+; Follow-up prompt (physics + particles): "Give each incident type its debris and ambient effect."
 ; Designers: edit these values in the inspector.
 
 [ext_resource type="Script" path="res://Script/Data/incident_type.gd" id="1"]
@@ -23,3 +24,5 @@ blocks_road = true
 road_classes = Array[int]([2, 3])
 foi_types = Array[String]([])
 descriptions = Array[String](["A bad crash on {place}: a driver is trapped in their car.", "A truck and a car have collided on {place} and fuel is leaking."])
+debris = Array[StringName]([&"glass", &"tyre", &"panel", &"tyre"])
+debris_count = 11

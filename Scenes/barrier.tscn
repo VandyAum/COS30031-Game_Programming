@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+; AI-assisted (Claude Opus 5.5): scene written from the prompt in Script/barrier.gd.
+; Collision: layer 1 "barriers", no mask; concrete PhysicsMaterial.
+
+[ext_resource type="Script" path="res://Script/barrier.gd" id="1_script"]
+[ext_resource type="PhysicsMaterial" path="res://Data/physics_materials/concrete.tres" id="2_concrete"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_barrier"]
+size = Vector2(26, 5)
+
+[node name="Barrier" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 0
+physics_material_override = ExtResource("2_concrete")
+script = ExtResource("1_script")
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_barrier")

@@ -1,5 +1,8 @@
 [gd_scene format=3 uid="uid://vu3o5p5e144v"]
 
+; Follow-up prompt (AI-assisted, Claude Opus 5.5): "Add a ScenePhysics node (debris and roadblocks,
+; under the incident pins) and an Effects node (particle bursts, above them) to the main scene."
+
 [ext_resource type="Script" uid="uid://vn48f0lyoxpe" path="res://camera.gd" id="1_272bh"]
 [ext_resource type="PackedScene" uid="uid://ccg3mp5xcq6ki" path="res://drawing.tscn" id="2_lquwl"]
 [ext_resource type="PackedScene" path="res://world_map.tscn" id="3_world"]
@@ -14,6 +17,8 @@
 [ext_resource type="Script" path="res://Script/end_screen.gd" id="12_end"]
 [ext_resource type="Script" path="res://Script/tutorial.gd" id="13_tutorial"]
 [ext_resource type="Script" path="res://Script/road_labels.gd" id="14_roadlabels"]
+[ext_resource type="Script" path="res://Script/scene_physics.gd" id="15_physics"]
+[ext_resource type="Script" path="res://Script/effects.gd" id="16_effects"]
 
 [node name="Main" type="Node2D" unique_id=1954988479]
 
@@ -36,12 +41,20 @@ script = ExtResource("1_272bh")
 z_index = 2
 script = ExtResource("4_stations")
 
+[node name="ScenePhysics" type="Node2D" parent="."]
+z_index = 3
+script = ExtResource("15_physics")
+
 [node name="Incidents" type="Node2D" parent="."]
 z_index = 3
 script = ExtResource("5_incidents")
 
 [node name="Drawing" parent="." unique_id=1114527525 instance=ExtResource("2_lquwl")]
 z_index = 4
+
+[node name="Effects" type="Node2D" parent="."]
+z_index = 5
+script = ExtResource("16_effects")
 
 [node name="UI" type="CanvasLayer" parent="."]
 

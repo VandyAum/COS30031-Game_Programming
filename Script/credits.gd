@@ -17,6 +17,11 @@ class_name Credits
 #    card with a Back button."
 # Follow-up prompt: "The car isn't team-drawn: it's 'Police car free sprite'
 #    by SomeGame_Dev (grilledgamingyt) on itch.io, which asks for credit."
+# Follow-up prompt: "Add the Kenney sound packs (CC0) and a 'Made by the
+#    team' section for our own assets (HUD, map style, debris, particles)."
+# Follow-up prompt: "Update the team lines from the commit history (camera
+#    pan/zoom was Vandy's); keep Ishita in the team list."
+# Follow-up prompt: "Credit the Freesound ambience and travel sounds (CC0)."
 
 const WIDTH := 820.0
 
@@ -27,10 +32,10 @@ static func bbcode() -> String:
 	t += "[b]The Race Against Time[/b], a COS30031 Game Programming team project.\n\n"
 
 	t += "[font_size=26][b]Team[/b][/font_size]\n"
-	t += "Vandy: route drawing, stations and crews\n"
-	t += "Ishita: map panning and zoom, incident data, incident panel\n"
-	t += "Jessie: HUD design\n"
-	t += "Leah: Vicmap world, game systems\n"
+	t += "Vandy: route drawing, camera, stations and crews\n"
+	t += "Jessie: HUD design, incident cards\n"
+	t += "Leah: Vicmap world, game systems, physics, sound and effects\n"
+	t += "Ishita\n"
 	t += "Code was written with AI assistance (Claude, by Anthropic); the prompts are kept as comments in the source.\n\n"
 
 	t += "[font_size=26][b]Map data[/b][/font_size]\n"
@@ -49,7 +54,13 @@ static func bbcode() -> String:
 	t += "SES hard hat: Phosphor Icons, (c) 2023 Phosphor Icons, MIT License (recoloured).\n"
 	t += "Crew icons: Material Symbols by Google, Apache License 2.0.\n"
 	t += "Crew car: \"Police car free sprite\" by SomeGame_Dev (grilledgamingyt), [url]https://grilledgamingyt.itch.io/police-car-free-sprite[/url] (free, credit required)\n\n"
-	t += "Full licence texts are in the game folder: UI/Fonts/OFL.txt, UI/Icons/map/MAKI_LICENSE.txt, UI/Icons/PHOSPHOR_LICENSE.txt, Map/world/ATTRIBUTION.md."
+	t += "[font_size=26][b]Sound[/b][/font_size]\n"
+	t += "Sound effects: \"Interface Sounds\" and \"Impact Sounds\" by Kenney ([url]https://kenney.nl[/url]), CC0 1.0.\n"
+	t += "Ambience and travel sounds from Freesound ([url]https://freesound.org[/url]), CC0 1.0: \"Seamless City Loop\" and \"Bus Motor/Engine Sound Loop\" by qubodup, \"Emergency Siren\" by onderwish, \"Car passing by\" by hinzebeat.\n\n"
+
+	t += "[font_size=26][b]Made by the team[/b][/font_size]\n"
+	t += "HUD and incident panel design (Jessie), the stylised map style and land-use patterns, incident pins and timer rings, debris and road barrier art, particle effects and the end screen are original to this project.\n\n"
+	t += "Full licence texts are in the game folder: UI/Fonts/OFL.txt, UI/Icons/map/MAKI_LICENSE.txt, UI/Icons/PHOSPHOR_LICENSE.txt, Assets/Audio/KENNEY_*_LICENSE.txt, Assets/Audio/FREESOUND_CREDITS.txt, Map/world/ATTRIBUTION.md. See also ATTRIBUTIONS.md."
 	return t
 
 

@@ -67,12 +67,26 @@ class_name Crew extends Node2D
 #    still drive all the way if they can, and only park within
 #    access_radius_m if the road ahead is blocked. Add cooldown_left() for
 #    the station's cooldown dial."
+# Follow-up prompt (physics): "Give the crew Scenes/crew_physics.tscn: a
+#    kinematic AnimatableBody2D bumper the size of the car (layer 2
+#    'vehicles', mask 3 'debris') that turns with the car and shoves scene
+#    debris aside, scaled with the car up to 1.6x so it doesn't bulldoze the
+#    map when zoomed out, and disabled while parked at the station; and an
+#    Area2D sensor (layer 5 'crew_sensors', mask 4 'incident_zones') that
+#    replaces the distance check: a crew can park and walk in once its
+#    sensor overlaps its own incident's scene zone. Crews ignore each other,
+#    barriers and other crews' sensors."
 
 enum State { AVAILABLE, EN_ROUTE, ON_SCENE, RETURNING, COOLDOWN, BLOCKED }
 
 const STATE_NAMES := ["Available", "En route", "On scene", "Returning", "Cooldown", "Blocked"]
 const SIGHT_INTERVAL := 0.15
 const CAR_TEXTURE := preload("res://Assets/Police car.svg")
+const PHYSICS_SCENE := preload("res://Scenes/crew_physics.tscn")
+## Car sprite size at scale 1 (texture 159 x 63 at the sprite's 0.32 x 0.34).
+const CAR_SIZE := Vector2(51, 21.5)
+## Biggest the bumper grows with the zoom-out scale.
+const MAX_BUMPER_SCALE := 1.6
 ## Tint applied to the (black and white) car sprite per crew type.
 const TINTS := {&"police": Color(1, 1, 1), &"ambulance": Color(1.0, 0.93, 0.62), &"fire": Color(1.0, 0.36, 0.26),
 	&"ses": Color(1.0, 0.75, 0.2)}
@@ -87,8 +101,6 @@ var held := false
 var blocked_edge := -1
 ## Seconds a blocked crew waits for a new route before giving up.
 @export var blocked_patience := 25.0
-## An en-route crew this close (metres) to its incident has arrived.
-@export var access_radius_m := 60.0
 var _patience := 0.0
 ## Did the player's map already show this blockage when we hit it?
 var blocked_was_known := false
@@ -103,6 +115,10 @@ var _body: Node2D
 var _trail: Line2D
 var _alert_t := 0.0
 var _waiting_on := -1     # blocked road a returning crew already tried to avoid
+var _physics: Node2D
+var _sensor: Area2D
+var _bumper_shape: CollisionShape2D
+var _bumper_scale := 0.0
 
 
 func setup(crew_type: CrewType, home: Node2D, number: int) -> void:
@@ -129,6 +145,12 @@ func _ready() -> void:
 	car.modulate = TINTS.get(type.id, Color.WHITE)
 	_body.add_child(car)
 
+	_physics = PHYSICS_SCENE.instantiate()
+	add_child(_physics)
+	_sensor = _physics.get_node("Sensor")
+	_bumper_shape = _physics.get_node("Bumper/Shape")
+	_bumper_shape.shape = _bumper_shape.shape.duplicate()   # each crew sizes its own
+
 	global_position = station.global_position
 	visible = false
 
@@ -138,6 +160,7 @@ func _process(delta: float) -> void:
 	var cam := get_viewport().get_camera_2d()
 	if cam:
 		_body.scale = Vector2.ONE * clampf(1.0 / cam.zoom.x, 0.6, 4.5)
+	_sync_physics()
 	queue_redraw()
 
 	if held:
@@ -343,10 +366,21 @@ func _drive(delta: float) -> void:
 	_trail.points = ahead
 
 
-# Near enough to walk in from here?
+# Near enough to walk in from here? (Our sensor is inside its scene zone.)
 func _close_enough() -> bool:
 	return state == State.EN_ROUTE and incident != null and is_instance_valid(incident) \
-		and global_position.distance_to(incident.global_position) <= access_radius_m * float(Stage.meta["px_per_m"])
+		and incident.zone != null and _sensor.overlaps_area(incident.zone)
+
+
+# Bumper follows the car: same heading, same size (capped), off when parked.
+func _sync_physics() -> void:
+	_physics.rotation = _body.rotation
+	var s := minf(_body.scale.x, MAX_BUMPER_SCALE)
+	if not is_equal_approx(s, _bumper_scale):
+		_bumper_scale = s
+		(_bumper_shape.shape as RectangleShape2D).size = CAR_SIZE * s
+	if _bumper_shape.disabled == visible:
+		_bumper_shape.set_deferred("disabled", not visible)
 
 
 func _finish_leg() -> void:

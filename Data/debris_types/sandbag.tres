@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="DebrisType" format=3]
+
+; AI-assisted (Claude Opus 5.5): data file written from the prompt in Script/Data/debris_type.gd.
+; Designers: edit these values in the inspector.
+
+[ext_resource type="Script" path="res://Script/Data/debris_type.gd" id="1"]
+[ext_resource type="PhysicsMaterial" path="res://Data/physics_materials/sandbag.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"sandbag"
+display_name = "Sandbag"
+physics_material = ExtResource("2")
+shape = 1
+size = Vector2(11, 7)
+mass = 5.0
+linear_damp = 6.0
+angular_damp = 6.0
+colour = Color(0.77, 0.66, 0.45, 1)
+accent = Color(0, 0, 0, 0)
+impact_sound = &"hit_soft"
+impact_fx = &""
