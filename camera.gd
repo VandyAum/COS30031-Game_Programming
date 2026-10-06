@@ -21,43 +21,79 @@ extends Camera2D
 #    map area to the right of and below the panels, not the whole screen, and
 #    add focus_on(world_pos) that smoothly pans so a point sits in the middle
 #    of that visible area (used when clicking an incident card)."
+# Follow-up prompt (milestone 3): "The news ticker now covers the bottom
+#    64 px too; leave that out of the visible map area as well."
+# Follow-up prompt (animated stage changes): "When the stage changes, don't
+#    snap: glide from wherever the player is looking to the new stage's
+#    framing over Stage.transition_seconds (ease in-out, zoom interpolated
+#    geometrically so it feels even), in step with the fog opening. Widen
+#    the camera limits for the duration so the glide isn't clamped, and
+#    set the new limits at the end. The very first framing is instant."
 
 @export var min_zoom := 0.15     # recalculated per stage
 @export var fit_margin := 0.92   # fraction of the screen the stage fills
 @export var max_zoom := 2.5
 @export var zoom_step := 1.15
-## Screen pixels covered by the HUD on the left and top.
+## Screen pixels covered by the HUD on the left and top...
 @export var ui_inset := Vector2(450, 102)
+## ...and along the bottom (news ticker).
+@export var ui_inset_bottom := 64.0
 
 var dragging := false
 var last_mouse_position : Vector2
 
+var _stage_tween: Tween
+
 func _ready():
 	add_to_group("main_camera")
-	Events.stage_changed.connect(_fit_stage)
-	_fit_stage.call_deferred(Stage.current)
+	Events.stage_changed.connect(func(s): _fit_stage(s, true))
+	_fit_stage.call_deferred(Stage.current, false)
 
-# Use the stage's area as the camera limits, then frame the whole of it in
-# the part of the screen not covered by the HUD.
-func _fit_stage(_stage: int):
-	var area: Rect2 = Stage.bounds()
+# Where the camera should be to frame a stage in the part of the screen not
+# covered by the HUD: {zoom, position, limits}.
+func _framing(area: Rect2) -> Dictionary:
 	var screen = get_viewport_rect().size
-	var free = (screen - ui_inset).max(screen * 0.3)   # tiny windows: ignore HUD
+	var free = (screen - ui_inset - Vector2(0, ui_inset_bottom)).max(screen * 0.3)   # tiny windows: ignore HUD
 	var fit = minf(free.x / area.size.x, free.y / area.size.y) * fit_margin
 	# World rect the whole screen shows when the stage sits in the free area.
 	var view = Rect2(area.get_center() - (ui_inset + free / 2.0) / fit, screen / fit)
-	var limits = view.merge(area)
-	limit_left = int(limits.position.x)
-	limit_top = int(limits.position.y)
-	limit_right = int(limits.end.x)
-	limit_bottom = int(limits.end.y)
-	min_zoom = fit
-	zoom = Vector2(fit, fit)
-	position = view.get_center()
+	return {"zoom": fit, "position": view.get_center(), "limits": view.merge(area)}
+
+func _set_limits(r: Rect2):
+	limit_left = int(r.position.x)
+	limit_top = int(r.position.y)
+	limit_right = int(r.end.x)
+	limit_bottom = int(r.end.y)
+
+# Use the stage's area as the camera limits, then frame the whole of it.
+func _fit_stage(_stage: int, animate := false):
+	var f = _framing(Stage.bounds())
+	if _stage_tween:
+		_stage_tween.kill()
+	min_zoom = minf(f["zoom"], zoom.x)
+	if not animate:
+		_set_limits(f["limits"])
+		min_zoom = f["zoom"]
+		zoom = Vector2(f["zoom"], f["zoom"])
+		position = f["position"]
+		return
+	_set_limits(Rect2(-100000, -100000, 200000, 200000))
+	var z0 = zoom.x
+	var p0 = position
+	_stage_tween = create_tween()
+	_stage_tween.tween_method(func(t: float):
+		var z = exp(lerpf(log(z0), log(f["zoom"]), t))
+		zoom = Vector2(z, z)
+		position = p0.lerp(f["position"], t),
+		0.0, 1.0, Stage.transition_seconds).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	_stage_tween.tween_callback(func():
+		_set_limits(f["limits"])
+		min_zoom = f["zoom"]
+		_clamp_to_limits())
 
 # Smoothly pan so world_pos sits in the middle of the visible map area.
 func focus_on(world_pos: Vector2):
-	var offset = (ui_inset / 2.0) / zoom
+	var offset = (Vector2(ui_inset.x, ui_inset.y - ui_inset_bottom) / 2.0) / zoom
 	var target = world_pos - offset
 	var tween = create_tween()
 	tween.tween_property(self, "position", target, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)

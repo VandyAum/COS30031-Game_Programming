@@ -30,6 +30,18 @@ extends Node
 #    reason and owner of each blockage so crews can tell whether a blockage
 #    is their own incident and the UI can say what it is. Never block roads
 #    right next to a station. Emit road_truth_changed for every change."
+# Follow-up prompt: "When a blockage clears (especially a resolved crash) the
+#    road shouldn't snap straight back to green: ease it from JAMMED to SLOW
+#    to its normal traffic over a tunable time, and keep easing roads out of
+#    the random traffic drift until they've recovered."
+# Follow-up prompt: "Add reset() for 'play again': clear blockages and
+#    easing, re-roll all traffic."
+# Follow-up prompt: "A random blockage appeared right where an incident was,
+#    so its crew could never reach it. Never put a random blockage on a road
+#    within incident_clearance_m of an open incident (or a station), and add
+#    random_block_near(pos, radius) so the incident spawner can avoid
+#    placing new incidents right next to an existing blockage."
+# Follow-up prompt: "Blockages only need a 100 m buffer."
 
 enum Traffic { CLEAR, SLOW, JAMMED, BLOCKED }
 
@@ -51,10 +63,16 @@ const BLOCK_REASONS := ["Roadworks", "Fallen tree", "Burst water main", "Broken-
 @export var max_blockages_by_stage: Array[int] = [1, 2, 4, 6]
 ## Random blockages last between x and y seconds.
 @export var blockage_duration := Vector2(50.0, 110.0)
+## After a blockage clears: seconds jammed, then seconds slow, then normal.
+@export var ease_jammed_seconds := 25.0
+@export var ease_slow_seconds := 30.0
+## Random blockages keep at least this far (metres) from incidents and stations.
+@export var incident_clearance_m := 100.0
 
 var rng := RandomNumberGenerator.new()
 var _traffic := PackedByteArray()
 var _blocks := {}             # edge -> {reason, owner, until}
+var _easing := {}             # edge -> clock time it moves to the next level
 var _playable: Array[int] = []
 var _change_budget := 0.0
 var _block_timer := 0.0
@@ -85,8 +103,18 @@ func _process(_delta: float) -> void:
 	while _change_budget >= 1.0:
 		_change_budget -= 1.0
 		var e: int = _playable[rng.randi() % _playable.size()]
-		if not _blocks.has(e):
+		if not _blocks.has(e) and not _easing.has(e):
 			set_traffic(e, _roll_traffic(e))
+
+	# Recovering roads: JAMMED -> SLOW -> normal.
+	for e in _easing.keys():
+		if Knowledge.clock >= _easing[e]:
+			if _traffic[e] == Traffic.JAMMED:
+				set_traffic(e, Traffic.SLOW)
+				_easing[e] = Knowledge.clock + ease_slow_seconds
+			else:
+				_easing.erase(e)
+				set_traffic(e, _roll_traffic(e))
 
 	# Random blockages appear and expire.
 	_block_timer -= dt
@@ -99,6 +127,17 @@ func _process(_delta: float) -> void:
 		var b: Dictionary = _blocks[e]
 		if b["until"] >= 0.0 and Knowledge.clock >= b["until"]:
 			unblock(e)
+
+
+## Fresh world for a new run.
+func reset() -> void:
+	_blocks.clear()
+	_easing.clear()
+	for e in RoadGraph.edge_count():
+		_traffic[e] = _roll_traffic(e)
+	_last_clock = 0.0
+	_change_budget = 0.0
+	_block_timer = blockage_interval_by_stage[0] * 0.5
 
 
 func get_traffic(edge: int) -> int:
@@ -128,10 +167,11 @@ func block(edge: int, reason: String, owner: Object = null, duration := -1.0) ->
 	set_traffic(edge, Traffic.BLOCKED)
 
 
+## Clear a blockage. Traffic recovers gradually (jammed, then slow).
 func unblock(edge: int) -> void:
 	if _blocks.erase(edge):
-		_traffic[edge] = Traffic.BLOCKED   # force a change event below
-		set_traffic(edge, _roll_traffic(edge))
+		set_traffic(edge, Traffic.JAMMED)
+		_easing[edge] = Knowledge.clock + ease_jammed_seconds
 
 
 func block_reason(edge: int) -> String:
@@ -158,17 +198,29 @@ func _random_block_count() -> int:
 
 
 func _add_random_block() -> void:
-	var stations := get_tree().get_nodes_in_group("stations")
-	for attempt in 20:
-		var e: int = _playable[rng.randi() % _playable.size()]
-		if _blocks.has(e) or RoadGraph.edge_class(e) > 2 or RoadGraph.edge_length(e) < 40.0:
+	# Roads near open incidents and stations are off limits.
+	var clear_r := incident_clearance_m * float(Stage.meta["px_per_m"])
+	var keep_clear := {}
+	for n in get_tree().get_nodes_in_group("stations") + get_tree().get_nodes_in_group("incidents"):
+		if n.has_method("is_finished") and n.is_finished():
 			continue
-		var mid := RoadGraph.edge_midpoint(e)
-		if stations.any(func(s: Node2D) -> bool: return s.global_position.distance_to(mid) < 120.0):
+		for e in RoadGraph.edges_near(n.global_position, clear_r):
+			keep_clear[e] = true
+	for attempt in 30:
+		var e: int = _playable[rng.randi() % _playable.size()]
+		if _blocks.has(e) or keep_clear.has(e) or RoadGraph.edge_class(e) > 2 or RoadGraph.edge_length(e) < 40.0:
 			continue
 		block(e, BLOCK_REASONS[rng.randi() % BLOCK_REASONS.size()], null,
 			rng.randf_range(blockage_duration.x, blockage_duration.y))
 		return
+
+
+## Is there a random (not incident) blockage within radius px of pos?
+func random_block_near(pos: Vector2, radius: float) -> bool:
+	for e in RoadGraph.edges_near(pos, radius):
+		if _blocks.has(e) and _blocks[e]["owner"] == null:
+			return true
+	return false
 
 
 # Traffic roll. Big roads jam more often than side streets. Never BLOCKED.

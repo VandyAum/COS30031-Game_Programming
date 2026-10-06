@@ -62,6 +62,21 @@
 # Follow-up prompt: "Scale stage 3 down by about 25% (1.5x stage 2 instead of
 #    2x), and only keep decor roads that are at least partly inside the world
 #    rectangle now that the cached download can be bigger than the world."
+# Follow-up prompt (T-junction repair):
+#   "Some side streets can't be driven onto the main road they meet: in the
+#    Vicmap data their end node sits exactly on the main road's line, but the
+#    main road has no node there, so the routing graph has no junction.
+#    After choosing the playable roads, find every dead-end node within
+#    JOIN_TOL metres of the interior of another playable road and split that
+#    road at the closest point, joining it to the dead end. Recompute the
+#    stage of each split piece, and print how many junctions were repaired."
+# Follow-up prompt: "Drop tiny unnamed service-lane loops (both ends on the
+#    same named road, ends under 30 m apart, under 80 m long): a wobbly
+#    route snaps onto them and they read as bumps."
+# Follow-up prompt: "Hawkthorne Fire Station sits right on the edge of
+#    stage 2. Add a small table of station moves (final fictional name ->
+#    metres east/south of the junction), apply it after naming, mark moved
+#    stations in foi.json and mention the move in the attribution changes."
 #
 # Usage (from the project root):  python3 tools/build_world.py
 
@@ -181,11 +196,16 @@ FOI_SOURCE = ("Vicmap Features of Interest", "vicmap-features-of-interest", VICM
               "of FOI_INDEX_EXTENT)")
 CHANGES = ("Reprojected to a local game grid, clipped to the play area, simplified and "
            "stylised (parcels drawn as building boxes), all place, road and facility "
-           "names replaced with fictional names, and a few fictional emergency stations "
-           "added. This is a game, not an emergency map.")
+           "names replaced with fictional names, a few fictional emergency stations "
+           "added and one station moved for gameplay. This is a game, not an emergency map.")
 
 # Fictional stations (metres east/south of the junction), so early stages have
 # every crew type. Clearly marked as fictional in foi.json.
+# Real stations moved for gameplay (final name -> metres east/south of junction).
+STATION_MOVES = {
+    "Hawkthorne Fire Station": (-1313.0, -407.0),   # was on the very edge of stage 2
+}
+
 FICTIONAL_STATIONS = [
     ("Junction Ambulance Post", "ambulance station", 180.0, -210.0),
     ("Cambermere Fire Station", "fire station", 1250.0, 520.0),
@@ -541,6 +561,89 @@ class Namer:
 
 
 # --- Roads ------------------------------------------------------------------
+JOIN_TOL = 3.0    # metres: a dead end this close to another road joins it
+
+
+def repair_t_junctions(play, node_pos):
+    """Split roads where another road's dead end touches them mid-segment."""
+    deg = defaultdict(int)
+    for s in play:
+        deg[s[0]] += 1
+        deg[s[1]] += 1
+    cell = 20.0
+    grid = defaultdict(list)
+    for i, s in enumerate(play):
+        pts = s[2]
+        for k in range(len(pts) - 1):
+            (x0, y0), (x1, y1) = pts[k], pts[k + 1]
+            for gx in range(int(min(x0, x1) // cell) - 1, int(max(x0, x1) // cell) + 2):
+                for gy in range(int(min(y0, y1) // cell) - 1, int(max(y0, y1) // cell) + 2):
+                    grid[(gx, gy)].append((i, k))
+    tol = JOIN_TOL * PX_PER_M
+    splits = defaultdict(list)          # seg index -> [(k, t, node)]
+    for n, d in deg.items():
+        if d != 1:
+            continue
+        x, y = node_pos[n]
+        best = None
+        for i, k in grid[(int(x // cell), int(y // cell))]:
+            s = play[i]
+            if n in (s[0], s[1]):
+                continue
+            (ax, ay), (bx, by) = s[2][k], s[2][k + 1]
+            dx, dy = bx - ax, by - ay
+            ll = dx * dx + dy * dy
+            t = 0.0 if ll == 0 else max(0.0, min(1.0, ((x - ax) * dx + (y - ay) * dy) / ll))
+            dist = math.hypot(x - ax - t * dx, y - ay - t * dy)
+            # Joining at the very end of a road is already a node: skip.
+            at_end = (k == 0 and t < 1e-3) or (k == len(s[2]) - 2 and t > 1 - 1e-3)
+            if dist <= tol and not at_end and (best is None or dist < best[0]):
+                best = (dist, i, k, t)
+        if best:
+            splits[best[1]].append((best[2], best[3], n))
+    out = []
+    for i, s in enumerate(play):
+        if i not in splits:
+            out.append(s)
+            continue
+        a, b, pts, cls, name, oneway, _ = s
+        by_k = defaultdict(list)
+        for k, t, n in splits[i]:
+            by_k[k].append((t, n))
+        cur_from, cur_pts = a, []
+        for k in range(len(pts)):
+            cur_pts.append(pts[k])
+            for t, n in sorted(by_k.get(k, [])):
+                p = node_pos[n]
+                cur_pts.append(p)
+                out.append([cur_from, n, cur_pts, cls, name, oneway])
+                cur_from, cur_pts = n, [p]
+        out.append([cur_from, b, cur_pts, cls, name, oneway])
+    for s in out:
+        if len(s) == 6:
+            s.append(max(stage_of(x, y) for x, y in s[2]))
+    print(f"T-junctions repaired: {sum(len(v) for v in splits.values())}")
+    return out
+
+
+def drop_service_loops(play, node_pos):
+    """Remove short unnamed lanes whose two ends are on the same named road."""
+    names = defaultdict(set)
+    for s in play:
+        names[s[0]].add(s[4])
+        names[s[1]].add(s[4])
+    out = []
+    for s in play:
+        length = sum(math.dist(s[2][k], s[2][k + 1]) for k in range(len(s[2]) - 1))
+        shared = (names[s[0]] & names[s[1]]) - {"", "Unnamed"}
+        if s[4] in ("", "Unnamed") and shared and math.dist(node_pos[s[0]], node_pos[s[1]]) < 30 * PX_PER_M \
+                and length < 80 * PX_PER_M:
+            continue
+        out.append(s)
+    print(f"service loops dropped: {len(play) - len(out)}")
+    return out
+
+
 def build_roads():
     segs = []   # [from, to, pts, class, name, oneway]
     for f in load("tr_road"):
@@ -591,6 +694,8 @@ def build_roads():
         s.append(max(stage_of(x, y) for x, y in s[2]))
 
     play = [s for s in segs if s[6] != OUTSIDE]
+    play = repair_t_junctions(play, node_pos)
+    play = drop_service_loops(play, node_pos)
     parent = {}
 
     def find(n):
@@ -877,6 +982,11 @@ def main():
                      "s": stage_of(x, y)})
         next_id += 1
 
+    for f in fois:
+        if f["name"] in STATION_MOVES:
+            east, south = STATION_MOVES[f["name"]]
+            x, y = (east - _W0) * PX_PER_M, (south - _N0) * PX_PER_M
+            f.update({"x": round(x, 1), "y": round(y, 1), "s": stage_of(x, y), "moved": True})
     with open(os.path.join(OUT, "foi.json"), "w", encoding="utf-8") as f:
         json.dump(fois, f, indent=1)
 

@@ -43,9 +43,19 @@ extends Control
 #    'Police 1 stopped: roadworks on Burkett Road. Drag from the crew to
 #    redraw its route.' Clicking it pans the camera to the crew. Also show the
 #    incident card's status in red while its crew is blocked."
+# Follow-up prompt (milestone 3): "Remove the alert banner (blocked crews now
+#    show a countdown dial on the map instead). Put the lives/progress bar
+#    (run_bar.gd) in the navigation bar right of the title. The card's
+#    progress bar shows the incident timer in orange-to-red until every
+#    needed crew is on scene, then green resolve progress. 'Send' buttons
+#    put the crew types the incident still needs first."
 # Follow-up prompt: "Long crew statuses ('BLOCKED: roadworks on ...') widened
 #    the whole panel. Clip crew-row text with an ellipsis so rows never grow
 #    past the panel; the full text shows as a tooltip and on the card."
+# Follow-up prompt: "The last crew rows (e.g. the stage 1 fire crew) were
+#    hidden behind the news ticker. Keep the panel's content clear of the
+#    ticker, and put the crew list in its own scroll area (up to ~8 rows
+#    tall) so a long stage 3 crew list never squeezes out the incidents."
 
 const TAB_FILTER: Array[StringName] = [&"", &"fire", &"ambulance", &"police"]
 const SELECTED_BORDER := Color("1f6fd8")
@@ -58,8 +68,8 @@ const TEXT_WIDTH := 225.0
 
 var _list: VBoxContainer
 var _crew_list: VBoxContainer
-var _alerts: VBoxContainer
-var _alert_key := ""
+var _crew_scroll: ScrollContainer
+var _run_bar: Control
 var _cards := {}          # Incident -> card (PanelContainer)
 var _refresh_timer := 0.0
 
@@ -83,19 +93,28 @@ func _ready() -> void:
 	heading.add_theme_font_size_override("font_size", 24)
 	heading.add_theme_color_override("font_color", Color(0.1, 0.1, 0.1))
 	_column.add_child(heading)
+	_crew_scroll = ScrollContainer.new()
+	_crew_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_column.add_child(_crew_scroll)
 	_crew_list = VBoxContainer.new()
+	_crew_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_crew_list.add_theme_constant_override("separation", 4)
-	_column.add_child(_crew_list)
+	_crew_scroll.add_child(_crew_list)
 	var pad := Control.new()
-	pad.custom_minimum_size = Vector2(0, 16)
+	pad.custom_minimum_size = Vector2(0, 64 + 16)     # clear of the news ticker
 	_column.add_child(pad)
 
-	_alerts = VBoxContainer.new()
-	_alerts.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_alerts.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_alerts.position = Vector2(0, 116)
-	_alerts.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	add_child(_alerts)
+	# Lives + run progress in the navigation bar, right of the title.
+	var nav: HBoxContainer = $NavigationBar/HbxNavContainer
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	nav.add_child(spacer)
+	_run_bar = preload("res://Script/run_bar.gd").new()
+	nav.add_child(_run_bar)
+	var nav_pad := Control.new()
+	nav_pad.custom_minimum_size = Vector2(30, 0)
+	nav.add_child(nav_pad)
 
 	_tabs.tab_changed.connect(func(_t: int) -> void: _rebuild())
 	for sig in [Events.incident_spawned, Events.incident_updated, Events.incident_resolved,
@@ -115,7 +134,6 @@ func _process(delta: float) -> void:
 		_refresh_timer = 0.25
 		_update_progress()
 		_rebuild_crews()
-		_rebuild_alerts()
 
 
 func _manager() -> Node:
@@ -186,7 +204,7 @@ func _make_card(inc: Incident, is_selected: bool) -> PanelContainer:
 	box.add_child(status)
 	box.move_child(status, 2)
 	var bar: ProgressBar = box.get_node("MarginContainer/ProgressBar")
-	bar.value = inc.progress * 100.0
+	_set_bar(bar, inc)
 	(box.get_node("MarginContainer") as MarginContainer).add_theme_constant_override("margin_top", 8)
 
 	if is_selected:
@@ -200,11 +218,22 @@ func _make_card(inc: Incident, is_selected: bool) -> PanelContainer:
 	return card
 
 
+# Orange timer (Jessie's design colour) until all crews are on scene, then
+# green resolve progress.
+func _set_bar(bar: ProgressBar, inc: Incident) -> void:
+	var resolving := inc.status == Incident.Status.ON_SCENE or inc.status == Incident.Status.RESOLVED
+	bar.value = (inc.progress if resolving else inc.timer()) * 100.0
+	var fill: StyleBoxFlat = bar.get_theme_stylebox("fill").duplicate()
+	fill.bg_color = Color("2fbf71") if resolving else Color(1, 0.525, 0).lerp(Color("d62828"), inc.timer())
+	bar.add_theme_stylebox_override("fill", fill)
+
+
 func _crew_buttons(inc: Incident) -> HFlowContainer:
 	var grid := HFlowContainer.new()
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var crews: Array = _stations().crews_in_play().filter(func(c: Crew) -> bool: return c.is_available())
-	crews.sort_custom(func(a: Crew, b: Crew) -> bool: return inc.type.needs(a.type.id) and not inc.type.needs(b.type.id))
+	var missing := inc.missing_types()
+	crews.sort_custom(func(a: Crew, b: Crew) -> bool: return missing.has(a.type.id) and not missing.has(b.type.id))
 	if crews.is_empty():
 		var none := Label.new()
 		none.text = "No crews available"
@@ -217,9 +246,9 @@ func _crew_buttons(inc: Incident) -> HFlowContainer:
 		b.expand_icon = true
 		b.add_theme_constant_override("icon_max_width", 22)
 		b.custom_minimum_size = Vector2(0, 38)
-		if not inc.type.needs(c.type.id):
+		if not missing.has(c.type.id):
 			b.modulate = Color(1, 1, 1, 0.55)
-			b.tooltip_text = "Wrong crew type for this incident"
+			b.tooltip_text = "This incident doesn't need another %s crew" % c.type.display_name
 		b.pressed.connect(func() -> void: Events.crew_selected.emit(c))
 		grid.add_child(b)
 	return grid
@@ -239,50 +268,11 @@ func _update_progress() -> void:
 			continue
 		var card: PanelContainer = _cards[inc]
 		var box := card.get_node("HBoxContainer/MarginContainer/VBoxContainer")
-		(box.get_node("MarginContainer/ProgressBar") as ProgressBar).value = inc.progress * 100.0
+		_set_bar(box.get_node("MarginContainer/ProgressBar"), inc)
 		var status: Label = box.get_node("Status")
 		status.text = inc.status_text()
 		status.add_theme_color_override("font_color",
 			Color("b3261e") if inc.note != "" or inc.is_crew_blocked() else Color(0.25, 0.25, 0.25))
-
-
-# --- Obstacle alerts ---------------------------------------------------------
-
-func _rebuild_alerts() -> void:
-	var stations := _stations()
-	if stations == null:
-		return
-	var blocked: Array = stations.all_crews().filter(func(c: Crew) -> bool: return c.state == Crew.State.BLOCKED)
-	var key := ",".join(blocked.map(func(c: Crew) -> String: return c.callsign + str(c.blocked_edge)))
-	if key == _alert_key:
-		return
-	_alert_key = key
-	for a in _alerts.get_children():
-		a.queue_free()
-	for c: Crew in blocked:
-		var b := Button.new()
-		var road: String = RoadGraph.edge_name[c.blocked_edge]
-		b.text = "  %s stopped: %s%s. Drag from the crew to redraw its route.  " % [
-			c.callsign, World.block_reason(c.blocked_edge).to_lower(), (" on " + road) if road != "" else ""]
-		b.add_theme_font_size_override("font_size", 22)
-		b.add_theme_color_override("font_color", Color.WHITE)
-		b.add_theme_color_override("font_hover_color", Color.WHITE)
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color("c1121f")
-		style.set_corner_radius_all(10)
-		style.set_content_margin_all(10)
-		style.shadow_size = 8
-		style.shadow_color = Color(0, 0, 0, 0.3)
-		b.add_theme_stylebox_override("normal", style)
-		var hover := style.duplicate()
-		hover.bg_color = Color("e01e2b")
-		b.add_theme_stylebox_override("hover", hover)
-		b.add_theme_stylebox_override("pressed", hover)
-		b.pressed.connect(func() -> void:
-			var cam := get_viewport().get_camera_2d()
-			if cam and cam.has_method("focus_on") and is_instance_valid(c):
-				cam.focus_on(c.global_position))
-		_alerts.add_child(b)
 
 
 # --- Crew list -------------------------------------------------------------------
@@ -303,6 +293,7 @@ func _rebuild_crews() -> void:
 		return
 	for c in _crew_list.get_children():
 		c.queue_free()
+	_crew_scroll.custom_minimum_size.y = minf(crews.size(), 8) * 34.0
 	for crew in crews:
 		var row := HBoxContainer.new()
 		var icon := TextureRect.new()

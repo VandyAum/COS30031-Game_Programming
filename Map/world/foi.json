@@ -337,9 +337,10 @@
   "name": "Hawkthorne Fire Station",
   "type": "emergency facility",
   "subtype": "fire station",
-  "x": 1373.0,
-  "y": 1863.5,
-  "s": 2
+  "x": 1579.9,
+  "y": 2300.1,
+  "s": 2,
+  "moved": true
  },
  {
   "id": 39,

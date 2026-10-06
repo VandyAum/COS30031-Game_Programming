@@ -40,11 +40,15 @@ extends Node
 #    The traffic overlay will be masked and faded per pixel from this same
 #    texture, so observe every road with any part inside the sight radius
 #    and let the shader decide what is visible."
+# Follow-up prompt: "Add reset() for 'play again' (autoloads survive a scene
+#    reload)."
+# Follow-up prompt: "Make traffic vision last twice as long: 60 s is too
+#    short. fade_seconds 120."
 
 const UNKNOWN := -1
 
 ## Seconds for a fresh observation to fade fully to grey. Tune in playtest.
-@export var fade_seconds := 60.0
+@export var fade_seconds := 120.0
 
 ## How far a crew can see, in metres. Upgradable later.
 @export var sight_radius_m := 110.0
@@ -72,6 +76,15 @@ func _ready() -> void:
 	sight_image = Image.create_empty(int(size.x), int(size.y), false, Image.FORMAT_RGF)
 	sight_image.fill(Color(NEVER_SEEN, 0, 0))
 	sight_texture = ImageTexture.create_from_image(sight_image)
+
+
+## Forget everything (new run).
+func reset() -> void:
+	clock = 0.0
+	_level.fill(UNKNOWN)
+	_seen_at.fill(0.0)
+	sight_image.fill(Color(NEVER_SEEN, 0, 0))
+	sight_texture.update(sight_image)
 
 
 func _process(delta: float) -> void:

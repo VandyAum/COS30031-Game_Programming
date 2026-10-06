@@ -18,13 +18,59 @@ extends Node2D
 #    other landmarks. Keep markers a constant size on screen, show the place
 #    name underneath once zoomed in, and skip emergency stations (Stations
 #    draws those). Redraw only when the zoom changes."
+# Follow-up prompt (legible from a distance): "PoI icons and names are too
+#    small when zoomed out to a big stage. Keep the pictograms the same size
+#    on screen at every zoom (scale up to 4.5x), make them a little bigger
+#    with a thicker outline and a soft shadow, and always show names at a
+#    fixed on-screen size: when zoomed out, label the most useful landmarks
+#    first (railway stations, hospitals, shopping centres, schools) and skip
+#    any label that would overlap one already drawn, so it never turns into
+#    clutter."
+# Follow-up prompt: "Label scaling was janky (font sizes jumping in whole
+#    pixels as the zoom changes). Draw icons and labels at a fixed size
+#    through a scaling transform instead, so they scale smoothly. And swap
+#    the black ink on each icon for a distinctive colour per kind of place,
+#    avoiding the crew/station colours (police blue, ambulance red, fire
+#    orange, SES gold) and the traffic greens/reds."
+# Follow-up prompt (licensed icons): "Swap the hand-drawn pictograms for
+#    Mapbox's Maki icons (CC0, UI/Icons/map/, recoloured white so they can
+#    be tinted), keeping the coloured rings and per-kind colours. Credit
+#    them in the README and the credits screen."
 
 const FOI_PATH := "res://Map/world/foi.json"
 const INK := Color("33373d")
-const LABEL_ZOOM := 0.75          # names appear at this zoom and closer
+const MAX_SCALE := 4.5            # markers stay this many times bigger at most
+const ICON_R := 14.0              # marker radius in screen px
+const LABEL_SIZE := 15            # label font size in screen px
 
 enum Glyph { MEDICAL, SCHOOL, SHOP, TREE, WORSHIP, CIVIC, HOUSE, INDUSTRY, STAR, TRAIN }
 ## Drawn by Stations instead.
+## Ink colour per pictogram (not crew colours, not traffic colours).
+const GLYPH_COLOURS := {
+	Glyph.MEDICAL: Color("8e44ad"),   # purple
+	Glyph.SCHOOL: Color("c2185b"),    # magenta
+	Glyph.SHOP: Color("6d4c41"),      # brown
+	Glyph.TREE: Color("2e6b30"),      # forest green
+	Glyph.WORSHIP: Color("827717"),   # olive
+	Glyph.CIVIC: Color("546e7a"),     # blue-grey
+	Glyph.HOUSE: Color("a1765f"),     # tan
+	Glyph.INDUSTRY: Color("616161"),  # grey
+	Glyph.STAR: Color("37474f"),      # charcoal
+	Glyph.TRAIN: Color("00838f"),     # cyan
+}
+## Maki icon per pictogram (CC0, Mapbox; white so the ink colour tints it).
+const GLYPH_ICONS := {
+	Glyph.MEDICAL: preload("res://UI/Icons/map/hospital.svg"),
+	Glyph.SCHOOL: preload("res://UI/Icons/map/school.svg"),
+	Glyph.SHOP: preload("res://UI/Icons/map/shop.svg"),
+	Glyph.TREE: preload("res://UI/Icons/map/park.svg"),
+	Glyph.WORSHIP: preload("res://UI/Icons/map/place-of-worship.svg"),
+	Glyph.CIVIC: preload("res://UI/Icons/map/town-hall.svg"),
+	Glyph.HOUSE: preload("res://UI/Icons/map/home.svg"),
+	Glyph.INDUSTRY: preload("res://UI/Icons/map/industry.svg"),
+	Glyph.STAR: preload("res://UI/Icons/map/star.svg"),
+	Glyph.TRAIN: preload("res://UI/Icons/map/rail.svg"),
+}
 const STATION_SUBTYPES := ["police station", "ambulance station", "fire station"]
 
 ## feature_type -> glyph (subtypes checked first, below).
@@ -54,7 +100,19 @@ func _ready() -> void:
 		if STATION_SUBTYPES.has(f["subtype"]) or not world.has_point(p):
 			continue
 		var glyph: int = SUBTYPE_GLYPHS.get(f["subtype"], TYPE_GLYPHS.get(f["type"], Glyph.STAR))
-		_places.append({"pos": p, "glyph": glyph, "name": f["name"]})
+		_places.append({"pos": p, "glyph": glyph, "name": f["name"], "rank": _rank(glyph, f["subtype"])})
+	# Most useful landmarks get their labels first.
+	_places.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["rank"] < b["rank"])
+
+
+func _rank(glyph: int, subtype: String) -> int:
+	if glyph == Glyph.TRAIN:
+		return 0
+	if subtype in ["general hospital", "shopping centre"]:
+		return 1
+	if glyph == Glyph.SCHOOL or glyph == Glyph.SHOP:
+		return 2
+	return 3
 
 
 func _process(_delta: float) -> void:
@@ -67,71 +125,36 @@ func _process(_delta: float) -> void:
 func _draw() -> void:
 	if _zoom <= 0.0:
 		return
-	var s := clampf(1.0 / _zoom, 0.6, 1.8)    # constant-ish screen size
+	var s := clampf(1.0 / _zoom, 0.6, MAX_SCALE)    # constant screen size
 	var font := ThemeDB.fallback_font
+	# Everything is drawn at its screen size around each place, scaled by s
+	# through the transform so it grows and shrinks smoothly.
+	for place: Dictionary in _places:
+		var ink: Color = GLYPH_COLOURS.get(place["glyph"], INK)
+		draw_set_transform(place["pos"], 0.0, Vector2(s, s))
+		draw_circle(Vector2(0, 2), ICON_R, Color(0, 0, 0, 0.18))   # shadow
+		draw_circle(Vector2.ZERO, ICON_R, Color.WHITE)
+		draw_circle(Vector2.ZERO, ICON_R, ink, false, 2.5)
+		_draw_glyph(place["glyph"], Vector2.ZERO, 9.0, ink)
+	# Labels on top of every marker, skipping any that would overlap.
+	var taken: Array[Rect2] = []
 	for place: Dictionary in _places:
 		var c: Vector2 = place["pos"]
-		draw_circle(c, 12.0 * s, Color.WHITE)
-		draw_circle(c, 12.0 * s, INK, false, 2.0 * s)
-		_draw_glyph(place["glyph"], c, 7.0 * s)
-		if _zoom >= LABEL_ZOOM:
-			var size := int(13 * s)
-			var text: String = place["name"]
-			var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
-			var at := c + Vector2(-w / 2.0, 26.0 * s)
-			draw_string_outline(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, int(4 * s), Color(1, 1, 1, 0.85))
-			draw_string(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, INK)
+		var text: String = place["name"]
+		var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE).x
+		var at := Vector2(-w / 2.0, ICON_R + 16.0)
+		var box := Rect2(c + (at - Vector2(4, LABEL_SIZE)) * s, Vector2(w + 8, LABEL_SIZE * 1.3) * s)
+		if taken.any(func(r: Rect2) -> bool: return r.intersects(box)):
+			continue
+		taken.append(box)
+		var ink: Color = GLYPH_COLOURS.get(place["glyph"], INK)
+		draw_set_transform(c, 0.0, Vector2(s, s))
+		draw_string_outline(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE, 5, Color(1, 1, 1, 0.92))
+		draw_string(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE, ink.darkened(0.35))
+	draw_set_transform(Vector2.ZERO)
 
 
-# Pictograms drawn inside a box of half-size h around c.
-func _draw_glyph(glyph: int, c: Vector2, h: float) -> void:
-	match glyph:
-		Glyph.MEDICAL:
-			draw_rect(Rect2(c - Vector2(h * 0.3, h), Vector2(h * 0.6, h * 2)), INK)
-			draw_rect(Rect2(c - Vector2(h, h * 0.3), Vector2(h * 2, h * 0.6)), INK)
-		Glyph.SCHOOL:
-			draw_colored_polygon(PackedVector2Array([c + Vector2(-h, -h * 0.2), c + Vector2(0, -h * 0.8),
-				c + Vector2(h, -h * 0.2), c + Vector2(0, h * 0.4)]), INK)
-			draw_rect(Rect2(c + Vector2(-h * 0.55, 0), Vector2(h * 1.1, h * 0.7)), INK)
-			draw_line(c + Vector2(h * 0.8, -h * 0.25), c + Vector2(h * 0.8, h * 0.6), INK, h * 0.18)
-		Glyph.SHOP:
-			draw_rect(Rect2(c + Vector2(-h * 0.8, -h * 0.3), Vector2(h * 1.6, h * 1.3)), INK)
-			draw_arc(c + Vector2(0, -h * 0.3), h * 0.45, PI, TAU, 12, INK, h * 0.2)
-		Glyph.TREE:
-			draw_circle(c + Vector2(0, -h * 0.25), h * 0.75, INK)
-			draw_rect(Rect2(c + Vector2(-h * 0.15, h * 0.3), Vector2(h * 0.3, h * 0.7)), INK)
-		Glyph.WORSHIP:
-			draw_rect(Rect2(c + Vector2(-h * 0.15, -h), Vector2(h * 0.3, h * 2)), INK)
-			draw_rect(Rect2(c + Vector2(-h * 0.6, -h * 0.5), Vector2(h * 1.2, h * 0.3)), INK)
-		Glyph.CIVIC:
-			draw_colored_polygon(PackedVector2Array([c + Vector2(-h, -h * 0.35), c + Vector2(0, -h),
-				c + Vector2(h, -h * 0.35)]), INK)
-			for i in 3:
-				var x := -h * 0.65 + i * h * 0.55
-				draw_rect(Rect2(c + Vector2(x, -h * 0.25), Vector2(h * 0.22, h * 0.95)), INK)
-			draw_rect(Rect2(c + Vector2(-h, h * 0.7), Vector2(h * 2, h * 0.3)), INK)
-		Glyph.HOUSE:
-			draw_colored_polygon(PackedVector2Array([c + Vector2(-h, -h * 0.05), c + Vector2(0, -h),
-				c + Vector2(h, -h * 0.05)]), INK)
-			draw_rect(Rect2(c + Vector2(-h * 0.65, -h * 0.05), Vector2(h * 1.3, h * 1.0)), INK)
-		Glyph.INDUSTRY:
-			draw_colored_polygon(PackedVector2Array([c + Vector2(-h, h), c + Vector2(-h, -h * 0.2),
-				c + Vector2(-h * 0.35, -h * 0.65), c + Vector2(-h * 0.35, -h * 0.2), c + Vector2(h * 0.3, -h * 0.65),
-				c + Vector2(h * 0.3, -h * 0.2), c + Vector2(h, -h * 0.65), c + Vector2(h, h)]), INK)
-		Glyph.TRAIN:
-			var body := StyleBoxFlat.new()
-			body.bg_color = INK
-			body.set_corner_radius_all(int(h * 0.35))
-			draw_style_box(body, Rect2(c + Vector2(-h * 0.7, -h), Vector2(h * 1.4, h * 1.5)))
-			draw_rect(Rect2(c + Vector2(-h * 0.45, -h * 0.75), Vector2(h * 0.9, h * 0.5)), Color.WHITE)
-			draw_circle(c + Vector2(-h * 0.35, h * 0.2), h * 0.15, Color.WHITE)
-			draw_circle(c + Vector2(h * 0.35, h * 0.2), h * 0.15, Color.WHITE)
-			draw_line(c + Vector2(-h * 0.5, h * 0.55), c + Vector2(-h * 0.8, h), INK, h * 0.2)
-			draw_line(c + Vector2(h * 0.5, h * 0.55), c + Vector2(h * 0.8, h), INK, h * 0.2)
-		_:
-			var star := PackedVector2Array()
-			for i in 10:
-				var r := h if i % 2 == 0 else h * 0.42
-				var a := -PI / 2 + i * PI / 5
-				star.append(c + Vector2(cos(a), sin(a)) * r)
-			draw_colored_polygon(star, INK)
+# Pictogram (a Maki icon tinted with the ink colour) in a box of half-size h around c.
+func _draw_glyph(glyph: int, c: Vector2, h: float, ink := INK) -> void:
+	var tex: Texture2D = GLYPH_ICONS.get(glyph, GLYPH_ICONS[Glyph.STAR])
+	draw_texture_rect(tex, Rect2(c - Vector2(h, h), Vector2(h, h) * 2.0), false, ink)

@@ -23,6 +23,8 @@ extends CanvasLayer
 # Follow-up prompt: "The true world now changes constantly; don't log
 #    road_truth_changed (it would flood the log and it's not player info),
 #    and add F6 to block the road under the mouse for testing obstacles."
+# Follow-up prompt: "Turn the debug panels off by default (F1 still shows
+#    them); the controls are documented in the README."
 
 const LOG_LINES := 12
 
@@ -35,9 +37,10 @@ var _timer := 0.0
 
 func _ready() -> void:
 	layer = 100
+	visible = false
 	_help = _panel(Vector2.ZERO, 0.0)
 	_help.text = "\n".join([
-		"DEBUG HUD (F1 hide)",
+		"DEBUG HUD (F1 show/hide)",
 		"Click an incident pin (or its card) to select it.",
 		"Hold LEFT MOUSE on a station square and drag along",
 		"the roads; release on the incident to dispatch.",
@@ -99,7 +102,7 @@ func _process(delta: float) -> void:
 	var vp := get_viewport().get_visible_rect().size
 	_help.position = Vector2(vp.x - _help.size.x - 12, 114)
 	_status.position = Vector2(vp.x - _status.size.x - 12, _help.position.y + _help.size.y + 8)
-	_log.position = Vector2(vp.x - _log.size.x - 12, vp.y - _log.size.y - 40)
+	_log.position = Vector2(vp.x - _log.size.x - 12, vp.y - _log.size.y - 100)   # above ticker + credit
 
 
 func _on_event0(sig: String) -> void:

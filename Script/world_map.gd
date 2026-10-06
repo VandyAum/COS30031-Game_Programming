@@ -64,6 +64,8 @@ extends Node2D
 #    blend a light mist over the map wherever the sight map's G 'seen'
 #    coverage is low, so unseen streets are faint and the mist lifts (softly)
 #    where crews have looked. Tunable colour/strength."
+# Follow-up prompt: "Move the map credit up so it sits just above the news
+#    ticker along the bottom."
 
 const AREAS_PATH := "res://Map/world/areas.json"
 const BUILDINGS_PATH := "res://Map/world/buildings.bin"
@@ -99,6 +101,7 @@ var _areas: Dictionary
 var _roads: Dictionary
 var _filter: Polygon2D
 var _fog_panels: Array[Polygon2D] = []
+var _fog_rect := Rect2()
 
 
 func _ready() -> void:
@@ -120,12 +123,13 @@ func _ready() -> void:
 	_add_fog()
 	_add_credit()
 
-	Events.stage_changed.connect(_on_stage_changed)
 	print("WorldMap: loaded in %d ms" % (Time.get_ticks_msec() - t0))
 
 
 func _process(_delta: float) -> void:
 	(_filter.material as ShaderMaterial).set_shader_parameter("now", Knowledge.clock)
+	if Stage.shown != _fog_rect:
+		_update_fog(Stage.shown)      # stage transition in progress
 
 
 # --- Filled layers (one mesh each) -----------------------------------------
@@ -372,11 +376,13 @@ func _add_colour_filter() -> void:
 func _add_fog() -> void:
 	for i in 4:
 		_fog_panels.append(_add_rect("Fog%d" % i, Rect2(), fog_colour, 50))   # above crews and routes
-	_on_stage_changed(Stage.current)
+	_update_fog(Stage.shown)
 
 
-func _on_stage_changed(_stage: int) -> void:
-	var r := Stage.bounds()
+# Follow-up prompt: "Draw the fog around Stage.shown every frame it changes,
+#    so the fog slides open with the stage transition."
+func _update_fog(r: Rect2) -> void:
+	_fog_rect = r
 	var far := 30000.0
 	var outer := Rect2(-far, -far, Stage.world_size.x + far * 2, Stage.world_size.y + far * 2)
 	var panels := [
@@ -408,4 +414,6 @@ func _add_credit() -> void:
 	label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 6)
 	label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	label.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	label.offset_top -= 64.0       # above the news ticker
+	label.offset_bottom -= 64.0
 	layer.add_child(label)

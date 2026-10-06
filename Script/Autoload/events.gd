@@ -55,6 +55,12 @@ signal route_committed(crew: Node, points: PackedVector2Array, edges: Array)
 ## The playable area grew (or changed). Emitted by Stage.
 signal stage_changed(stage: int)
 signal lives_changed(lives: int)
+## Resolved incidents toward the next stage changed (Run.progress()).
+signal progress_changed()
+signal paused_changed(paused: bool)
+## "won" or "lost".
 signal run_ended(reason: String)
+## Free-form line for the bottom news ticker (BBCode allowed).
+signal ticker_message(text: String)
 
 @warning_ignore_restore("unused_signal")

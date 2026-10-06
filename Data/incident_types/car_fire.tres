@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="IncidentType" format=3]
+
+; AI-assisted (Claude Opus 5.5): data file written from the prompt in Script/Data/incident_type.gd.
+; Follow-up prompt (variety + pacing): "Add more variety so one crew type isn't the only
+; failure point: car crashes don't always need an ambulance, police respond to crimes,
+; fire crews fight fires from stage 1, and the SES handles storm damage."
+; Follow-up prompt: "Make incidents take about 20% longer to tick down" (time limit x1.2).
+; Designers: edit these values in the inspector.
+
+[ext_resource type="Script" path="res://Script/Data/incident_type.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"car_fire"
+display_name = "Car fire"
+crew_types = Array[StringName]([&"fire"])
+resolve_seconds = 5.0
+time_limit_seconds = 72.0
+min_stage = 1
+weight = 0.6
+where = 0
+road_classes = Array[int]([0, 1, 2])
+foi_types = Array[String]([])
+descriptions = Array[String](["A parked car is on fire on {place}.", "Smoke is coming from under the bonnet of a car on {place}."])

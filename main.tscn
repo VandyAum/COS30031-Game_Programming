@@ -10,6 +10,10 @@
 [ext_resource type="Script" uid="uid://cj6kmsaio06kb" path="res://Script/road_overlay.gd" id="8_overlay"]
 [ext_resource type="Script" path="res://Script/debug_hud.gd" id="9_hud"]
 [ext_resource type="Script" path="res://Script/landmarks.gd" id="10_landmarks"]
+[ext_resource type="Script" path="res://Script/ticker.gd" id="11_ticker"]
+[ext_resource type="Script" path="res://Script/end_screen.gd" id="12_end"]
+[ext_resource type="Script" path="res://Script/tutorial.gd" id="13_tutorial"]
+[ext_resource type="Script" path="res://Script/road_labels.gd" id="14_roadlabels"]
 
 [node name="Main" type="Node2D" unique_id=1954988479]
 
@@ -17,6 +21,9 @@
 
 [node name="RoadOverlay" type="Node2D" parent="."]
 script = ExtResource("8_overlay")
+
+[node name="RoadLabels" type="Node2D" parent="."]
+script = ExtResource("14_roadlabels")
 
 [node name="Landmarks" type="Node2D" parent="."]
 z_index = 1
@@ -40,6 +47,16 @@ z_index = 4
 
 [node name="HUD" parent="UI" instance=ExtResource("6_hud")]
 script = ExtResource("7_hudscript")
+
+[node name="Ticker" type="Control" parent="UI"]
+layout_mode = 3
+script = ExtResource("11_ticker")
+
+[node name="EndScreen" type="CanvasLayer" parent="."]
+script = ExtResource("12_end")
+
+[node name="Tutorial" type="CanvasLayer" parent="."]
+script = ExtResource("13_tutorial")
 
 [node name="DebugHUD" type="CanvasLayer" parent="."]
 script = ExtResource("9_hud")

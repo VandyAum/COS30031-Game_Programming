@@ -43,6 +43,30 @@ class_name Crew extends Node2D
 #    stuck: a zero-length step 'on' the blocked road counted as driving onto
 #    it, and the route home snapped onto the blocked road. Skip zero-length
 #    steps before checking for blockages, and snap away from avoided roads."
+# Follow-up prompt: "Draw a slowly marching dashed circle around the crew
+#    showing its vision radius (Knowledge.sight_radius_m) while it is out."
+# Follow-up prompt (milestone 3 - blocked countdown):
+#   "Replace the blocked '!' badge with a Mini Metro style countdown dial
+#    around the crew's icon: a red arc showing how much patience is left
+#    (blocked_patience seconds), with the badge pulsing in size and a pulsing
+#    halo, faster as it runs out. If it reaches zero the crew gives up: it
+#    heads home and its incident fails, which costs a life."
+# Follow-up prompt: "Remember whether the player's map already showed the
+#    blockage before the crew stopped (for the 'stopped by obstacles the
+#    map didn't show' statistic) - check before revealing it."
+# Follow-up: "The crew's own sight reveals the block just before it arrives,
+#    so instead record which roads the map showed as blocked when the route
+#    was drawn, and compare against that."
+# Follow-up prompt: "Widen the area from which a crew can reach its
+#    incident: once an en-route crew is within access_radius_m of its
+#    incident it counts as arrived (it parks and goes in on foot), even if
+#    the last bit of road ahead is blocked."
+# Follow-up prompt: "Keep the car and badge the same size on screen when
+#    zoomed far out (scale up to 4.5x), add an SES tint."
+# Follow-up prompt: "Crews now stop too far from the incident. They should
+#    still drive all the way if they can, and only park within
+#    access_radius_m if the road ahead is blocked. Add cooldown_left() for
+#    the station's cooldown dial."
 
 enum State { AVAILABLE, EN_ROUTE, ON_SCENE, RETURNING, COOLDOWN, BLOCKED }
 
@@ -50,7 +74,8 @@ const STATE_NAMES := ["Available", "En route", "On scene", "Returning", "Cooldow
 const SIGHT_INTERVAL := 0.15
 const CAR_TEXTURE := preload("res://Assets/Police car.svg")
 ## Tint applied to the (black and white) car sprite per crew type.
-const TINTS := {&"police": Color(1, 1, 1), &"ambulance": Color(1.0, 0.93, 0.62), &"fire": Color(1.0, 0.36, 0.26)}
+const TINTS := {&"police": Color(1, 1, 1), &"ambulance": Color(1.0, 0.93, 0.62), &"fire": Color(1.0, 0.36, 0.26),
+	&"ses": Color(1.0, 0.75, 0.2)}
 
 var type: CrewType
 var station: Node2D
@@ -60,6 +85,14 @@ var incident: Node2D = null
 ## Paused while the player redraws this crew's route.
 var held := false
 var blocked_edge := -1
+## Seconds a blocked crew waits for a new route before giving up.
+@export var blocked_patience := 25.0
+## An en-route crew this close (metres) to its incident has arrived.
+@export var access_radius_m := 60.0
+var _patience := 0.0
+## Did the player's map already show this blockage when we hit it?
+var blocked_was_known := false
+var _known_blocked_at_dispatch := {}
 
 var _points := PackedVector2Array()
 var _edges := PackedInt32Array()
@@ -104,7 +137,7 @@ func _process(delta: float) -> void:
 	# Stay readable at any zoom (between 60% and 160% of natural size).
 	var cam := get_viewport().get_camera_2d()
 	if cam:
-		_body.scale = Vector2.ONE * clampf(1.0 / cam.zoom.x, 0.6, 1.6)
+		_body.scale = Vector2.ONE * clampf(1.0 / cam.zoom.x, 0.6, 4.5)
 	queue_redraw()
 
 	if held:
@@ -113,10 +146,13 @@ func _process(delta: float) -> void:
 		State.EN_ROUTE, State.RETURNING:
 			_drive(delta)
 		State.BLOCKED:
-			_alert_t += delta
-			if not _blocks_us(blocked_edge):
+			_patience -= delta
+			_alert_t += delta * lerpf(4.0, 12.0, 1.0 - patience_left())
+			if not _blocks_us(blocked_edge) or _close_enough():
 				blocked_edge = -1
 				_set_state(State.EN_ROUTE)   # road cleared: carry on
+			elif _patience <= 0.0:
+				_give_up()
 		State.COOLDOWN:
 			_cooldown -= delta
 			if _cooldown <= 0.0:
@@ -128,22 +164,24 @@ func _draw() -> void:
 	# Round badge with the crew type icon, drawn upright above the car.
 	if not visible:
 		return
+	var vision := Knowledge.sight_radius_m * float(Stage.meta["px_per_m"])
+	DrawUtil.dashed_circle(self, Vector2.ZERO, vision, Color(type.colour, 0.6), 2.0 * _body.scale.x,
+		8.0, Knowledge.clock * 12.0)
 	var s: float = _body.scale.x
 	var c := Vector2(0, -26) * s
-	draw_circle(c, 11.0 * s, type.colour)
-	draw_circle(c, 11.0 * s, Color.WHITE, false, 2.0 * s)
-	if type.icon:
-		var r := Rect2(c - Vector2(8, 8) * s, Vector2(16, 16) * s)
-		draw_texture_rect(type.icon, r, false, Color.WHITE)
+	var badge := 11.0 * s
 	if state == State.BLOCKED:
-		# Pulsing alert: the crew has hit something the map didn't show.
-		var a := Vector2(18, -30) * s
-		var pulse := 0.5 + 0.5 * sin(_alert_t * 8.0)
-		draw_circle(a, (14.0 + 6.0 * pulse) * s, Color(0.9, 0.15, 0.15, 0.35 * (1.0 - pulse)))
-		draw_circle(a, 11.0 * s, Color("d62828"))
-		draw_circle(a, 11.0 * s, Color.WHITE, false, 2.0 * s)
-		draw_rect(Rect2(a + Vector2(-1.6, -7) * s, Vector2(3.2, 9) * s), Color.WHITE)
-		draw_circle(a + Vector2(0, 5) * s, 1.8 * s, Color.WHITE)
+		# Countdown dial + pulse: the crew needs a new route, now.
+		var beat := 0.5 + 0.5 * sin(_alert_t)
+		badge *= 1.0 + 0.25 * beat
+		draw_circle(c, badge + (8.0 + 8.0 * beat) * s, Color(0.85, 0.1, 0.1, 0.3 * (1.0 - beat)))
+		draw_arc(c, badge + 4.0 * s, 0, TAU, 40, Color(0, 0, 0, 0.3), 4.0 * s)
+		draw_arc(c, badge + 4.0 * s, -PI / 2, -PI / 2 + TAU * patience_left(), 40, Color("d62828"), 4.0 * s)
+	draw_circle(c, badge, type.colour)
+	draw_circle(c, badge, Color.WHITE, false, 2.0 * s)
+	if type.icon:
+		var half := badge * 0.72
+		draw_texture_rect(type.icon, Rect2(c - Vector2(half, half), Vector2(half, half) * 2.0), false, Color.WHITE)
 
 
 # --- Commands ------------------------------------------------------------------
@@ -191,7 +229,9 @@ func _blocks_us(edge: int) -> bool:
 
 func _stop_blocked(edge: int) -> void:
 	blocked_edge = edge
+	blocked_was_known = _known_blocked_at_dispatch.has(edge)
 	_alert_t = 0.0
+	_patience = blocked_patience
 	Knowledge.sight(global_position)      # now the player can see why
 	Knowledge.observe(edge)
 	_set_state(State.BLOCKED)
@@ -208,6 +248,24 @@ func reroute(points: PackedVector2Array, edges: PackedInt32Array, target: Node2D
 	Events.crew_dispatched.emit(self, target)
 
 
+## 1 = cooldown just started, 0 = ready (or not cooling down).
+func cooldown_left() -> float:
+	return clampf(_cooldown / type.cooldown_seconds, 0.0, 1.0) if state == State.COOLDOWN else 0.0
+
+
+## 1 = just stopped, 0 = about to give up.
+func patience_left() -> float:
+	return clampf(_patience / blocked_patience, 0.0, 1.0) if state == State.BLOCKED else 1.0
+
+
+func _give_up() -> void:
+	var inc := incident
+	Events.ticker_message.emit("%s [color=#ffb347]couldn't get past[/color] the %s" % [callsign, World.block_reason(blocked_edge).to_lower()])
+	go_home()
+	if inc != null and is_instance_valid(inc) and inc.has_method("fail"):
+		inc.fail("%s on %s" % [inc.title().to_lower(), inc.place])
+
+
 func is_redrawable() -> bool:
 	return state == State.EN_ROUTE or state == State.BLOCKED
 
@@ -216,8 +274,8 @@ func status_text() -> String:
 	match state:
 		State.BLOCKED:
 			var road: String = RoadGraph.edge_name[blocked_edge] if blocked_edge >= 0 else ""
-			return "BLOCKED: %s%s - redraw route" % [World.block_reason(blocked_edge).to_lower(),
-				(" on " + road) if road != "" else ""]
+			return "BLOCKED: %s%s - redraw (%ds)" % [World.block_reason(blocked_edge).to_lower(),
+				(" on " + road) if road != "" else "", ceili(_patience)]
 		State.COOLDOWN:
 			return "Cooldown %ds" % ceili(_cooldown)
 		State.EN_ROUTE, State.RETURNING:
@@ -230,6 +288,10 @@ func status_text() -> String:
 # --- Movement ------------------------------------------------------------------
 
 func _follow(points: PackedVector2Array, edges: PackedInt32Array) -> void:
+	_known_blocked_at_dispatch.clear()
+	for e in edges:
+		if e >= 0 and Knowledge.known_level(e) == World.Traffic.BLOCKED:
+			_known_blocked_at_dispatch[e] = true
 	_points = points
 	_edges = edges
 	_index = 1
@@ -247,6 +309,9 @@ func _drive(delta: float) -> void:
 		_index += 1            # already there (e.g. a junction point): not driving onto it
 		return
 	if _blocks_us(edge):
+		if _close_enough():
+			_finish_leg()       # blocked just short of the incident: park and walk in
+			return
 		if state == State.RETURNING:
 			# Nobody to ask: find another way, or wait if there is none.
 			if _waiting_on != edge:
@@ -276,6 +341,12 @@ func _drive(delta: float) -> void:
 	var ahead := PackedVector2Array([global_position])
 	ahead.append_array(_points.slice(_index))
 	_trail.points = ahead
+
+
+# Near enough to walk in from here?
+func _close_enough() -> bool:
+	return state == State.EN_ROUTE and incident != null and is_instance_valid(incident) \
+		and global_position.distance_to(incident.global_position) <= access_radius_m * float(Stage.meta["px_per_m"])
 
 
 func _finish_leg() -> void:

@@ -16,6 +16,9 @@ class_name IncidentType extends Resource
 # Follow-up prompt (milestone 2): "Add blocks_road: road incidents such as
 #    car crashes block the road they are on until resolved (spec: 'Car crash -
 #    static, blocks its road')."
+# Follow-up prompt (milestone 3): "Add min_stage so each stage introduces its
+#    incidents as in the spec's run structure (tutorial: EMS; stage 1:
+#    crashes; stage 2: fires). Car crashes need police AND an ambulance."
 
 enum Where { ROAD, FOI }
 
@@ -27,6 +30,8 @@ enum Where { ROAD, FOI }
 @export var resolve_seconds := 4.0
 ## Seconds before the incident fails (used by the milestone 3 timer ring).
 @export var time_limit_seconds := 60.0
+## First stage this incident can appear in (0 = tutorial).
+@export var min_stage := 0
 ## Relative chance of this incident being picked by the spawner.
 @export var weight := 1.0
 ## Where it happens.

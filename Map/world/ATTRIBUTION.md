@@ -6,7 +6,7 @@ On-screen credit: *Map data: Vicmap © State of Victoria (Department of Transpor
 
 Licence: [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). No endorsement by the State of Victoria is implied.
 
-**Changes made:** Reprojected to a local game grid, clipped to the play area, simplified and stylised (parcels drawn as building boxes), all place, road and facility names replaced with fictional names, and a few fictional emergency stations added. This is a game, not an emergency map.
+**Changes made:** Reprojected to a local game grid, clipped to the play area, simplified and stylised (parcels drawn as building boxes), all place, road and facility names replaced with fictional names, a few fictional emergency stations added and one station moved for gameplay. This is a game, not an emergency map.
 
 | Dataset | Custodian | WFS layer | Retrieved | Used for |
 | --- | --- | --- | --- | --- |

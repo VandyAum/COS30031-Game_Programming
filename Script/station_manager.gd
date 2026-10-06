@@ -17,6 +17,12 @@ extends Node2D
 #    the start and whenever a stage opens, every station in play reveals the
 #    area around it (Knowledge.sight with a larger radius) so the fog of war
 #    starts lifted around stations."
+# Follow-up prompt: "Tell each station its reveal radius so it can draw a
+#    dashed outline of the area it knows."
+# Follow-up prompt: "Station views never refreshed after the start, so the
+#    traffic around a station went stale. Every station in play keeps
+#    watching its area: re-sight it every station_sight_interval seconds of
+#    game time."
 
 const FOI_PATH := "res://Map/world/foi.json"
 
@@ -51,8 +57,24 @@ func _ready() -> void:
 
 ## Radius in metres each station reveals around itself.
 @export var home_reveal_m := 260.0
+## Seconds of game time between each station's look around.
+@export var station_sight_interval := 1.0
+
+var _sight_timer := 0.0
+
+
+func _process(delta: float) -> void:
+	_sight_timer -= delta
+	if _sight_timer <= 0.0:
+		_sight_timer = station_sight_interval
+		for s in stations_in_play():
+			Knowledge.sight(s.global_position, home_reveal_m)
+
 
 func _reveal_home_areas() -> void:
+	for s in get_stations():
+		s.reveal_radius = home_reveal_m * float(Stage.meta["px_per_m"])
+		s.queue_redraw()
 	for s in stations_in_play():
 		Knowledge.sight(s.global_position, home_reveal_m)
 
