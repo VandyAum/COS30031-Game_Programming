@@ -1,4 +1,4 @@
-# Video script: The Race Against Time (target 7–8 min, hard limit 10)
+# Video script: The Race Against Time (recorded length 6:16, hard limit 10)
 
 <!-- AI-assisted (Claude Opus 5.5). Prompt: "Write a 7-8 minute video script for the team to read: a player-facing showcase first, then evidence for each marking area with what to show on screen." -->
 
@@ -9,7 +9,7 @@ timestamps for the Marker Evidence Sheet as you record.
 
 ---
 
-## Part 1: Showcase (0:00–2:30). No code, no editor.
+## Part 1: Showcase (0:00–1:40). No code, no editor.
 
 **[0:00] Leah:** *Title screen, map of Burrundara.*
 Hi, we're [team name], and this is *The Race Against Time*. Our client was
@@ -17,41 +17,41 @@ the Department of Transport and Planning, the team behind Vicmap. Their
 brief: show why accurate, reliable map information matters when an
 emergency is unfolding.
 
-**[0:20] Vandy:** *First tutorial call appears.*
+**[0:19] Vandy:** *First tutorial call appears.*
 You're an emergency dispatcher. A call comes in: a pin with a ring that
 fills up as time passes. You choose a crew and draw its route yourself,
 road by road, from the station to the scene.
 
-**[0:40] Ishita:** *Draw the route; the crew drives; the map lights up in colour around it.*
+**[0:32] Ishita:** *Draw the route; the crew drives; the map lights up in colour around it.*
 Here's the twist. The map starts grey. You only know what your crews have
 actually seen: they reveal traffic as they drive. And that knowledge fades
 back to grey within a couple of minutes.
 
-**[1:00] Jessie:** *Crew hits a roadblock and stops with the red countdown; barrier and debris visible.*
+**[0:45] Jessie:** *Crew hits a roadblock and stops with the red countdown; barrier and debris visible.*
 So the map lies, not on purpose, but because it's out of date. This road
 looked clear when we last saw it. Now our crew is stuck, the call's timer
 is still running, and we have to redraw a new route before the countdown
 runs out.
 
-**[1:25] Leah:** *Redraw, arrive, green sparkle, "resolved" sound.*
+**[1:01] Leah:** *Redraw, arrive, green sparkle, "resolved" sound.*
 Every delay you see here is caused by stale information. Resolve calls to
 move through three stages. Each one opens up more of the city and brings
 bigger incidents: crashes needing police and an ambulance, house fires,
 storm damage for the SES.
 
-**[1:50] Vandy:** *Stage transition: camera and fog glide out.*
+**[1:20] Vandy:** *Stage transition: camera and fog glide out.*
 Let three calls slip and the run ends. Neighbouring councils step in.
 
-**[2:05] Ishita:** *End screen / after-action report.*
+**[1:25] Ishita:** *End screen / after-action report.*
 At the end, the after-action report connects your result to the data: how
 many crews were stopped by obstacles the map didn't show. And the reveal:
 before Vicmap, someone had to build the map. Today, that was you.
 
 ---
 
-## Part 2: Assessment evidence (2:30–8:00)
+## Part 2: Assessment evidence (1:40–6:16)
 
-### Challenge response (2:30–3:20), Leah
+### Challenge response (1:40–2:34), Leah
 
 *Show the map's Vicmap credit, then the FOI landmarks.*
 The world is built from real Vicmap open data, using roads, buildings, land
@@ -69,7 +69,7 @@ The brief also wants incorrectly located and misclassified data. Ours shows
 *outdated* data now. A hospital that isn't where the map says is our first
 Assessment 3 feature.
 
-### Core gameplay and progression (3:20–4:20), Vandy
+### Core gameplay and progression (2:34–3:15), Vandy
 
 *Play: select → send → draw → arrive → resolve. Point at hearts, the
 progress bar, the clock and the ticker.*
@@ -83,7 +83,7 @@ two suburbs, house fires and SES storm calls. Stage 3 is all of Burrundara,
 with serious crashes needing all three services and more roadblocks. Fail
 by letting three timer rings fill; win by clearing stage 3.
 
-### Physics and collisions (4:20–5:30), Leah
+### Physics and collisions (3:15–4:14), Leah
 
 *In game, zoom right in on a crash: debris scatters; a crew drives through
 it and shoves it aside. Then a roadblock: debris bouncing between barriers.*
@@ -114,7 +114,7 @@ Seven physics materials:
 You can see the difference: tyres ricochet, glass skates, sandbags just
 thud.
 
-### Modular systems (5:30–6:40), Ishita
+### Modular systems (4:14–5:00), Ishita
 
 *Open `Script/Autoload/events.gd`, then the FileSystem `Data/` folder.*
 Our first system is an **event bus**. Every system emits and listens to
@@ -132,7 +132,7 @@ end report all use it.
 Fourth, the **crew state machine**, shared by every crew. And our timers
 and cooldowns are reused across incidents, crews and stations.
 
-### Animation, feedback and player experience (6:40–7:40), Jessie
+### Animation, feedback and player experience (5:00–5:56), Jessie
 
 *Show each as you say it.*
 - **Timer rings:** they fill from orange to red, and pins pulse faster as
@@ -151,7 +151,7 @@ and cooldowns are reused across incidents, crews and stations.
   pull back into their station with a car-passing sound.
 - Every button clicks, and **M** mutes.
 
-### Technical delivery (7:40–8:00), Vandy
+### Technical delivery (5:56–6:16), Vandy
 
 *itch.io page, README, ATTRIBUTIONS.md, GitHub history.*
 The game is playable in the browser on itch.io. The README covers controls,

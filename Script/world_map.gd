@@ -66,6 +66,11 @@ extends Node2D
 #    where crews have looked. Tunable colour/strength."
 # Follow-up prompt: "Move the map credit up so it sits just above the news
 #    ticker along the bottom."
+# Follow-up prompt (web build): "The web build runs out of WebGL memory: the
+#    line layers draw ~11,000 separate wide polylines, each its own GPU
+#    buffer. Build each line layer as one triangle mesh per colour instead
+#    (two triangles per segment plus a small fan at bends so corners don't
+#    crack), keeping the same widths, colours and draw order."
 
 const AREAS_PATH := "res://Map/world/areas.json"
 const BUILDINGS_PATH := "res://Map/world/buildings.bin"
@@ -113,12 +118,12 @@ func _ready() -> void:
 	_add_rect("Land", Rect2(Vector2.ZERO, Stage.world_size), LAND, 0)
 	_add_polygon_layer("Parks", _areas["parks"], PARK, PATTERN_PARK)
 	_add_polygon_layer("Water", _areas["water"], WATER, PATTERN_WATER)
-	_add_line_layer("Waterways", _draw_waterways)
+	_add_waterways()
 	_add_buildings()
 	_add_polygon_layer("Footprints", _areas["footprints"], FOOTPRINT, -1)
-	_add_line_layer("Rail", _draw_rail)
-	_add_line_layer("Roads", _draw_roads)
-	_add_line_layer("Suburbs", _draw_suburbs)
+	_add_rail()
+	_add_roads()
+	_add_suburbs()
 	_add_colour_filter()
 	_add_fog()
 	_add_credit()
@@ -283,43 +288,96 @@ static func _pts(raw: Array) -> PackedVector2Array:
 	return out
 
 
-func _draw_waterways(node: Node2D) -> void:
+# Thick lines baked into one triangle list: two triangles per segment and a
+# small fan at each bend so corners don't crack. One mesh per colour draws
+# thousands of lines in a single call (separate draw_polyline calls each get
+# their own GPU buffer, which exhausts WebGL memory in the browser).
+const JOINT_SIDES := 6
+const JOINT_MIN_TURN := 0.15     # radians; straighter bends need no fan
+
+static func _stroke(out: PackedVector2Array, pts: PackedVector2Array, width: float) -> void:
+	var hw := width * 0.5
+	for i in range(1, pts.size()):
+		var a := pts[i - 1]
+		var b := pts[i]
+		if a.distance_squared_to(b) < 0.0001:
+			continue
+		var n := (b - a).normalized().orthogonal() * hw
+		out.append(a + n); out.append(b + n); out.append(b - n)
+		out.append(a + n); out.append(b - n); out.append(a - n)
+	for i in range(1, pts.size() - 1):
+		var d1 := pts[i] - pts[i - 1]
+		var d2 := pts[i + 1] - pts[i]
+		if d1.length_squared() < 0.0001 or d2.length_squared() < 0.0001 or absf(d1.angle_to(d2)) < JOINT_MIN_TURN:
+			continue
+		for k in JOINT_SIDES:
+			out.append(pts[i])
+			out.append(pts[i] + Vector2.from_angle(TAU * k / JOINT_SIDES) * hw)
+			out.append(pts[i] + Vector2.from_angle(TAU * (k + 1) / JOINT_SIDES) * hw)
+
+
+func _add_stroke_mesh(layer_name: String, verts: PackedVector2Array, colour: Color) -> void:
+	var colours := PackedColorArray()
+	colours.resize(verts.size())
+	colours.fill(colour)
+	_add_mesh(layer_name, verts, colours, PackedInt32Array())
+
+
+func _add_waterways() -> void:
+	var verts := PackedVector2Array()
 	for w: Dictionary in _areas["waterways"]:
-		node.draw_polyline(_pts(w["pts"]), WATER, float(w["w"]))
+		_stroke(verts, _pts(w["pts"]), float(w["w"]))
+	_add_stroke_mesh("Waterways", verts, WATER)
 
 
-func _draw_rail(node: Node2D) -> void:
+func _add_rail() -> void:
+	var tram := PackedVector2Array()
 	for line: Array in _areas["tram"]:
-		node.draw_polyline(_pts(line), TRAM, 1.5)
+		_stroke(tram, _pts(line), 1.5)
+	_add_stroke_mesh("Tram", tram, TRAM)
+	var rail := PackedVector2Array()
+	var centre := PackedVector2Array()
 	for line: Array in _areas["rail"]:
 		var pts := _pts(line)
-		node.draw_polyline(pts, RAIL, 4.0)
-		node.draw_polyline(pts, LAND, 1.5)   # hollow centre reads as track
+		_stroke(rail, pts, 4.0)
+		_stroke(centre, pts, 1.5)     # hollow centre reads as track
+	_add_stroke_mesh("Rail", rail, RAIL)
+	_add_stroke_mesh("RailCentre", centre, LAND)
 
 
-func _draw_roads(node: Node2D) -> void:
-	var lines := []   # [class, points]
+func _add_roads() -> void:
+	var by_class: Array = [[], [], [], []]
 	for e: Dictionary in _roads["decor"]:
-		lines.append([int(e["c"]), _pts(e["pts"])])
+		by_class[int(e["c"])].append(_pts(e["pts"]))
 	for e: Dictionary in _roads["edges"]:
-		lines.append([int(e["c"]), _pts(e["pts"])])
+		by_class[int(e["c"])].append(_pts(e["pts"]))
 	# Casings first so junctions merge cleanly, small roads under big ones.
+	var casing := PackedVector2Array()
+	var fill := PackedVector2Array()
 	for cls in 4:
-		for l: Array in lines:
-			if l[0] == cls:
-				node.draw_polyline(l[1], ROAD_CASING, ROAD_WIDTH[cls] + CASING * 2)
+		for pts: PackedVector2Array in by_class[cls]:
+			_stroke(casing, pts, ROAD_WIDTH[cls] + CASING * 2)
 	for cls in 4:
-		for l: Array in lines:
-			if l[0] == cls:
-				node.draw_polyline(l[1], ROAD_FILL, ROAD_WIDTH[cls])
+		for pts: PackedVector2Array in by_class[cls]:
+			_stroke(fill, pts, ROAD_WIDTH[cls])
+	_add_stroke_mesh("RoadCasing", casing, ROAD_CASING)
+	_add_stroke_mesh("Roads", fill, ROAD_FILL)
 
 
-func _draw_suburbs(node: Node2D) -> void:
-	var font := ThemeDB.fallback_font
+func _add_suburbs() -> void:
+	var verts := PackedVector2Array()
 	for s: Dictionary in _areas["suburbs"]:
 		var pts := _pts(s["pts"])
 		pts.append(pts[0])
-		node.draw_polyline(pts, SUBURB_LINE, 3.0)
+		_stroke(verts, pts, 3.0)
+	_add_stroke_mesh("SuburbLines", verts, SUBURB_LINE)
+	_add_line_layer("SuburbNames", _draw_suburb_names)
+
+
+func _draw_suburb_names(node: Node2D) -> void:
+	var font := ThemeDB.fallback_font
+	for s: Dictionary in _areas["suburbs"]:
+		var pts := _pts(s["pts"])
 		var centre := Vector2.ZERO
 		for p in pts:
 			centre += p
