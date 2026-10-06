@@ -22,6 +22,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 Events="*res://Script/Autoload/events.gd"
+Stage="*res://Script/Autoload/stage.gd"
 RoadGraph="*res://Script/Autoload/road_graph.gd"
 World="*res://Script/Autoload/world.gd"
 Knowledge="*res://Script/Autoload/knowledge.gd"

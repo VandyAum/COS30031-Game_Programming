@@ -1,73 +1,77 @@
 [gd_scene format=3 uid="uid://vu3o5p5e144v"]
 
-[ext_resource type="PackedScene" uid="uid://cydoy4mfk37xm" path="res://CamberwellMap.tscn" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://vn48f0lyoxpe" path="res://camera.gd" id="1_272bh"]
 [ext_resource type="PackedScene" uid="uid://ccg3mp5xcq6ki" path="res://drawing.tscn" id="2_lquwl"]
-[ext_resource type="PackedScene" uid="uid://bx1a76y7hxbwa" path="res://hawthorn_east_map.tscn" id="3_1bvp3"]
-[ext_resource type="PackedScene" uid="uid://y3tdaktx1mby" path="res://surrey_hill_Map.tscn" id="4_lquwl"]
+[ext_resource type="PackedScene" path="res://world_map.tscn" id="3_world"]
 [ext_resource type="PackedScene" uid="uid://df6svmy0mtp63" path="res://Crew_Point.tscn" id="6_7mycd"]
 [ext_resource type="Script" uid="uid://d13t7wufuhs44" path="res://incident.gd" id="7_5vw27"]
 [ext_resource type="PackedScene" uid="uid://chxkxw0rvnjgv" path="res://end_point.tscn" id="7_272bh"]
 [ext_resource type="Script" uid="uid://cj6kmsaio06kb" path="res://Script/road_overlay.gd" id="8_overlay"]
+[ext_resource type="Script" path="res://Script/debug_hud.gd" id="9_hud"]
 
 [node name="Main" type="Node2D" unique_id=1954988479]
 
+[node name="WorldMap" parent="." instance=ExtResource("3_world")]
+
+[node name="RoadOverlay" type="Node2D" parent="."]
+script = ExtResource("8_overlay")
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=2118934091]
-position = Vector2(643, 368)
-limit_left = -925
-limit_top = 0
-limit_right = 3875
-limit_bottom = 1890
 script = ExtResource("1_272bh")
 
 [node name="Drawing" parent="." unique_id=1114527525 node_paths=PackedStringArray("locations", "end_points") instance=ExtResource("2_lquwl")]
 z_index = 1
 locations = NodePath("../Station")
 end_points = NodePath("../Incident")
-crew_speed = 500
-
-[node name="MapChunk" type="Node2D" parent="." unique_id=1725131052]
-
-[node name="Camberwell" parent="MapChunk" unique_id=1084306728 instance=ExtResource("1_0xm2m")]
-
-[node name="Hawthorn_East" parent="MapChunk" unique_id=1410543495 instance=ExtResource("3_1bvp3")]
-position = Vector2(-927.455, 0)
-
-[node name="Surrey_Hill" parent="MapChunk" unique_id=2132268439 instance=ExtResource("4_lquwl")]
-position = Vector2(2109, 0)
-
-[node name="RoadOverlay" type="Node2D" parent="."]
-script = ExtResource("8_overlay")
 
 [node name="Station" type="Node2D" parent="." unique_id=1158133330]
+z_index = 2
 
 [node name="Crew_Points1" parent="Station" unique_id=33737465 instance=ExtResource("6_7mycd")]
-position = Vector2(61, 776)
+position = Vector2(3665.6, 3636.5)
+scale = Vector2(1.5, 1.5)
+location_name = "Cambermere Police Station"
+location_type = "police"
 
 [node name="Crew_Points2" parent="Station" unique_id=85054974 instance=ExtResource("6_7mycd")]
-position = Vector2(165, 37)
+position = Vector2(4694.5, 4823.7)
+scale = Vector2(1.5, 1.5)
+location_name = "Harrowell Ambulance Station"
+location_type = "ambulance"
 
 [node name="Crew_Points3" parent="Station" unique_id=62810092 instance=ExtResource("6_7mycd")]
-position = Vector2(2001, 1046)
+position = Vector2(2412.9, 2669.6)
+scale = Vector2(1.5, 1.5)
+location_name = "Hawkthorne Fire Station"
+location_type = "fire"
 
 [node name="Incident" type="Node2D" parent="." unique_id=1677553392]
-position = Vector2(61, 776)
+z_index = 2
 script = ExtResource("7_5vw27")
 
 [node name="End_Points1" parent="Incident" unique_id=1034302195 instance=ExtResource("7_272bh")]
-position = Vector2(1121, -75)
+position = Vector2(3479.1, 3287.3)
+scale = Vector2(1.5, 1.5)
 
 [node name="End_Points2" parent="Incident" unique_id=169220232 instance=ExtResource("7_272bh")]
-position = Vector2(1053, -92)
+position = Vector2(3770, 3803)
+scale = Vector2(1.5, 1.5)
 
 [node name="End_Points3" parent="Incident" unique_id=1127435239 instance=ExtResource("7_272bh")]
-position = Vector2(960, -92)
+position = Vector2(3182.2, 3403.2)
+scale = Vector2(1.5, 1.5)
 
 [node name="End_Points4" parent="Incident" unique_id=1763154515 instance=ExtResource("7_272bh")]
-position = Vector2(1190, -67)
+position = Vector2(4473.8, 3826.5)
+scale = Vector2(1.5, 1.5)
 
 [node name="End_Points5" parent="Incident" unique_id=685769315 instance=ExtResource("7_272bh")]
-position = Vector2(1271, -49)
+position = Vector2(5616.3, 4149)
+scale = Vector2(1.5, 1.5)
 
 [node name="End_Points6" parent="Incident" unique_id=502573100 instance=ExtResource("7_272bh")]
-position = Vector2(1336, -32)
+position = Vector2(5790.4, 4464)
+scale = Vector2(1.5, 1.5)
+
+[node name="DebugHUD" type="CanvasLayer" parent="."]
+script = ExtResource("9_hud")

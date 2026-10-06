@@ -1,0 +1,141 @@
+{
+ "size": [
+  8920,
+  7049
+ ],
+ "px_per_m": 0.75,
+ "projection": {
+  "lon0": 145.00363898470127,
+  "lat0": -37.789364651726444,
+  "m_per_deg_lon": 87923.72358496505,
+  "m_per_deg_lat": 110574.0
+ },
+ "stage_names": [
+  "Tutorial: Cambermere Junction",
+  "Cambermere",
+  "Cambermere, Hawkthorne East & Sorrel Hills",
+  "Greater Burrundara"
+ ],
+ "stage_rects": [
+  [
+   3139.5,
+   3163.9,
+   3889.5,
+   3658.9
+  ],
+  [
+   2759.6,
+   2538.0,
+   5214.4,
+   4397.6
+  ],
+  [
+   2379.8,
+   1912.1,
+   6539.2,
+   5136.4
+  ],
+  [
+   300.0,
+   300.0,
+   8619.0,
+   6748.5
+  ]
+ ],
+ "fictional_names": true,
+ "credit": "Map data: Vicmap \u00a9 State of Victoria (Department of Transport and Planning); PARKRES \u00a9 State of Victoria (DEECA). CC BY 4.0. Modified: stylised, names fictional.",
+ "licence_url": "https://creativecommons.org/licenses/by/4.0/",
+ "changes": "Reprojected to a local game grid, clipped to the play area, simplified and stylised (parcels drawn as building boxes), and all place, road and facility names replaced with fictional names. This is a game, not an emergency map.",
+ "data_sources": [
+  {
+   "title": "Vicmap Transport - Road Line",
+   "url": "https://discover.data.vic.gov.au/dataset/vicmap-transport-road-line",
+   "wfs_layer": "open-data-platform:tr_road",
+   "custodian": "\u00a9 State of Victoria (Department of Transport and Planning)",
+   "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+   "retrieved": "2026-10-06",
+   "used_for": "road network, street names, road classes"
+  },
+  {
+   "title": "Vicmap Transport - Railway Line",
+   "url": "https://discover.data.vic.gov.au/dataset/vicmap-transport-railway-line",
+   "wfs_layer": "open-data-platform:tr_rail",
+   "custodian": "\u00a9 State of Victoria (Department of Transport and Planning)",
+   "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+   "retrieved": "2026-10-06",
+   "used_for": "railway and tram lines"
+  },
+  {
+   "title": "Vicmap Property - Parcel Polygon",
+   "url": "https://discover.data.vic.gov.au/dataset/vicmap-property-parcel-polygon",
+   "wfs_layer": "open-data-platform:parcel_view",
+   "custodian": "\u00a9 State of Victoria (Department of Transport and Planning)",
+   "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+   "retrieved": "2026-10-06",
+   "used_for": "stylised building boxes and site areas"
+  },
+  {
+   "title": "Vicmap Features - Building Polygon",
+   "url": "https://discover.data.vic.gov.au/dataset/vicmap-features-building-polygon",
+   "wfs_layer": "open-data-platform:building_polygon",
+   "custodian": "\u00a9 State of Victoria (Department of Transport and Planning)",
+   "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+   "retrieved": "2026-10-06",
+   "used_for": "building footprints"
+  },
+  {
+   "title": "Vicmap Planning - Planning Scheme Zone Polygon",
+   "url": "https://discover.data.vic.gov.au/dataset/vicmap-planning-planning-scheme-zone-polygon",
+   "wfs_layer": "open-data-platform:plan_zone",
+   "custodian": "\u00a9 State of Victoria (Department of Transport and Planning)",
+   "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+   "retrieved": "2026-10-06",
+   "used_for": "land-use colours, parks"
+  },
+  {
+   "title": "Vicmap Hydro - Watercourse Line",
+   "url": "https://discover.data.vic.gov.au/dataset/vicmap-hydro-watercourse-line",
+   "wfs_layer": "open-data-platform:hy_watercourse",
+   "custodian": "\u00a9 State of Victoria (Department of Transport and Planning)",
+   "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+   "retrieved": "2026-10-06",
+   "used_for": "rivers and creeks"
+  },
+  {
+   "title": "Vicmap Hydro - Water Polygon",
+   "url": "https://discover.data.vic.gov.au/dataset/vicmap-hydro-water-polygon",
+   "wfs_layer": "open-data-platform:hy_water_area_polygon",
+   "custodian": "\u00a9 State of Victoria (Department of Transport and Planning)",
+   "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+   "retrieved": "2026-10-06",
+   "used_for": "lakes, wetlands, river areas"
+  },
+  {
+   "title": "Vicmap Admin - Locality Polygon",
+   "url": "https://discover.data.vic.gov.au/dataset/vicmap-admin",
+   "wfs_layer": "open-data-platform:locality_polygon",
+   "custodian": "\u00a9 State of Victoria (Department of Transport and Planning)",
+   "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+   "retrieved": "2026-10-06",
+   "used_for": "suburb outlines and labels"
+  },
+  {
+   "title": "Parks and Conservation Reserves (PARKRES)",
+   "url": "https://discover.data.vic.gov.au/dataset/parks-and-conservation-reserves-parkres",
+   "wfs_layer": "open-data-platform:parkres",
+   "custodian": "\u00a9 State of Victoria (Department of Energy, Environment and Climate Action)",
+   "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+   "retrieved": "2026-10-06",
+   "used_for": "state parks and reserves"
+  },
+  {
+   "title": "Vicmap Features of Interest",
+   "url": "https://discover.data.vic.gov.au/dataset/vicmap-features-of-interest",
+   "wfs_layer": "(supplied extract) Map/boroondara_foi_game_data.json",
+   "custodian": "\u00a9 State of Victoria (Department of Transport and Planning)",
+   "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+   "retrieved": "supplied by unit",
+   "used_for": "Features of Interest (supplied as the unit's Boroondara student game extract of FOI_INDEX_EXTENT)"
+  }
+ ]
+}

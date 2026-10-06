@@ -43,6 +43,8 @@ signal route_drawing_started(crew: Node)
 signal route_committed(crew: Node, points: PackedVector2Array, edges: Array)
 
 # --- Run state ---
+## The playable area grew (or changed). Emitted by Stage.
+signal stage_changed(stage: int)
 signal lives_changed(lives: int)
 signal run_ended(reason: String)
 

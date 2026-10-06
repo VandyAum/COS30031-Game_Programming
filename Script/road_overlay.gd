@@ -23,6 +23,8 @@ extends Node2D
 #    fires. Add an F2 debug toggle that draws every edge and intersection of the
 #    raw graph so teammates can check the generated network lines up with the
 #    map art. Read only from Knowledge, never from World."
+# Follow-up prompt: "Roads now have four classes (local, collector, arterial,
+#    freeway); add a width for each to match the new WorldMap road widths."
 
 # Indexed by World.Traffic (CLEAR, SLOW, JAMMED, BLOCKED).
 const TRAFFIC_COLOURS: Array[Color] = [
@@ -31,8 +33,9 @@ const TRAFFIC_COLOURS: Array[Color] = [
 	Color("e5383b"),
 	Color("7a1020"),
 ]
-## Line width per road class (local street, collector, main road).
-const CLASS_WIDTH := [3.5, 5.0, 7.0]
+## Line width per road class (local, collector, arterial, freeway).
+## Slightly narrower than the road drawn by WorldMap so the road edge shows.
+const CLASS_WIDTH := [4.0, 5.5, 7.5, 9.5]
 const REDRAW_INTERVAL := 0.25
 
 var show_debug_graph := false

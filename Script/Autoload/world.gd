@@ -12,6 +12,8 @@ extends Node
 #    Provide get/set functions, emit Events.road_truth_changed when a road
 #    changes, and give each level a travel speed multiplier crews can use.
 #    Random changes over time are a later task, so just leave a clear hook."
+# Follow-up prompt: "Road classes are now 0 local, 1 collector, 2 arterial,
+#    3 freeway (Vicmap). Freeways and arterials should jam most often."
 
 enum Traffic { CLEAR, SLOW, JAMMED, BLOCKED }
 
@@ -58,12 +60,12 @@ func speed_multiplier(edge: int) -> float:
 	return SPEED_MULT[_traffic[edge]]
 
 
-# Starting traffic. Main roads (class 2) jam more often than side streets.
+# Starting traffic. Big roads jam more often than side streets.
 # Blockages are left for the "roads can become blocked" task.
 func _roll_traffic(edge: int) -> int:
 	var roll := rng.randf()
 	match RoadGraph.edge_class(edge):
-		2:
+		2, 3:
 			return Traffic.JAMMED if roll < 0.15 else (Traffic.SLOW if roll < 0.45 else Traffic.CLEAR)
 		1:
 			return Traffic.JAMMED if roll < 0.05 else (Traffic.SLOW if roll < 0.25 else Traffic.CLEAR)

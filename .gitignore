@@ -20,3 +20,7 @@ CLAUDE.local.md
 Thumbs.db
 .vscode/
 .idea/
+
+# Raw Vicmap downloads (rebuild with tools/fetch_vicmap.py)
+tools/cache/
+__pycache__/
