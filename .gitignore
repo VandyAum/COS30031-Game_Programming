@@ -1,3 +1,26 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Godot editor temp/backup files
+*.tmp
+*.translation
+export_presets.cfg
+export_credentials.cfg
+
+# Claude Code / AI assistant files
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+**/.claude/
+.claudeignore
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Raw Vicmap downloads (rebuild with tools/fetch_vicmap.py)
+tools/cache/
+__pycache__/

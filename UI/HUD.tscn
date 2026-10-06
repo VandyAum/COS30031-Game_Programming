@@ -1,7 +1,10 @@
 [gd_scene format=3 uid="uid://b775te0qa2655"]
 
-[ext_resource type="PackedScene" uid="uid://bw3jgo51kd62t" path="res://UI/Components/IncidentCard.tscn" id="1_ijstf"]
-[ext_resource type="Texture2D" uid="uid://ctk1iajotahle" path="res://UI/Images/DTP_LOGO.svg" id="1_yixhe"]
+; Edited (Claude Opus 5.5) at Leah's request: removed the Transport Victoria
+; (DTP) logo - a government logo implies endorsement, which the CC BY data
+; licence does not allow. Layout otherwise unchanged (Jessie's design).
+
+[ext_resource type="Texture2D" uid="uid://b5ie2jlacmhwc" path="res://UI/Icons/local_fire_department_128dp.svg" id="1_ijstf"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yixhe"]
 content_margin_left = 0.0
@@ -138,12 +141,6 @@ theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 10
-
-[node name="ImgTransportVicLogo" type="TextureRect" parent="NavigationBar/HbxNavContainer/MarginContainer" unique_id=1847315523]
-layout_mode = 2
-texture = ExtResource("1_yixhe")
-expand_mode = 3
-stretch_mode = 4
 
 [node name="LblGameName" type="Label" parent="NavigationBar/HbxNavContainer" unique_id=598346862]
 layout_mode = 2

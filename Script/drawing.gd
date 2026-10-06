@@ -1,272 +1,384 @@
 extends Node2D
 
+# Route drawing / map input: click an incident to select it, then press on a
+# station (or pick a crew in the panel), HOLD the mouse and trace along the
+# roads you want the crew to take, and release on the incident to dispatch.
+#
+# Original version (Vandy): free-hand line, raycasts against block collisions,
+# and ChatGPT-assisted snapping of the corners to hand-placed RoadPoints.
+#
+# AI-assisted rewrite (Claude Opus 5.5). Prompt used:
+#   "Rewrite our Godot 4.7 route drawing as true freehand drawing in the style
+#    of Mini Motorways: the player presses the left mouse ('Draw') on a
+#    station, holds, and traces the route with the mouse; release over an
+#    incident to dispatch the crew. While held, sample the mouse every few
+#    pixels, snap each sample to the nearest playable road (RoadGraph.snap) and
+#    extend the route from its current tip to that point along the road
+#    network - but ONLY for short local steps (the road distance must be close
+#    to the straight-line distance), so the game never invents a long detour:
+#    the player has to actually trace corners and turns, and dragging across a
+#    block does nothing until the mouse comes back to a connected road.
+#    Moving back over the route trims it (retracing = undo). Releasing
+#    anywhere other than an incident keeps the unfinished route; pressing near
+#    its end continues it. Space ('clear_draw') clears it, R ('Undo_Drawing')
+#    trims the last bit. Stations and incidents are picked by proximity to the
+#    mouse (scaled by zoom) and must be inside the current Stage. Show the
+#    route as a thick blue line, faded while unfinished, with a red hint line
+#    to the mouse when it's too far from a usable road. Once dispatched, the
+#    crew follows the route; its speed on each road is scaled by the TRUE
+#    traffic in World, and each road it finishes is reported to
+#    Knowledge.observe(). Emit Events for drawing started, route committed,
+#    crew dispatched and crew arrived, and expose a one-line status string for
+#    the debug HUD. Keep the single temporary crew (real crews/stations are
+#    the next task)."
+# Follow-up prompt: "A nearly-straight long jump still got accepted by the
+#    detour check. Also cap each step's road length to ~90 screen pixels so a
+#    single mouse sample can never auto-route a long way; the player must
+#    trace it."
+# Follow-up prompt (spurs, trail, sightings):
+#   "Wobbling the mouse at junctions leaves little spurs where the line pokes
+#    a few pixels into a side street and comes back. Whenever a new step
+#    makes the route pass back through a point it already visited, cut out
+#    the loop between the two visits (and drop the undo anchors inside it).
+#    While the crew drives, erase the line behind it so only the remaining
+#    route shows and the player can see the traffic being revealed. Replace
+#    'observe the road when finished' with crew sightings: every 0.15 s call
+#    Knowledge.sight() at the crew's position, which reveals the roads and the
+#    map colour around it."
+# Follow-up prompt (milestone 1 - many crews, selection, choosing a crew):
+#   "Crews are now real Crew nodes owned by Stations, and incidents are
+#    Incident nodes from the IncidentManager. Turn this script into the map
+#    input handler only (no crew movement any more): a quick left click on an
+#    incident selects it; pressing on a playable station starts a route for
+#    that station's first available crew (or the crew the player picked in
+#    the panel, via Events.crew_selected / prepare_for(crew), which starts the
+#    route at its station so the player just drags from there). Releasing on
+#    an open incident dispatches that crew along the drawn route (Crew.dispatch
+#    + Incident.assign); several crews can be out at once. Colour the route in
+#    the crew type's colour. Keep the freehand rules, spur removal, undo and
+#    status_text(). Read stations, incidents and the manager through groups
+#    instead of exported node paths."
 
 @onready var line = $Line
 
-# For the points
-@export var locations : Node2D
-@export var end_points : Node2D
-@export var camberwell : Camberwell
-@export var surreyHill : surreyHill
-@export var EHawthorn: EHawthorn
-@onready var road_points = camberwell.get_node("RoadPoints")
-@onready var surreyHill_road_points = surreyHill.get_node("RoadPoints")
-@onready var ehawthorn_road_points = EHawthorn.get_node("RoadPoints")
-var start_point = null
-var end_point = null
+## Screen-pixel radius for picking stations/incidents and finding roads.
+@export var pick_radius_screen := 26.0
+## A step is accepted if its road distance <= this x straight-line distance...
+@export var max_detour := 1.8
+## ...and no longer than this many screen pixels.
+@export var max_step_screen := 90.0
 
-# For police crew
-var crew_scene = preload("res://police_crew.tscn")
-@onready var crew = crew_scene.instantiate()
-var crew_spawned := false
-var path_index := 1
-var is_following_path := false
-@export var crew_speed := 200
+const DRAFT_ALPHA := 0.55
 
-# For drawing
-var is_drawing := true
-var drawing_started := false
+enum State { IDLE, DRAWING }
+var state := State.IDLE
+
+var crew: Crew = null                   # crew the route is for
+var tips : Array = []                   # accepted RoadGraph.RoadPos samples
+var tip_sizes : Array[int] = []         # route_points.size() after each tip
+var route_points := PackedVector2Array()
+var route_point_edges := PackedInt32Array()   # road edge of each point (-1 = off road)
+var _last_sample := Vector2.INF
+var _hint_to := Vector2.INF             # red "can't reach" hint end
+var _press_pos := Vector2.INF           # where an idle click started
+var _message := ""
+var _message_timer := 0.0
 
 
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	pass # Replace with function body.
+	add_to_group("route_drawer")
+	line.width = 6.0
+	line.joint_mode = Line2D.LINE_JOINT_ROUND
+	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	Events.crew_selected.connect(func(c: Node) -> void:
+		if c != null and c != crew:
+			prepare_for(c))
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	if is_drawing:
-		draw()
-	if is_following_path:
-		move_crew(delta)
-	if crew.is_returning and crew.is_solved:
-		is_following_path = true
-		#if end_point != null:
-			#
-			#end_point.deactivate()
-			#end_points.show_new_random_point()
-			
-func draw():
-	# This is responsible for checking which station you clicked on
-	if line.points.size() == 0:
-		var clicked_location = get_clicked_location()
-		if clicked_location != null:
-			start_point = clicked_location
-			var point_position = line.to_local(start_point.global_position)
+	_message_timer -= delta
+	match state:
+		State.IDLE:
+			_idle()
+		State.DRAWING:
+			_drawing()
 
-			line.add_point(point_position)
-			line.add_point(point_position)
-			
-			drawing_started = true
-			start_point.clicked = false
-			return
-	if Input.is_action_just_pressed("Draw") and line.points.size() > 0:
-		line.add_point(get_local_mouse_position())
+
+# --- Idle: selecting and starting routes ------------------------------------
+
+func _idle():
+	if Input.is_action_just_pressed("clear_draw"):
+		_clear_route()
 	if Input.is_action_just_pressed("Undo_Drawing"):
-		if line.points.size() > 2:
-			line.remove_point(line.points.size() - 1)
-	if line.points.size() > 0:
-		#	is what allow the draw to not go through the wall
-		if line.points.size() >= 2:
-			var previous_point = line.points[line.points.size() - 2]
+		_trim_tips(10)
+	if not Input.is_action_just_pressed("Draw") or _mouse_over_ui():
+		return
+	var mouse = get_global_mouse_position()
 
-			var previous_global = line.to_global(previous_point)
-			var mouse_global = get_global_mouse_position()
+	# Continue an unfinished route by pressing near its end.
+	if not tips.is_empty() and mouse.distance_to(route_points[route_points.size() - 1]) <= _pick_radius():
+		state = State.DRAWING
+		return
 
-			var collision = check_collision(previous_global, mouse_global)
-
-			if collision.is_empty():
-				line.set_point_position(
-					line.points.size() - 1,
-					line.to_local(mouse_global)
-				)
-			else:
-				var hit_position = collision.position
-
-				line.set_point_position(
-					line.points.size() - 1,
-					line.to_local(hit_position)
-				)
-		
-	if drawing_started:
-		# This is for allowing which incident can be clicked on
-		for point in end_points.get_children():
-			if point.visible:
-				point.can_clicked = true
-			else:
-				point.can_clicked = false
-				
-		end_point = get_clicked_end_point()
-		
-		# checking when player are done drawing
-		if end_point != null:
-			# This will stop the incident from disappearing after the player is done
-			# drawing
-			end_point.timer.stop()
-			end_point.can_clicked = false
-			
-			# This is where the snapping occur
-			
-			snap_line_to_road()
-			
-			var end_position = line.to_local(end_point.global_position)
-			line.set_point_position(line.points.size() - 1, end_position)
-			
-			is_drawing = false
-			
-			if line.points.size() > 1:
-				path_index = 1
-				is_following_path = true
-			if !crew_spawned and line.points.size() > 0:
-				add_child(crew)
-				crew.position = line.points[0]
-				crew_spawned = true
-	
-func move_crew(delta):
-	if crew.is_returning:
-		
-		# This sets the path for returning
-		if path_index >= line.points.size():
-			path_index = line.points.size() - 2
-		# check when to stop returning movement
-		if path_index < 0:
-			is_following_path = false
-			crew.is_returning = false
-			
-			crew.queue_free()
-			crew = crew_scene.instantiate()
-			crew_spawned = false
-			
-			line.clear_points()
-			
-			is_drawing = true
-			drawing_started = false
-			
-			start_point = null
-			
-			if end_point != null:
-				end_point.deactivate()
-				end_points.show_new_random_point()
-			
-			end_point = null
-			crew.is_solved = false
-
+	# Start a route from a station.
+	var station = _nearest(get_tree().get_nodes_in_group("stations"), mouse)
+	if station != null:
+		var c: Crew = crew if crew != null and crew.station == station and crew.is_available() else station.first_available()
+		if c == null:
+			_say("No crews available at %s" % station.station_name)
 			return
-		
-		var target_position = line.points[path_index]
-		var direction = target_position - crew.position
-
-		crew.rotation = direction.angle()
-
-		crew.position = crew.position.move_toward(
-			target_position,
-			crew_speed * delta
-		)
-
-		if crew.position.distance_to(target_position) < 5:
-			path_index -= 1
-		
-		
-		
-		return	
-	if path_index >= line.points.size():
-		is_following_path = false
-		
-		# This get the crew to solve the incident
-		
-		crew.start_solving()
+		_begin(c, mouse)
+		state = State.DRAWING
 		return
-	
-	var target_position = line.points[path_index]
-	var direction = target_position - crew.position
-	crew.rotation = direction.angle()
 
-	crew.position = crew.position.move_toward(
-		target_position,
-		crew_speed * delta
-	)
-	if crew.position.distance_to(target_position) < 5:
-		path_index += 1
+	# Otherwise: select (or deselect) an incident.
+	var manager = get_tree().get_first_node_in_group("incident_manager")
+	if manager:
+		manager.select(_nearest(get_tree().get_nodes_in_group("incidents"), mouse))
 
-func get_clicked_location():
-	for point in locations.get_children():
-		if point.clicked:
-			return point
 
-	return null
-
-func get_clicked_end_point():	
-	for point in end_points.get_children():
-		if point.clicked:
-			return point
-
-	return null
-
-# ChatGPT
-# prompt: 
-# 	this is the map with added collision to right i want the player to be able
-# 	would just snap the path to the closest road making the path  short if
-# 	possible is it possible without path finding
-# This is what i got from GenAI
-	
-func get_closest_valid_road_point(position, previous_position):
-	var closest_point = null
-	var closest_distance = INF
-
-	var all_road_points = [
-		road_points,
-		surreyHill_road_points,
-		ehawthorn_road_points
-	]
-
-	for road_group in all_road_points:
-		for point in road_group.get_children():
-
-			var collision = check_collision(
-				previous_position,
-				point.global_position
-			)
-
-			if collision.is_empty():
-				var distance = position.distance_to(point.global_position)
-
-				if distance < closest_distance:
-					closest_distance = distance
-					closest_point = point
-
-	return closest_point
-
-#ChatGPT
-func snap_line_to_road():
-	if line.points.size() == 0:
+## Start a route for a crew chosen in the panel. The player then presses on
+## the station (the start of the line) and drags.
+func prepare_for(c: Crew) -> void:
+	if not c.is_available():
+		_say("%s is not available" % c.callsign)
 		return
-		
-	var previous_position = line.to_global(line.points[0])
-	
-	for i in range(1, line.points.size() - 1):
-		var line_point_global = line.to_global(line.points[i])
+	_begin(c, c.station.global_position)
+	_say("Drag from %s to the incident" % c.station.station_name)
 
-		#var closest_point = get_closest_road_point(line_point_global)
-		var closest_point = get_closest_valid_road_point(
-			line_point_global,
-			previous_position
-		)
 
-		if closest_point != null:
-			var snapped_position = line.to_local(closest_point.global_position)
+func _begin(c: Crew, mouse: Vector2):
+	var start_pos = RoadGraph.snap(c.station.global_position, 200.0)
+	if start_pos == null:
+		return
+	_clear_route()
+	crew = c
+	tips = [start_pos]
+	route_points = PackedVector2Array([c.station.global_position, start_pos.point])
+	route_point_edges = PackedInt32Array([-1, start_pos.edge])
+	tip_sizes = [route_points.size()]
+	_last_sample = mouse
+	_refresh_line()
+	Events.route_drawing_started.emit(c)
 
-			line.set_point_position(i, snapped_position)
-			previous_position = closest_point.global_position
 
-func check_collision(from_position, to_position):
-	var space_state = get_world_2d().direct_space_state
+## Start a route at a station (kept for tests): uses its first available crew.
+func _begin_at_station(station, mouse: Vector2):
+	var c = station.first_available()
+	if c:
+		_begin(c, mouse)
+		state = State.DRAWING
 
-	var query = PhysicsRayQueryParameters2D.create(
-		from_position,
-		to_position
-	)
 
-	var result = space_state.intersect_ray(query)
+# --- Drawing (mouse held) ------------------------------------------------------
 
-	return result
-	
+func _drawing():
+	var mouse = get_global_mouse_position()
+
+	if not Input.is_action_pressed("Draw"):
+		_on_release(mouse)
+		return
+
+	if mouse.distance_to(_last_sample) >= 3.0 / _zoom():
+		_last_sample = mouse
+		_sample(mouse)
+	_refresh_line()
+
+
+# One mouse sample while the button is held.
+func _sample(mouse: Vector2):
+	# Retracing: if the mouse is back over an earlier tip, cut the route there.
+	var back_r = 12.0 / _zoom()
+	for k in range(tips.size() - 2, maxi(-1, tips.size() - 60), -1):
+		if tips[k].point.distance_to(mouse) <= back_r:
+			_trim_tips(tips.size() - 1 - k)
+			_hint_to = Vector2.INF
+			return
+
+	var snapped = RoadGraph.snap(mouse, _pick_radius())
+	if snapped == null:
+		_hint_to = mouse
+		return
+	if _extend_to(snapped):
+		_hint_to = Vector2.INF
+	else:
+		_hint_to = mouse
+
+
+# Try to extend the route along roads to a snapped point. Only short, local
+# steps are allowed so the player draws the route, not the pathfinder.
+func _extend_to(snapped) -> bool:
+	var tip = tips.back()
+	var straight = tip.point.distance_to(snapped.point)
+	if straight < 0.5:
+		return true
+	var leg = RoadGraph.route(tip, snapped)
+	if leg.points.is_empty() or leg.length > maxf(40.0, straight * max_detour) or leg.length > max_step_screen / _zoom():
+		return false
+	var new_pts = leg.points.slice(1)
+	var new_edges = leg.point_edges.slice(1)
+	# If the step passes back through a point already on the route, the bit
+	# in between is a spur or loop: cut it out.
+	var loop = _find_loop(new_pts)
+	if not loop.is_empty():
+		var k = loop[0]
+		route_points.resize(k + 1)
+		route_point_edges.resize(k + 1)
+		new_pts = new_pts.slice(loop[1] + 1)
+		new_edges = new_edges.slice(loop[1] + 1)
+		while tip_sizes.size() > 1 and tip_sizes.back() > k + 1:
+			tips.pop_back()
+			tip_sizes.pop_back()
+	route_points.append_array(new_pts)
+	route_point_edges.append_array(new_edges)
+	tips.append(snapped)
+	tip_sizes.append(route_points.size())
+	return true
+
+
+# [route index, new point index] of the first new point that revisits the
+# route (ignoring the current tip itself), or [] if there is no loop.
+func _find_loop(new_pts: PackedVector2Array) -> Array:
+	var last = route_points.size() - 1
+	for j in new_pts.size():
+		for k in range(last - 1, maxi(0, last - 400), -1):
+			if route_points[k].distance_to(new_pts[j]) < 1.0:
+				# Must actually have left that point (not a duplicate junction).
+				var away = 0.0
+				for i in range(k + 1, last + 1):
+					away += route_points[i - 1].distance_to(route_points[i])
+				if away > 1.0:
+					return [k, j]
+	return []
+
+
+func _on_release(mouse: Vector2):
+	_hint_to = Vector2.INF
+	state = State.IDLE
+	var incident = _nearest(get_tree().get_nodes_in_group("incidents"), mouse)
+	if incident != null and not incident.is_open():
+		_say("%s already has a crew" % incident.title())
+	elif incident != null:
+		var end_pos = RoadGraph.snap(incident.global_position, 200.0)
+		if end_pos != null and _extend_to(end_pos):
+			_dispatch(incident)
+			return
+	_refresh_line()   # keep the unfinished route on screen
+
+
+func _trim_tips(count: int):
+	if tips.is_empty():
+		return
+	var keep = maxi(1, tips.size() - count)
+	tips.resize(keep)
+	tip_sizes.resize(keep)
+	route_points.resize(tip_sizes[keep - 1])
+	route_point_edges.resize(tip_sizes[keep - 1])
+	_refresh_line()
+
+
+func _clear_route():
+	tips = []
+	tip_sizes = []
+	route_points = PackedVector2Array()
+	route_point_edges = PackedInt32Array()
+	crew = null
+	line.clear_points()
+	queue_redraw()
+
+
+func _refresh_line():
+	var colour = crew.type.colour if crew else Color("1f6fd8")
+	line.default_color = colour if state == State.DRAWING else Color(colour, DRAFT_ALPHA)
+	_show(route_points)
+	queue_redraw()
+
+
+func _draw():
+	# Red hint: the mouse is too far from a road connected to the route tip.
+	if state == State.DRAWING and _hint_to != Vector2.INF and not route_points.is_empty():
+		var tip = to_local(route_points[route_points.size() - 1])
+		draw_dashed_line(tip, to_local(_hint_to), Color(0.9, 0.2, 0.2, 0.8), 3.0, 10.0)
+
+
+# --- Dispatch --------------------------------------------------------------------
+
+func _dispatch(incident):
+	if crew == null or not crew.is_available():
+		_say("That crew is no longer available")
+		_clear_route()
+		return
+	route_points.append(incident.global_position)
+	route_point_edges.append(-1)
+	var c = crew
+	var pts = route_points
+	var edges = route_point_edges
+	_clear_route()                      # the crew draws its own remaining route
+	incident.assign(c)
+	c.dispatch(pts, edges, incident)
+	Events.route_committed.emit(c, pts, Array(edges))
+	Events.crew_selected.emit(null)
+
+
+# --- Helpers ---------------------------------------------------------------
+
+## One-line summary for the debug HUD.
+func status_text() -> String:
+	if _message_timer > 0.0:
+		return _message
+	if state == State.DRAWING:
+		var e = route_point_edges[route_point_edges.size() - 1]
+		return "Drawing %s route (%d m) - on %s" % [crew.callsign, _route_metres(), RoadGraph.edge_name[e] if e >= 0 else "?"]
+	if not tips.is_empty():
+		return "Unfinished %s route (%d m) - press near its end to keep drawing, Space to clear" % [crew.callsign, _route_metres()]
+	return "Click an incident, then drag from a station along the roads to it"
+
+
+func _say(text: String) -> void:
+	_message = text
+	_message_timer = 3.0
+
+
+func _route_metres() -> int:
+	var total = 0.0
+	for i in range(1, route_points.size()):
+		total += route_points[i - 1].distance_to(route_points[i])
+	return int(total / float(Stage.meta["px_per_m"]))
+
+
+func _zoom() -> float:
+	var cam = get_viewport().get_camera_2d()
+	return cam.zoom.x if cam else 1.0
+
+
+func _pick_radius() -> float:
+	return pick_radius_screen / _zoom()
+
+
+func _mouse_over_ui() -> bool:
+	var hovered = get_viewport().gui_get_hovered_control()
+	return hovered != null and hovered.mouse_filter != Control.MOUSE_FILTER_IGNORE
+
+
+# Closest visible, playable node from `nodes` within the pick radius.
+func _nearest(nodes: Array, world_pos: Vector2):
+	var best = null
+	var best_d = _pick_radius()
+	for point in nodes:
+		if not point.visible or not Stage.is_playable(point.global_position):
+			continue
+		if point is Incident and point.status == Incident.Status.RESOLVED:
+			continue
+		var d = point.global_position.distance_to(world_pos)
+		if d <= best_d:
+			best = point
+			best_d = d
+	return best
+
+
+func _show(world_points: PackedVector2Array):
+	var local = PackedVector2Array()
+	for p in world_points:
+		local.append(line.to_local(p))
+	line.points = local
