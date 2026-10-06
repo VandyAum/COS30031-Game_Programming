@@ -4,17 +4,17 @@
   "name": "Lenora By The Yarrow Cml",
   "type": "commercial facility",
   "subtype": "entertainment centre",
-  "x": 1309.6,
-  "y": 3147.9,
-  "s": 3
+  "x": 269.7,
+  "y": 2341.8,
+  "s": 255
  },
  {
   "id": 2,
   "name": "Avalon Balmoor Manor",
   "type": "residential building",
   "subtype": "retirement village",
-  "x": 4568.5,
-  "y": 1929.6,
+  "x": 3528.6,
+  "y": 1123.5,
   "s": 2
  },
  {
@@ -22,8 +22,8 @@
   "name": "Cordare Court",
   "type": "residential building",
   "subtype": "retirement village",
-  "x": 5790.4,
-  "y": 4464.0,
+  "x": 4750.5,
+  "y": 3657.9,
   "s": 2
  },
  {
@@ -31,17 +31,17 @@
   "name": "Gracemere Court Special Accommodation",
   "type": "residential building",
   "subtype": "retirement village",
-  "x": 1619.2,
-  "y": 865.9,
-  "s": 3
+  "x": 579.3,
+  "y": 59.8,
+  "s": 255
  },
  {
   "id": 5,
   "name": "Martin Chalmers Court",
   "type": "residential building",
   "subtype": "retirement village",
-  "x": 5508.1,
-  "y": 2985.5,
+  "x": 4468.2,
+  "y": 2179.5,
   "s": 2
  },
  {
@@ -49,8 +49,8 @@
   "name": "Prowse Court",
   "type": "residential building",
   "subtype": "retirement village",
-  "x": 4950.7,
-  "y": 5146.8,
+  "x": 3910.8,
+  "y": 4340.7,
   "s": 3
  },
  {
@@ -58,8 +58,8 @@
   "name": "St Cecilias Village",
   "type": "residential building",
   "subtype": "retirement village",
-  "x": 6081.4,
-  "y": 1342.3,
+  "x": 5041.6,
+  "y": 536.3,
   "s": 3
  },
  {
@@ -67,8 +67,8 @@
   "name": "The Highlands Retirement Village",
   "type": "residential building",
   "subtype": "retirement village",
-  "x": 4012.4,
-  "y": 5662.5,
+  "x": 2972.5,
+  "y": 4856.5,
   "s": 3
  },
  {
@@ -76,8 +76,8 @@
   "name": "Cambermere Place",
   "type": "commercial facility",
   "subtype": "shopping centre",
-  "x": 3479.1,
-  "y": 3287.3,
+  "x": 2439.3,
+  "y": 2481.2,
   "s": 0
  },
  {
@@ -85,8 +85,8 @@
   "name": "Toorangal Village Shopping Centre",
   "type": "commercial facility",
   "subtype": "shopping centre",
-  "x": 2784.0,
-  "y": 4709.1,
+  "x": 1744.1,
+  "y": 3903.0,
   "s": 2
  },
  {
@@ -94,8 +94,8 @@
   "name": "Ingleford Road House (No 1) Cml",
   "type": "cultural centre",
   "subtype": "art gallery",
-  "x": 3770.0,
-  "y": 3803.0,
+  "x": 2730.1,
+  "y": 2996.9,
   "s": 1
  },
  {
@@ -103,8 +103,8 @@
   "name": "Burrwick Uniting Church",
   "type": "place of worship",
   "subtype": "church",
-  "x": 6038.4,
-  "y": 5105.8,
+  "x": 4998.5,
+  "y": 4299.7,
   "s": 2
  },
  {
@@ -112,8 +112,8 @@
   "name": "Kewnell Neighbourhood Learning Centre",
   "type": "community venue",
   "subtype": "community centre",
-  "x": 2859.4,
-  "y": 1149.6,
+  "x": 1819.5,
+  "y": 343.5,
   "s": 3
  },
  {
@@ -121,8 +121,8 @@
   "name": "U3a Hawkthorne Cml",
   "type": "education centre",
   "subtype": "further education",
-  "x": 3127.9,
-  "y": 5070.2,
+  "x": 2088.0,
+  "y": 4264.2,
   "s": 2
  },
  {
@@ -130,8 +130,8 @@
   "name": "Glen Wattle Scout Hall",
   "type": "community venue",
   "subtype": "hall",
-  "x": 4321.5,
-  "y": 5232.8,
+  "x": 3281.6,
+  "y": 4426.7,
   "s": 3
  },
  {
@@ -139,8 +139,8 @@
   "name": "Balmoor Library",
   "type": "cultural centre",
   "subtype": "library",
-  "x": 5398.5,
-  "y": 2013.3,
+  "x": 4358.7,
+  "y": 1207.3,
   "s": 2
  },
  {
@@ -148,8 +148,8 @@
   "name": "Marrington Chambers",
   "type": "admin facility",
   "subtype": "municipal office",
-  "x": 2901.7,
-  "y": 1430.4,
+  "x": 1861.8,
+  "y": 624.4,
   "s": 3
  },
  {
@@ -157,17 +157,17 @@
   "name": "Villa Aurora",
   "type": "cultural centre",
   "subtype": "museum",
-  "x": 506.2,
-  "y": 1310.0,
-  "s": 3
+  "x": -533.6,
+  "y": 503.9,
+  "s": 255
  },
  {
   "id": 19,
   "name": "Solmere Primary School",
   "type": "education centre",
   "subtype": "primary school",
-  "x": 4562.6,
-  "y": 6955.7,
+  "x": 3522.7,
+  "y": 6149.6,
   "s": 255
  },
  {
@@ -175,8 +175,8 @@
   "name": "Strathwyn Baptist Girls Grammar",
   "type": "education centre",
   "subtype": "primary/secondary school",
-  "x": 4952.2,
-  "y": 3410.5,
+  "x": 3912.3,
+  "y": 2604.4,
   "s": 1
  },
  {
@@ -184,17 +184,17 @@
   "name": "Balmoor High School",
   "type": "education centre",
   "subtype": "secondary school",
-  "x": 4822.7,
-  "y": 704.4,
-  "s": 3
+  "x": 3782.8,
+  "y": -101.7,
+  "s": 255
  },
  {
   "id": 22,
   "name": "North Balmoor Rsl",
   "type": "community venue",
   "subtype": "senior citizens",
-  "x": 6047.0,
-  "y": 58.7,
+  "x": 5007.1,
+  "y": -747.3,
   "s": 255
  },
  {
@@ -202,26 +202,26 @@
   "name": "Long Strides Marlbourne",
   "type": "education centre",
   "subtype": "special school",
-  "x": 1835.7,
-  "y": 1066.1,
-  "s": 3
+  "x": 795.8,
+  "y": 260.0,
+  "s": 255
  },
  {
   "id": 24,
   "name": "Leon Bachman Centre",
   "type": "place of worship",
   "subtype": "synagogue",
-  "x": 3263.6,
-  "y": 829.1,
-  "s": 3
+  "x": 2223.7,
+  "y": 23.0,
+  "s": 255
  },
  {
   "id": 25,
   "name": "Marlbourne University - Hawkthorne Campus",
   "type": "education centre",
   "subtype": "university",
-  "x": 2499.4,
-  "y": 4001.3,
+  "x": 1459.6,
+  "y": 3195.3,
   "s": 2
  },
  {
@@ -229,8 +229,8 @@
   "name": "Swinford University - Hawkthorne Campus",
   "type": "education centre",
   "subtype": "university",
-  "x": 2277.3,
-  "y": 2676.4,
+  "x": 1237.5,
+  "y": 1870.4,
   "s": 3
  },
  {
@@ -238,8 +238,8 @@
   "name": "Farnsham House",
   "type": "care facility",
   "subtype": "aged care",
-  "x": 5378.8,
-  "y": 2817.8,
+  "x": 4338.9,
+  "y": 2011.7,
   "s": 2
  },
  {
@@ -247,8 +247,8 @@
   "name": "Bethany House Cambermere",
   "type": "care facility",
   "subtype": "aged care",
-  "x": 5616.3,
-  "y": 4149.0,
+  "x": 4576.4,
+  "y": 3342.9,
   "s": 2
  },
  {
@@ -256,8 +256,8 @@
   "name": "Harrowell Ambulance Station",
   "type": "emergency facility",
   "subtype": "ambulance station",
-  "x": 4694.5,
-  "y": 4823.7,
+  "x": 3654.6,
+  "y": 4017.6,
   "s": 2
  },
  {
@@ -265,8 +265,8 @@
   "name": "Kewnell Ambulance Station",
   "type": "emergency facility",
   "subtype": "ambulance station",
-  "x": 3297.5,
-  "y": 1515.8,
+  "x": 2257.7,
+  "y": 709.8,
   "s": 3
  },
  {
@@ -274,8 +274,8 @@
   "name": "Bellmont Kindergarten",
   "type": "care facility",
   "subtype": "child care",
-  "x": 4657.6,
-  "y": -99.2,
+  "x": 3617.7,
+  "y": -905.2,
   "s": 255
  },
  {
@@ -283,8 +283,8 @@
   "name": "Bellwood College Oshc- Extend",
   "type": "care facility",
   "subtype": "child care",
-  "x": 2512.8,
-  "y": 4303.2,
+  "x": 1472.9,
+  "y": 3497.1,
   "s": 2
  },
  {
@@ -292,8 +292,8 @@
   "name": "Holy Redeemer Early Learning Centre",
   "type": "care facility",
   "subtype": "child care",
-  "x": 1994.2,
-  "y": 1340.3,
+  "x": 954.3,
+  "y": 534.2,
   "s": 3
  },
  {
@@ -301,8 +301,8 @@
   "name": "Kidscrew - Solmere Primary",
   "type": "care facility",
   "subtype": "child care",
-  "x": 4587.0,
-  "y": 6919.3,
+  "x": 3547.2,
+  "y": 6113.3,
   "s": 255
  },
  {
@@ -310,8 +310,8 @@
   "name": "Yungalla Kindergarten",
   "type": "care facility",
   "subtype": "child care",
-  "x": 4870.7,
-  "y": 1390.1,
+  "x": 3830.9,
+  "y": 584.0,
   "s": 3
  },
  {
@@ -319,8 +319,8 @@
   "name": "Glen Wattle Private",
   "type": "hospital",
   "subtype": "day procedure centre",
-  "x": 5960.4,
-  "y": 5699.3,
+  "x": 4920.5,
+  "y": 4893.3,
   "s": 3
  },
  {
@@ -328,8 +328,8 @@
   "name": "National Assistance Dog And Mobility Centre",
   "type": "care facility",
   "subtype": "disability support centre",
-  "x": 1552.4,
-  "y": 10.2,
+  "x": 512.6,
+  "y": -795.8,
   "s": 255
  },
  {
@@ -337,8 +337,8 @@
   "name": "Hawkthorne Fire Station",
   "type": "emergency facility",
   "subtype": "fire station",
-  "x": 2412.9,
-  "y": 2669.6,
+  "x": 1373.0,
+  "y": 1863.5,
   "s": 2
  },
  {
@@ -346,8 +346,8 @@
   "name": "North Balmoor Fire Station",
   "type": "emergency facility",
   "subtype": "fire station",
-  "x": 6045.2,
-  "y": 193.0,
+  "x": 5005.4,
+  "y": -613.1,
   "s": 255
  },
  {
@@ -355,35 +355,35 @@
   "name": "Sacred Mercy Hospice",
   "type": "hospital",
   "subtype": "general hospital",
-  "x": 801.9,
-  "y": 1296.6,
-  "s": 3
+  "x": -237.9,
+  "y": 490.6,
+  "s": 255
  },
  {
   "id": 41,
   "name": "Ellsworth Hawkthorne",
   "type": "hospital",
   "subtype": "general hospital",
-  "x": 1267.1,
-  "y": 2649.2,
-  "s": 3
+  "x": 227.2,
+  "y": 1843.2,
+  "s": 255
  },
  {
   "id": 42,
   "name": "Burrundara Police Station",
   "type": "emergency facility",
   "subtype": "police station",
-  "x": 3191.0,
-  "y": 858.0,
-  "s": 3
+  "x": 2151.1,
+  "y": 52.0,
+  "s": 255
  },
  {
   "id": 43,
   "name": "Cambermere Police Station",
   "type": "emergency facility",
   "subtype": "police station",
-  "x": 3665.6,
-  "y": 3636.5,
+  "x": 2625.7,
+  "y": 2830.5,
   "s": 0
  },
  {
@@ -391,17 +391,17 @@
   "name": "Wattle Manor",
   "type": "care facility",
   "subtype": "supported residential facility",
-  "x": 5151.8,
-  "y": 6178.3,
-  "s": 3
+  "x": 4111.9,
+  "y": 5372.2,
+  "s": 255
  },
  {
   "id": 45,
   "name": "Studmoor Park Boathouse",
   "type": "storage facility",
   "subtype": "boathouse",
-  "x": 277.7,
-  "y": 988.1,
+  "x": -762.2,
+  "y": 182.0,
   "s": 255
  },
  {
@@ -409,8 +409,8 @@
   "name": "Cambermere Tram Depot",
   "type": "storage facility",
   "subtype": "depot",
-  "x": 3336.0,
-  "y": 3332.2,
+  "x": 2296.1,
+  "y": 2526.1,
   "s": 0
  },
  {
@@ -418,17 +418,17 @@
   "name": "Kewnell Tram Depot",
   "type": "storage facility",
   "subtype": "depot",
-  "x": 1283.9,
-  "y": 1936.3,
-  "s": 3
+  "x": 244.0,
+  "y": 1130.2,
+  "s": 255
  },
  {
   "id": 48,
   "name": "Balmoor North Telephone Exchange",
   "type": "communication service",
   "subtype": "telephone exchange",
-  "x": 5878.1,
-  "y": 199.3,
+  "x": 4838.2,
+  "y": -606.8,
   "s": 255
  },
  {
@@ -436,8 +436,8 @@
   "name": "Deepdale Telephone Exchange",
   "type": "communication service",
   "subtype": "telephone exchange",
-  "x": 3315.7,
-  "y": 1657.1,
+  "x": 2275.8,
+  "y": 851.1,
   "s": 3
  },
  {
@@ -445,17 +445,17 @@
   "name": "Glen Wattle Telephone Exchange",
   "type": "communication service",
   "subtype": "telephone exchange",
-  "x": 4167.1,
-  "y": 5997.6,
-  "s": 3
+  "x": 3127.2,
+  "y": 5191.6,
+  "s": 255
  },
  {
   "id": 51,
   "name": "Cambermere Transfer Station",
   "type": "dumping ground",
   "subtype": "transfer station",
-  "x": 4473.8,
-  "y": 3826.5,
+  "x": 3433.9,
+  "y": 3020.5,
   "s": 1
  },
  {
@@ -463,35 +463,35 @@
   "name": "Kewnell Depot (Recycling Drop Off Only)",
   "type": "dumping ground",
   "subtype": "transfer station",
-  "x": 1639.4,
-  "y": 331.4,
-  "s": 3
+  "x": 599.5,
+  "y": -474.6,
+  "s": 255
  },
  {
   "id": 53,
   "name": "ANT009",
   "type": "sign",
   "subtype": "emergency marker",
-  "x": 2657.1,
-  "y": 655.7,
-  "s": 3
+  "x": 1617.2,
+  "y": -150.4,
+  "s": 255
  },
  {
   "id": 54,
   "name": "GCT014",
   "type": "sign",
   "subtype": "emergency marker",
-  "x": 3887.6,
-  "y": 6253.2,
-  "s": 3
+  "x": 2847.7,
+  "y": 5447.1,
+  "s": 255
  },
  {
   "id": 55,
   "name": "KCT006",
   "type": "sign",
   "subtype": "emergency marker",
-  "x": 5916.3,
-  "y": -743.6,
+  "x": 4876.4,
+  "y": -1549.7,
   "s": 255
  },
  {
@@ -499,8 +499,8 @@
   "name": "YBP203",
   "type": "sign",
   "subtype": "emergency marker",
-  "x": -197.7,
-  "y": 1336.5,
+  "x": -1237.6,
+  "y": 530.5,
   "s": 255
  },
  {
@@ -508,8 +508,8 @@
   "name": "Ingleford Road Unnamed Site (No 25)",
   "type": "place",
   "subtype": "historic site",
-  "x": 3648.5,
-  "y": 3792.6,
+  "x": 2608.6,
+  "y": 2986.5,
   "s": 1
  },
  {
@@ -517,8 +517,8 @@
   "name": "Trig Point Lookout",
   "type": "landmark",
   "subtype": "lookout",
-  "x": 1075.7,
-  "y": -42.4,
+  "x": 35.8,
+  "y": -848.5,
   "s": 255
  },
  {
@@ -526,17 +526,17 @@
   "name": "Ashmarra War Memorial",
   "type": "landmark",
   "subtype": "monument",
-  "x": 5385.0,
-  "y": 6213.3,
-  "s": 3
+  "x": 4345.1,
+  "y": 5407.2,
+  "s": 255
  },
  {
   "id": 60,
   "name": "Plaque - Oclp J - Abernant St To Whitemare Rd",
   "type": "landmark",
   "subtype": "monument",
-  "x": 3928.3,
-  "y": 1757.2,
+  "x": 2888.5,
+  "y": 951.2,
   "s": 3
  },
  {
@@ -544,8 +544,8 @@
   "name": "Plaque - Through Road Reserve (Significant Tree)",
   "type": "landmark",
   "subtype": "monument",
-  "x": 5745.7,
-  "y": 4423.2,
+  "x": 4705.9,
+  "y": 3617.1,
   "s": 2
  },
  {
@@ -553,8 +553,8 @@
   "name": "Sculpture - Glenferrin Oval (3 Steel Beams Sculpture)",
   "type": "landmark",
   "subtype": "monument",
-  "x": 1845.9,
-  "y": 2608.8,
+  "x": 806.1,
+  "y": 1802.7,
   "s": 3
  },
  {
@@ -562,8 +562,8 @@
   "name": "Cliff Crossley Garden Supplies",
   "type": "landmark",
   "subtype": "tourist attraction",
-  "x": 3831.5,
-  "y": -465.5,
+  "x": 2791.7,
+  "y": -1271.5,
   "s": 255
  },
  {
@@ -571,8 +571,8 @@
   "name": "Centenary Tower",
   "type": "landmark",
   "subtype": "tower",
-  "x": 5883.2,
-  "y": 1792.5,
+  "x": 4843.3,
+  "y": 986.4,
   "s": 3
  },
  {
@@ -580,8 +580,8 @@
   "name": "Burrwick District Bowls Club",
   "type": "sport facility",
   "subtype": "bowling green",
-  "x": 5922.3,
-  "y": 5457.5,
+  "x": 4882.4,
+  "y": 4651.5,
   "s": 3
  },
  {
@@ -589,17 +589,17 @@
   "name": "Burrundara Cemetery",
   "type": "reserve",
   "subtype": "cemetery",
-  "x": 2702.9,
-  "y": 1097.8,
-  "s": 3
+  "x": 1663.0,
+  "y": 291.7,
+  "s": 255
  },
  {
   "id": 67,
   "name": "Freeway Golf Clubhouse",
   "type": "recreational resource",
   "subtype": "club house",
-  "x": 4628.3,
-  "y": -730.6,
+  "x": 3588.4,
+  "y": -1536.7,
   "s": 255
  },
  {
@@ -607,8 +607,8 @@
   "name": "Mrc Croquet Section Inc",
   "type": "sport facility",
   "subtype": "croquet green",
-  "x": 2093.6,
-  "y": 3537.4,
+  "x": 1053.7,
+  "y": 2731.4,
   "s": 3
  },
  {
@@ -616,17 +616,17 @@
   "name": "Studmoor Park Upper Bushland",
   "type": "recreational resource",
   "subtype": "day visitor area",
-  "x": 609.1,
-  "y": 1143.9,
-  "s": 3
+  "x": -430.8,
+  "y": 337.8,
+  "s": 255
  },
  {
   "id": 70,
   "name": "Marrawa Botanic Gardens",
   "type": "reserve",
   "subtype": "gardens",
-  "x": 5723.2,
-  "y": 1744.3,
+  "x": 4683.3,
+  "y": 938.2,
   "s": 3
  },
  {
@@ -634,17 +634,17 @@
   "name": "Studmoor Park 9 Hole Par 3 (Kewnell) Golf Course",
   "type": "sport facility",
   "subtype": "golf course",
-  "x": 360.0,
-  "y": 1316.7,
-  "s": 3
+  "x": -679.8,
+  "y": 510.7,
+  "s": 255
  },
  {
   "id": 72,
   "name": "Andersley Park",
   "type": "reserve",
   "subtype": "park",
-  "x": 2978.3,
-  "y": 4201.3,
+  "x": 1938.4,
+  "y": 3395.2,
   "s": 1
  },
  {
@@ -652,17 +652,17 @@
   "name": "Studmoor Park Boathouse And Picnic Area",
   "type": "recreational resource",
   "subtype": "picnic site",
-  "x": 346.6,
-  "y": 957.7,
-  "s": 3
+  "x": -693.3,
+  "y": 151.6,
+  "s": 255
  },
  {
   "id": 74,
   "name": "Playground - Kitty Campion Reserve",
   "type": "recreational resource",
   "subtype": "playground",
-  "x": 2079.4,
-  "y": 153.4,
+  "x": 1039.5,
+  "y": -652.7,
   "s": 255
  },
  {
@@ -670,8 +670,8 @@
   "name": "Playground - Kooranung Creek Reserve",
   "type": "recreational resource",
   "subtype": "playground",
-  "x": 6219.1,
-  "y": -462.5,
+  "x": 5179.3,
+  "y": -1268.5,
   "s": 255
  },
  {
@@ -679,8 +679,8 @@
   "name": "Cambermere Junction Skate Bowl",
   "type": "recreational resource",
   "subtype": "skate park",
-  "x": 3182.2,
-  "y": 3403.2,
+  "x": 2142.3,
+  "y": 2597.2,
   "s": 0
  },
  {
@@ -688,17 +688,17 @@
   "name": "Ashmarra Pool And Recreation Centre Cml",
   "type": "sport facility",
   "subtype": "sports complex",
-  "x": 5373.8,
-  "y": 6439.9,
-  "s": 3
+  "x": 4333.9,
+  "y": 5633.9,
+  "s": 255
  },
  {
   "id": 78,
   "name": "Colwell Oval",
   "type": "sport facility",
   "subtype": "sports ground",
-  "x": -65.3,
-  "y": 1364.2,
+  "x": -1105.2,
+  "y": 558.1,
   "s": 255
  },
  {
@@ -706,8 +706,8 @@
   "name": "Burrundara Sports Complex",
   "type": "sport facility",
   "subtype": "swimming pool",
-  "x": 5489.9,
-  "y": 1143.6,
+  "x": 4450.0,
+  "y": 337.6,
   "s": 3
  },
  {
@@ -715,8 +715,8 @@
   "name": "Harrowell Uniting Tennis Club",
   "type": "sport facility",
   "subtype": "tennis court",
-  "x": 4633.1,
-  "y": 4907.7,
+  "x": 3593.2,
+  "y": 4101.6,
   "s": 2
  }
 ]

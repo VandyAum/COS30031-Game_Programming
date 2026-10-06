@@ -33,6 +33,13 @@ extends Node
 #    part was in range, so long streets lit up far outside the coloured
 #    circle. Only observe a road if its midpoint is within 1.5x the sight
 #    radius (or it is short enough to be seen in full)."
+# Follow-up prompt (one vision radius for traffic and map):
+#   "Traffic vision is bigger than the map-colour vision and clips off
+#    instead of fading. Make the sight map two channels: R = time last seen
+#    (for fading), G = soft 'has been seen' coverage (0..1, permanent).
+#    The traffic overlay will be masked and faded per pixel from this same
+#    texture, so observe every road with any part inside the sight radius
+#    and let the shader decide what is visible."
 
 const UNKNOWN := -1
 
@@ -49,7 +56,8 @@ var clock := 0.0                     # game seconds, stops while paused
 var _level := PackedInt32Array()     # last seen traffic level or UNKNOWN
 var _seen_at := PackedFloat32Array() # clock time of last observation
 
-## Sight map: R = clock time each area was last seen (FORMAT_RF).
+## Sight map (FORMAT_RGF): R = clock time each area was last seen,
+## G = soft coverage 0..1 (has this spot ever been seen).
 var sight_image: Image
 var sight_texture: ImageTexture
 var _sight_dirty := false
@@ -61,7 +69,7 @@ func _ready() -> void:
 	_level.fill(UNKNOWN)
 	_seen_at.resize(RoadGraph.edge_count())
 	var size := (Stage.world_size / SIGHT_CELL).ceil()
-	sight_image = Image.create_empty(int(size.x), int(size.y), false, Image.FORMAT_RF)
+	sight_image = Image.create_empty(int(size.x), int(size.y), false, Image.FORMAT_RGF)
 	sight_image.fill(Color(NEVER_SEEN, 0, 0))
 	sight_texture = ImageTexture.create_from_image(sight_image)
 
@@ -79,8 +87,7 @@ func _process(delta: float) -> void:
 func sight(world_pos: Vector2, radius_m := -1.0) -> void:
 	var r := (sight_radius_m if radius_m < 0.0 else radius_m) * float(Stage.meta["px_per_m"])
 	for e in RoadGraph.edges_near(world_pos, r):
-		if RoadGraph.edge_length(e) <= r * 1.2 or RoadGraph.edge_midpoint(e).distance_to(world_pos) <= r * 1.5:
-			observe(e)
+		observe(e)
 	_stamp(world_pos, r)
 
 
@@ -96,9 +103,11 @@ func _stamp(world_pos: Vector2, r: float) -> void:
 			if d > 1.0:
 				continue
 			# Centre = seen now; edge = as if seen fade_seconds ago.
-			var value := clock - fade_seconds * smoothstep(0.55, 1.0, d)
-			if value > sight_image.get_pixel(x, y).r:
-				sight_image.set_pixel(x, y, Color(value, 0, 0))
+			var old := sight_image.get_pixel(x, y)
+			var seen := maxf(old.r, clock - fade_seconds * smoothstep(0.55, 1.0, d))
+			var cover := maxf(old.g, 1.0 - smoothstep(0.6, 1.0, d))
+			if seen != old.r or cover != old.g:
+				sight_image.set_pixel(x, y, Color(seen, cover, 0))
 	_sight_dirty = true
 
 
@@ -120,7 +129,7 @@ func observe(edge: int) -> void:
 func observe_all() -> void:
 	for e in _level.size():
 		observe(e)
-	sight_image.fill(Color(clock, 0, 0))
+	sight_image.fill(Color(clock, 1, 0))
 	_sight_dirty = true
 
 

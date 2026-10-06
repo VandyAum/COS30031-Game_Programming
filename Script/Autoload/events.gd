@@ -16,6 +16,9 @@ extends Node
 #    changing, lives and end of run. Group and comment them so teammates know
 #    who emits each one. Use 'Variant'/Node parameters so the crew and incident
 #    classes can be written later without editing this file."
+# Follow-up prompt (milestone 1): "Add signals the incidents panel and crew
+#    list need: an incident's details changed (status, assigned crew, wrong
+#    crew sent), a crew changed state, and the player chose a crew to send."
 @warning_ignore_start("unused_signal")
 
 # --- Map knowledge (emitted by Knowledge / World) ---
@@ -29,6 +32,8 @@ signal incident_spawned(incident: Node)
 signal incident_selected(incident: Node)
 signal incident_resolved(incident: Node)
 signal incident_failed(incident: Node)
+## Status, assigned crew or progress changed (panel should refresh).
+signal incident_updated(incident: Node)
 
 # --- Crews (emitted by crews / stations) ---
 signal crew_dispatched(crew: Node, incident: Node)
@@ -37,6 +42,10 @@ signal crew_arrived(crew: Node, incident: Node)
 signal crew_blocked(crew: Node, edge: int)
 signal crew_returned(crew: Node)
 signal crew_ready(crew: Node)
+## Any change of crew state (available, en route, on scene, returning, cooldown).
+signal crew_state_changed(crew: Node)
+## The player picked a crew to send (from the panel or by pressing its station).
+signal crew_selected(crew: Node)
 
 # --- Route drawing ---
 signal route_drawing_started(crew: Node)

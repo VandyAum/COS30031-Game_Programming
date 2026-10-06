@@ -48,6 +48,9 @@
 #    (4) Record exactly which datasets were used (official data.vic titles,
 #    WFS layer names, custodians, licence, retrieval dates and the changes we
 #    made) in world_meta.json and a generated Map/world/ATTRIBUTION.md."
+# Follow-up prompt: "Scale stage 3 down by about 25% (1.5x stage 2 instead of
+#    2x), and only keep decor roads that are at least partly inside the world
+#    rectangle now that the cached download can be bigger than the world."
 #
 # Usage (from the project root):  python3 tools/build_world.py
 
@@ -94,7 +97,7 @@ def _scale_rect(r, k):
     return (cx - hw, cy - hh, cx + hw, cy + hh)
 
 
-STAGE_RECTS_M = [_S0, _lerp_rect(_S0, _S2, 0.5), _S2, _scale_rect(_S2, 2.0)]
+STAGE_RECTS_M = [_S0, _lerp_rect(_S0, _S2, 0.5), _S2, _scale_rect(_S2, 1.5)]
 STAGE_NAMES = ["Tutorial: Camberwell Junction", "Camberwell",
                "Camberwell, Hawthorn East & Surrey Hills", "Greater Boroondara"]
 MARGIN_M = 400.0
@@ -592,7 +595,8 @@ def build_roads():
         edges.append({"a": index[a], "b": index[b], "c": cls, "n": name,
                       "o": 1 if oneway else 0, "s": stage, "pts": rr(simplify(pts, 0.6))})
     played = {id(s) for s in play}
-    decor = [{"c": s[3], "pts": rr(simplify(s[2], 0.8))} for s in segs if id(s) not in played]
+    decor = [{"c": s[3], "pts": rr(simplify(s[2], 0.8))} for s in segs
+             if id(s) not in played and any(0 <= x <= WORLD_W and 0 <= y <= WORLD_H for x, y in s[2])]
     return nodes, edges, decor, len(segs)
 
 

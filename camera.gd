@@ -15,35 +15,53 @@ extends Camera2D
 #    stage changes (and at start) centre on the new area and zoom so the
 #    whole stage fits on screen. Let the player zoom out only as far as
 #    needed to see the whole current stage."
+# Follow-up prompt (milestone 1 HUD):
+#   "The HUD now covers the left 450 px (incidents panel) and top 102 px
+#    (navigation bar) of a 1920x1080 screen. Fit each stage into the visible
+#    map area to the right of and below the panels, not the whole screen, and
+#    add focus_on(world_pos) that smoothly pans so a point sits in the middle
+#    of that visible area (used when clicking an incident card)."
 
 @export var min_zoom := 0.15     # recalculated per stage
 @export var fit_margin := 0.92   # fraction of the screen the stage fills
 @export var max_zoom := 2.5
 @export var zoom_step := 1.15
+## Screen pixels covered by the HUD on the left and top.
+@export var ui_inset := Vector2(450, 102)
 
 var dragging := false
 var last_mouse_position : Vector2
 
 func _ready():
+	add_to_group("main_camera")
 	Events.stage_changed.connect(_fit_stage)
 	_fit_stage.call_deferred(Stage.current)
 
-# Use the stage's area as the camera limits, then frame the whole of it.
+# Use the stage's area as the camera limits, then frame the whole of it in
+# the part of the screen not covered by the HUD.
 func _fit_stage(_stage: int):
 	var area: Rect2 = Stage.bounds()
 	var screen = get_viewport_rect().size
-	var fit = minf(screen.x / area.size.x, screen.y / area.size.y) * fit_margin
-	# Limits must be at least as big as what's visible at the fitted zoom,
-	# otherwise Camera2D can't centre the stage.
-	var visible_size = (screen / fit).max(area.size)
-	var limits = Rect2(area.get_center() - visible_size / 2.0, visible_size)
+	var free = (screen - ui_inset).max(screen * 0.3)   # tiny windows: ignore HUD
+	var fit = minf(free.x / area.size.x, free.y / area.size.y) * fit_margin
+	# World rect the whole screen shows when the stage sits in the free area.
+	var view = Rect2(area.get_center() - (ui_inset + free / 2.0) / fit, screen / fit)
+	var limits = view.merge(area)
 	limit_left = int(limits.position.x)
 	limit_top = int(limits.position.y)
 	limit_right = int(limits.end.x)
 	limit_bottom = int(limits.end.y)
 	min_zoom = fit
 	zoom = Vector2(fit, fit)
-	position = area.get_center()
+	position = view.get_center()
+
+# Smoothly pan so world_pos sits in the middle of the visible map area.
+func focus_on(world_pos: Vector2):
+	var offset = (ui_inset / 2.0) / zoom
+	var target = world_pos - offset
+	var tween = create_tween()
+	tween.tween_property(self, "position", target, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_callback(_clamp_to_limits)
 
 func _process(delta):
 	if Input.is_action_just_pressed("Move_Map"):

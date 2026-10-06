@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="IncidentType" format=3]
+
+; AI-assisted (Claude Opus 5.5): data file written from the prompt in Script/Data/incident_type.gd.
+; Designers: edit these values in the inspector.
+
+[ext_resource type="Script" path="res://Script/Data/incident_type.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"house_fire"
+display_name = "House fire"
+crew_types = Array[StringName]([&"fire"])
+resolve_seconds = 6.0
+time_limit_seconds = 70.0
+weight = 1.0
+where = 0
+road_classes = Array[int]([0])
+foi_types = Array[String]([])
+descriptions = Array[String](["Smoke is pouring out of a house on {place}.", "A kitchen fire has got out of hand in a house on {place}."])

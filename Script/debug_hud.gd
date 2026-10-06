@@ -16,9 +16,14 @@ extends CanvasLayer
 #    (node names instead of object ids). Connect to every Events signal
 #    automatically from get_signal_list() so new signals show up without
 #    editing the HUD. Use semi-transparent dark panels and readable text."
+# Follow-up prompt: "Jessie's HUD now owns the left side and top bar, so
+#    right-align the debug panels below the navigation bar (event log
+#    bottom-right above the map credit), update the help text for the
+#    milestone 1 controls, and add F5 (spawn an incident now)."
 
 const LOG_LINES := 12
 
+var _help: Label
 var _status: Label
 var _log: Label
 var _lines: Array[String] = []
@@ -27,17 +32,19 @@ var _timer := 0.0
 
 func _ready() -> void:
 	layer = 100
-	var help := _panel(Vector2(12, 12), 0.0)
-	help.text = "\n".join([
-		"DISPATCH PROTOTYPE - debug HUD (F1 hide)",
-		"Hold LEFT MOUSE on a green station and drag along the roads.",
-		"Release on a red incident to dispatch. Retrace to undo.",
-		"Released early? Press near the line's end to keep drawing.",
-		"RIGHT drag = pan    Wheel = zoom    Space = clear    R = trim",
-		"F2 road network    F3 reveal all roads    F4 next stage",
+	_help = _panel(Vector2.ZERO, 0.0)
+	_help.text = "\n".join([
+		"DEBUG HUD (F1 hide)",
+		"Click an incident pin (or its card) to select it.",
+		"Hold LEFT MOUSE on a station square and drag along",
+		"the roads; release on the incident to dispatch.",
+		"Or press 'Send ...' on the card, then drag from the station.",
+		"Retrace to undo. Released early? Press the line's end.",
+		"RIGHT drag pan  Wheel zoom  Space clear  R trim",
+		"F2 road graph  F3 reveal roads  F4 next stage  F5 spawn",
 	])
-	_status = _panel(Vector2(12, 150), 0.0)
-	_log = _panel(Vector2(12, 0), 1.0)
+	_status = _panel(Vector2.ZERO, 0.0)
+	_log = _panel(Vector2.ZERO, 1.0)
 
 	for sig in Events.get_signal_list():
 		var n: int = sig["args"].size()
@@ -78,7 +85,10 @@ func _process(delta: float) -> void:
 		"Under mouse: %s" % (RoadGraph.edge_name[under.edge] if under and RoadGraph.edge_name[under.edge] != "" else "-"),
 		"FPS %d" % Engine.get_frames_per_second(),
 	])
-	_log.position.y = get_viewport().get_visible_rect().size.y - _log.size.y - 12
+	var vp := get_viewport().get_visible_rect().size
+	_help.position = Vector2(vp.x - _help.size.x - 12, 114)
+	_status.position = Vector2(vp.x - _status.size.x - 12, _help.position.y + _help.size.y + 8)
+	_log.position = Vector2(vp.x - _log.size.x - 12, vp.y - _log.size.y - 40)
 
 
 func _on_event0(sig: String) -> void:

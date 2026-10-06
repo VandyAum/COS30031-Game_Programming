@@ -6,7 +6,9 @@ Game_Programming course
      autoloads exist and what each is for, how to test with the debug keys,
      and the export note for the raw data files."
      Follow-up prompt: "Update for rectangular stages, fictional names, the
-     colour reveal, and add a data attribution / licence section." -->
+     colour reveal, and add a data attribution / licence section."
+     Follow-up prompt: "Document the milestone 1 systems: stations, crews,
+     incidents as data, the HUD, and how to add a new incident type." -->
 
 ## Map & systems (prototype)
 
@@ -38,9 +40,27 @@ Stage rectangles live at the top of `tools/build_world.py` (`STAGE_RECTS_M`).
 | `World` | What is TRUE: traffic/blockages per road. Crews feel this |
 | `Knowledge` | What the PLAYER knows: last-seen traffic + age, `sight(pos)` for crew sightings |
 
-**Testing** (run `main.tscn`): hold left mouse on a green station, drag along
-the roads, release on a red incident. Right-drag pans, wheel zooms.
-F1 debug HUD · F2 road network · F3 reveal all roads · F4 next stage.
+**Gameplay nodes** (in `main.tscn`):
+
+| Node / file | Job |
+| --- | --- |
+| `Stations` (`Script/station_manager.gd`) | Creates a `Station` at every police/ambulance/fire FOI, each with its `Crew`s |
+| `Crew` (`Script/crew.gd`) | Available → en route → on scene → returning (pathfinds home) → cooldown |
+| `Incidents` (`Script/incident_manager.gd`) | Spawns incidents on a fixed schedule (per-stage interval and cap) |
+| `Incident` (`Script/incident.gd`) | Reported → crew en route → on scene (resolve timer) → resolved; wrong crew type is sent home |
+| `Drawing` (`Script/drawing.gd`) | Map input: select incidents, draw routes, dispatch |
+| `UI/HUD` (`Script/hud.gd` on Jessie's `UI/HUD.tscn`) | Incident cards, tabs, "Send" buttons, crew list |
+
+**Data:** crew types live in `Data/crew_types/*.tres` and incident types in
+`Data/incident_types/*.tres`. To add an incident, duplicate a `.tres` in the
+FileSystem dock, change its id, name, crew type, location rules and caller
+descriptions in the inspector. It is picked up automatically.
+
+**Testing** (run `main.tscn`): click an incident pin or card, press
+"Send ..." (or press on a station square), then hold the left mouse at the
+station and drag along the roads; release on the incident. Right-drag pans,
+wheel zooms. F1 debug HUD · F2 road network · F3 reveal all roads ·
+F4 next stage · F5 spawn an incident now.
 
 **Exporting:** add `*.json, *.bin` to the export preset's "non-resource files"
 filter so `Map/world/` is included in builds.

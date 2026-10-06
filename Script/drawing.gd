@@ -1,7 +1,8 @@
 extends Node2D
 
-# Route drawing: press on a station, HOLD the mouse and trace along the roads
-# you want the crew to take, then release on an incident to dispatch.
+# Route drawing / map input: click an incident to select it, then press on a
+# station (or pick a crew in the panel), HOLD the mouse and trace along the
+# roads you want the crew to take, and release on the incident to dispatch.
 #
 # Original version (Vandy): free-hand line, raycasts against block collisions,
 # and ChatGPT-assisted snapping of the corners to hand-placed RoadPoints.
@@ -44,17 +45,21 @@ extends Node2D
 #    'observe the road when finished' with crew sightings: every 0.15 s call
 #    Knowledge.sight() at the crew's position, which reveals the roads and the
 #    map colour around it."
+# Follow-up prompt (milestone 1 - many crews, selection, choosing a crew):
+#   "Crews are now real Crew nodes owned by Stations, and incidents are
+#    Incident nodes from the IncidentManager. Turn this script into the map
+#    input handler only (no crew movement any more): a quick left click on an
+#    incident selects it; pressing on a playable station starts a route for
+#    that station's first available crew (or the crew the player picked in
+#    the panel, via Events.crew_selected / prepare_for(crew), which starts the
+#    route at its station so the player just drags from there). Releasing on
+#    an open incident dispatches that crew along the drawn route (Crew.dispatch
+#    + Incident.assign); several crews can be out at once. Colour the route in
+#    the crew type's colour. Keep the freehand rules, spur removal, undo and
+#    status_text(). Read stations, incidents and the manager through groups
+#    instead of exported node paths."
 
 @onready var line = $Line
-
-# For the points
-@export var locations : Node2D
-@export var end_points : Node2D
-
-# For police crew (temporary: replaced by real crews/stations next task)
-var crew_scene = preload("res://police_crew.tscn")
-var crew : Node2D = null
-@export var crew_speed := 120.0          # world px per second at full speed
 
 ## Screen-pixel radius for picking stations/incidents and finding roads.
 @export var pick_radius_screen := 26.0
@@ -63,82 +68,110 @@ var crew : Node2D = null
 ## ...and no longer than this many screen pixels.
 @export var max_step_screen := 90.0
 
-const ROUTE_COLOUR := Color("1f6fd8")
 const DRAFT_ALPHA := 0.55
 
-enum State { IDLE, DRAWING, FOLLOWING }
+enum State { IDLE, DRAWING }
 var state := State.IDLE
 
-var start_point = null                  # station the route starts from
+var crew: Crew = null                   # crew the route is for
 var tips : Array = []                   # accepted RoadGraph.RoadPos samples
 var tip_sizes : Array[int] = []         # route_points.size() after each tip
 var route_points := PackedVector2Array()
 var route_point_edges := PackedInt32Array()   # road edge of each point (-1 = off road)
 var _last_sample := Vector2.INF
 var _hint_to := Vector2.INF             # red "can't reach" hint end
-
-# Crew following
-var path_index := 1
-var target_incident = null
-const SIGHT_INTERVAL := 0.15
-var _sight_timer := 0.0
+var _press_pos := Vector2.INF           # where an idle click started
+var _message := ""
+var _message_timer := 0.0
 
 
 func _ready() -> void:
 	add_to_group("route_drawer")
 	line.width = 6.0
-	line.default_color = ROUTE_COLOUR
 	line.joint_mode = Line2D.LINE_JOINT_ROUND
 	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
 	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	Events.crew_selected.connect(func(c: Node) -> void:
+		if c != null and c != crew:
+			prepare_for(c))
 
 
 func _process(delta: float) -> void:
+	_message_timer -= delta
 	match state:
 		State.IDLE:
 			_idle()
 		State.DRAWING:
 			_drawing()
-		State.FOLLOWING:
-			move_crew(delta)
 
 
-# --- Drawing ---------------------------------------------------------------
+# --- Idle: selecting and starting routes ------------------------------------
 
 func _idle():
 	if Input.is_action_just_pressed("clear_draw"):
 		_clear_route()
 	if Input.is_action_just_pressed("Undo_Drawing"):
 		_trim_tips(10)
-	if not Input.is_action_just_pressed("Draw"):
+	if not Input.is_action_just_pressed("Draw") or _mouse_over_ui():
 		return
 	var mouse = get_global_mouse_position()
-	# Continue an unfinished route by pressing near its end...
+
+	# Continue an unfinished route by pressing near its end.
 	if not tips.is_empty() and mouse.distance_to(route_points[route_points.size() - 1]) <= _pick_radius():
 		state = State.DRAWING
 		return
-	# ...or start a new one from a station.
-	var station = _nearest(locations, mouse)
-	if station == null:
+
+	# Start a route from a station.
+	var station = _nearest(get_tree().get_nodes_in_group("stations"), mouse)
+	if station != null:
+		var c: Crew = crew if crew != null and crew.station == station and crew.is_available() else station.first_available()
+		if c == null:
+			_say("No crews available at %s" % station.station_name)
+			return
+		_begin(c, mouse)
+		state = State.DRAWING
 		return
-	_begin_at_station(station, mouse)
+
+	# Otherwise: select (or deselect) an incident.
+	var manager = get_tree().get_first_node_in_group("incident_manager")
+	if manager:
+		manager.select(_nearest(get_tree().get_nodes_in_group("incidents"), mouse))
 
 
-## Start a new route at a station (separate so tests can call it directly).
-func _begin_at_station(station, mouse: Vector2):
-	var start_pos = RoadGraph.snap(station.global_position, 200.0)
+## Start a route for a crew chosen in the panel. The player then presses on
+## the station (the start of the line) and drags.
+func prepare_for(c: Crew) -> void:
+	if not c.is_available():
+		_say("%s is not available" % c.callsign)
+		return
+	_begin(c, c.station.global_position)
+	_say("Drag from %s to the incident" % c.station.station_name)
+
+
+func _begin(c: Crew, mouse: Vector2):
+	var start_pos = RoadGraph.snap(c.station.global_position, 200.0)
 	if start_pos == null:
 		return
 	_clear_route()
-	start_point = station
+	crew = c
 	tips = [start_pos]
-	route_points = PackedVector2Array([station.global_position, start_pos.point])
+	route_points = PackedVector2Array([c.station.global_position, start_pos.point])
 	route_point_edges = PackedInt32Array([-1, start_pos.edge])
 	tip_sizes = [route_points.size()]
 	_last_sample = mouse
-	state = State.DRAWING
-	Events.route_drawing_started.emit(null)
+	_refresh_line()
+	Events.route_drawing_started.emit(c)
 
+
+## Start a route at a station (kept for tests): uses its first available crew.
+func _begin_at_station(station, mouse: Vector2):
+	var c = station.first_available()
+	if c:
+		_begin(c, mouse)
+		state = State.DRAWING
+
+
+# --- Drawing (mouse held) ------------------------------------------------------
 
 func _drawing():
 	var mouse = get_global_mouse_position()
@@ -223,8 +256,10 @@ func _find_loop(new_pts: PackedVector2Array) -> Array:
 func _on_release(mouse: Vector2):
 	_hint_to = Vector2.INF
 	state = State.IDLE
-	var incident = _nearest(end_points, mouse)
-	if incident != null:
+	var incident = _nearest(get_tree().get_nodes_in_group("incidents"), mouse)
+	if incident != null and not incident.is_open():
+		_say("%s already has a crew" % incident.title())
+	elif incident != null:
 		var end_pos = RoadGraph.snap(incident.global_position, 200.0)
 		if end_pos != null and _extend_to(end_pos):
 			_dispatch(incident)
@@ -248,15 +283,15 @@ func _clear_route():
 	tip_sizes = []
 	route_points = PackedVector2Array()
 	route_point_edges = PackedInt32Array()
-	start_point = null
+	crew = null
 	line.clear_points()
+	queue_redraw()
 
 
 func _refresh_line():
-	var shown = route_points.duplicate()
-	var finished = state == State.FOLLOWING
-	line.default_color = ROUTE_COLOUR if finished or state == State.DRAWING else Color(ROUTE_COLOUR, DRAFT_ALPHA)
-	_show(shown)
+	var colour = crew.type.colour if crew else Color("1f6fd8")
+	line.default_color = colour if state == State.DRAWING else Color(colour, DRAFT_ALPHA)
+	_show(route_points)
 	queue_redraw()
 
 
@@ -267,86 +302,42 @@ func _draw():
 		draw_dashed_line(tip, to_local(_hint_to), Color(0.9, 0.2, 0.2, 0.8), 3.0, 10.0)
 
 
-# --- Dispatch & crew -------------------------------------------------------
+# --- Dispatch --------------------------------------------------------------------
 
 func _dispatch(incident):
+	if crew == null or not crew.is_available():
+		_say("That crew is no longer available")
+		_clear_route()
+		return
 	route_points.append(incident.global_position)
 	route_point_edges.append(-1)
-	target_incident = incident
-	crew = crew_scene.instantiate()
-	crew.scale = Vector2(0.6, 0.6)   # sprite was sized for the old map scale
-	add_child(crew)
-	crew.global_position = route_points[0]
-	path_index = 1
-	_sight_timer = 0.0
-	state = State.FOLLOWING
-	_refresh_line()
-	Events.route_committed.emit(crew, route_points, Array(route_point_edges))
-	Events.crew_dispatched.emit(crew, incident)
-
-
-func move_crew(delta):
-	if path_index >= route_points.size():
-		_arrive()
-		return
-
-	var target_position = to_local(route_points[path_index])
-	var direction = target_position - crew.position
-	if direction.length() > 0.01:
-		crew.rotation = direction.angle()
-
-	# True traffic slows the crew, whatever the player's map says.
-	var edge = route_point_edges[path_index]
-	var speed = crew_speed
-	if edge >= 0:
-		speed *= maxf(World.speed_multiplier(edge), 0.15)
-
-	crew.position = crew.position.move_toward(target_position, speed * delta)
-	if crew.position.distance_to(target_position) < 0.5:
-		path_index += 1
-
-	# Crew sightings: reveal roads and map colour around the crew.
-	_sight_timer -= delta
-	if _sight_timer <= 0.0:
-		_sight_timer = SIGHT_INTERVAL
-		Knowledge.sight(crew.global_position)
-
-	# Only show the route still ahead of the crew.
-	var ahead = PackedVector2Array([crew.global_position])
-	ahead.append_array(route_points.slice(path_index))
-	_show(ahead)
-
-
-func _arrive():
-	Events.crew_arrived.emit(crew, target_incident)
-	if target_incident != null and target_incident.visible:
-		target_incident.deactivate()
-		Events.incident_resolved.emit(target_incident)
-		target_incident.get_parent().show_new_random_point()
-	if crew != null:
-		crew.queue_free()
-		crew = null
-	target_incident = null
-	state = State.IDLE
-	_clear_route()
+	var c = crew
+	var pts = route_points
+	var edges = route_point_edges
+	_clear_route()                      # the crew draws its own remaining route
+	incident.assign(c)
+	c.dispatch(pts, edges, incident)
+	Events.route_committed.emit(c, pts, Array(edges))
+	Events.crew_selected.emit(null)
 
 
 # --- Helpers ---------------------------------------------------------------
 
 ## One-line summary for the debug HUD.
 func status_text() -> String:
-	match state:
-		State.DRAWING:
-			var e = route_point_edges[route_point_edges.size() - 1]
-			return "Drawing route (%d m) - on %s" % [_route_metres(), RoadGraph.edge_name[e] if e >= 0 else "?"]
-		State.FOLLOWING:
-			var e = route_point_edges[mini(path_index, route_point_edges.size() - 1)]
-			if e < 0:
-				return "Crew en route"
-			return "Crew driving %s (true traffic x%.1f speed)" % [RoadGraph.edge_name[e], World.speed_multiplier(e)]
+	if _message_timer > 0.0:
+		return _message
+	if state == State.DRAWING:
+		var e = route_point_edges[route_point_edges.size() - 1]
+		return "Drawing %s route (%d m) - on %s" % [crew.callsign, _route_metres(), RoadGraph.edge_name[e] if e >= 0 else "?"]
 	if not tips.is_empty():
-		return "Unfinished route (%d m) - press near its end to keep drawing, Space to clear" % _route_metres()
-	return "Idle - press on a station and drag along the roads"
+		return "Unfinished %s route (%d m) - press near its end to keep drawing, Space to clear" % [crew.callsign, _route_metres()]
+	return "Click an incident, then drag from a station along the roads to it"
+
+
+func _say(text: String) -> void:
+	_message = text
+	_message_timer = 3.0
 
 
 func _route_metres() -> int:
@@ -365,12 +356,19 @@ func _pick_radius() -> float:
 	return pick_radius_screen / _zoom()
 
 
-# Closest visible, playable child of `group_node` within the pick radius.
-func _nearest(group_node: Node2D, world_pos: Vector2):
+func _mouse_over_ui() -> bool:
+	var hovered = get_viewport().gui_get_hovered_control()
+	return hovered != null and hovered.mouse_filter != Control.MOUSE_FILTER_IGNORE
+
+
+# Closest visible, playable node from `nodes` within the pick radius.
+func _nearest(nodes: Array, world_pos: Vector2):
 	var best = null
 	var best_d = _pick_radius()
-	for point in group_node.get_children():
+	for point in nodes:
 		if not point.visible or not Stage.is_playable(point.global_position):
+			continue
+		if point is Incident and point.status == Incident.Status.RESOLVED:
 			continue
 		var d = point.global_position.distance_to(world_pos)
 		if d <= best_d:

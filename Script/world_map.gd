@@ -47,6 +47,18 @@ extends Node2D
 # Follow-up prompt: "The palette is so pastel that revealed colour barely
 #    reads against the monochrome. Make parks, water and the land-use tints
 #    noticeably richer (still soft) so the reveal around crews pops."
+# Follow-up prompt: "Don't make unseen areas completely greyscale; keep a
+#    minimum of about 10% colour."
+# Follow-up prompt (patterns for location types):
+#   "Colour now means 'what the crews have seen', so land use needs to read
+#    without colour. Add a pattern shader for the filled layers, drawn in
+#    world space so patterns stay put while panning: residential plain,
+#    commercial fine diagonal stripes, public (schools, hospitals, civic)
+#    cross-hatch, industrial dots, parks a stipple of little tree dots and
+#    water gentle wave lines. Patterns darken the base colour slightly so
+#    they survive the monochrome filter, and fade out when zoomed far out to
+#    avoid shimmering. Pass each building's land-use kind to the shader
+#    through the mesh UVs."
 
 const AREAS_PATH := "res://Map/world/areas.json"
 const BUILDINGS_PATH := "res://Map/world/buildings.bin"
@@ -73,8 +85,8 @@ const ROAD_WIDTH := [7.0, 9.0, 12.0, 15.0]
 const CASING := 2.5
 
 @export var fog_colour := Color(0.20, 0.23, 0.29, 0.82)
-## 1.0 = fully grey where unseen; lower keeps a hint of colour everywhere.
-@export var monochrome := 1.0
+## How grey unseen areas are: 0.9 keeps a 10% hint of colour everywhere.
+@export var monochrome := 0.9
 
 var _areas: Dictionary
 var _roads: Dictionary
@@ -89,11 +101,11 @@ func _ready() -> void:
 	_roads = JSON.parse_string(FileAccess.get_file_as_string(ROADS_PATH))
 
 	_add_rect("Land", Rect2(Vector2.ZERO, Stage.world_size), LAND, 0)
-	_add_polygon_layer("Parks", _areas["parks"], PARK)
-	_add_polygon_layer("Water", _areas["water"], WATER)
+	_add_polygon_layer("Parks", _areas["parks"], PARK, PATTERN_PARK)
+	_add_polygon_layer("Water", _areas["water"], WATER, PATTERN_WATER)
 	_add_line_layer("Waterways", _draw_waterways)
 	_add_buildings()
-	_add_polygon_layer("Footprints", _areas["footprints"], FOOTPRINT)
+	_add_polygon_layer("Footprints", _areas["footprints"], FOOTPRINT, -1)
 	_add_line_layer("Rail", _draw_rail)
 	_add_line_layer("Roads", _draw_roads)
 	_add_line_layer("Suburbs", _draw_suburbs)
@@ -121,7 +133,7 @@ func _add_rect(layer_name: String, r: Rect2, colour: Color, z: int) -> Polygon2D
 	return p
 
 
-func _add_polygon_layer(layer_name: String, polygons: Array, colour: Color) -> void:
+func _add_polygon_layer(layer_name: String, polygons: Array, colour: Color, pattern: int) -> void:
 	var verts := PackedVector2Array()
 	var indices := PackedInt32Array()
 	for raw: Array in polygons:
@@ -136,7 +148,7 @@ func _add_polygon_layer(layer_name: String, polygons: Array, colour: Color) -> v
 	var colours := PackedColorArray()
 	colours.resize(verts.size())
 	colours.fill(colour)
-	_add_mesh(layer_name, verts, colours, indices)
+	_add_mesh(layer_name, verts, colours, indices, PackedVector2Array(), pattern)
 
 
 # buildings.bin: records of [u8 kind][u16 tri count][tri count * 6 int16].
@@ -144,25 +156,31 @@ func _add_buildings() -> void:
 	var data := FileAccess.get_file_as_bytes(BUILDINGS_PATH)
 	var verts := PackedVector2Array()
 	var colours := PackedColorArray()
+	var uvs := PackedVector2Array()       # x = land-use kind, for the pattern
 	var o := 0
 	while o < data.size():
-		var colour := KIND_COLOURS[data[o]]
+		var kind := data[o]
+		var colour := KIND_COLOURS[kind]
 		var tri_count := data.decode_u16(o + 1)
 		o += 3
 		for v in tri_count * 3:
 			verts.append(Vector2(data.decode_s16(o), data.decode_s16(o + 2)))
 			colours.append(colour)
+			uvs.append(Vector2(kind % 4, 0))
 			o += 4
-	_add_mesh("Buildings", verts, colours, PackedInt32Array())
+	_add_mesh("Buildings", verts, colours, PackedInt32Array(), uvs, PATTERN_LAND_USE)
 
 
-func _add_mesh(layer_name: String, verts: PackedVector2Array, colours: PackedColorArray, indices: PackedInt32Array) -> void:
+func _add_mesh(layer_name: String, verts: PackedVector2Array, colours: PackedColorArray, indices: PackedInt32Array,
+		uvs := PackedVector2Array(), pattern := -1) -> void:
 	if verts.is_empty():
 		return
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = verts
 	arrays[Mesh.ARRAY_COLOR] = colours
+	if not uvs.is_empty():
+		arrays[Mesh.ARRAY_TEX_UV] = uvs
 	if not indices.is_empty():
 		arrays[Mesh.ARRAY_INDEX] = indices
 	var mesh := ArrayMesh.new()
@@ -170,7 +188,71 @@ func _add_mesh(layer_name: String, verts: PackedVector2Array, colours: PackedCol
 	var node := MeshInstance2D.new()
 	node.name = layer_name
 	node.mesh = mesh
+	if pattern >= 0:
+		var mat := ShaderMaterial.new()
+		mat.shader = _pattern_shader()
+		mat.set_shader_parameter("mode", pattern)
+		node.material = mat
 	add_child(node)
+
+
+# --- Patterns: land use without relying on colour ---------------------------
+
+const PATTERN_LAND_USE := 0   # per-vertex kind: 0 plain, 1 stripes, 2 hatch, 3 dots
+const PATTERN_PARK := 1
+const PATTERN_WATER := 2
+
+const PATTERN_SHADER := """
+shader_type canvas_item;
+uniform int mode = 0;
+varying vec2 wp;
+varying float kind;
+void vertex() {
+	wp = VERTEX;
+	kind = UV.x;
+}
+// 1 on a line of half-width hw at distance d, anti-aliased by pixel size px.
+float ink(float d, float hw, float px) {
+	return 1.0 - smoothstep(hw - px, hw + px, d);
+}
+float stripes(float t, float period, float hw, float px) {
+	return ink(abs(fract(t / period) - 0.5) * period, hw, px);
+}
+float dots(vec2 p, float period, float r, float px, float offset_rows) {
+	vec2 q = p / period;
+	q.x += offset_rows * 0.5 * mod(floor(q.y), 2.0);
+	vec2 f = (fract(q) - 0.5) * period;
+	return ink(length(f), r, px);
+}
+void fragment() {
+	float px = max(length(fwidth(wp)), 0.001);       // world px per screen px
+	float show = 1.0 - smoothstep(0.9, 1.8, px);      // fade out when zoomed far out
+	float m = 0.0;
+	if (mode == 0) {
+		int k = int(round(kind));
+		if (k == 1) {
+			m = stripes(wp.x + wp.y, 7.0, 0.9, px);                      // commercial
+		} else if (k == 2) {
+			m = max(stripes(wp.x + wp.y, 8.0, 0.7, px), stripes(wp.x - wp.y, 8.0, 0.7, px));  // public
+		} else if (k == 3) {
+			m = dots(wp, 6.0, 1.2, px, 0.0);                             // industrial
+		}
+	} else if (mode == 1) {
+		m = dots(wp, 14.0, 2.4, px, 1.0);                                // park trees
+	} else if (mode == 2) {
+		m = stripes(wp.y + sin(wp.x * 0.12) * 2.5, 10.0, 0.7, px);       // water waves
+	}
+	COLOR.rgb = mix(COLOR.rgb, COLOR.rgb * 0.74, m * show);
+}
+"""
+
+var _pattern_shader_res: Shader
+
+func _pattern_shader() -> Shader:
+	if _pattern_shader_res == null:
+		_pattern_shader_res = Shader.new()
+		_pattern_shader_res.code = PATTERN_SHADER
+	return _pattern_shader_res
 
 
 # --- Line layers (drawn once, cached by the renderer) ----------------------
