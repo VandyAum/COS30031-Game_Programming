@@ -20,6 +20,11 @@ extends CanvasLayer
 #    right-align the debug panels below the navigation bar (event log
 #    bottom-right above the map credit), update the help text for the
 #    milestone 1 controls, and add F5 (spawn an incident now)."
+# Follow-up prompt: "The true world now changes constantly; don't log
+#    road_truth_changed (it would flood the log and it's not player info),
+#    and add F6 to block the road under the mouse for testing obstacles."
+# Follow-up prompt: "Turn the debug panels off by default (F1 still shows
+#    them); the controls are documented in the README."
 
 const LOG_LINES := 12
 
@@ -32,9 +37,10 @@ var _timer := 0.0
 
 func _ready() -> void:
 	layer = 100
+	visible = false
 	_help = _panel(Vector2.ZERO, 0.0)
 	_help.text = "\n".join([
-		"DEBUG HUD (F1 hide)",
+		"DEBUG HUD (F1 show/hide)",
 		"Click an incident pin (or its card) to select it.",
 		"Hold LEFT MOUSE on a station square and drag along",
 		"the roads; release on the incident to dispatch.",
@@ -42,11 +48,14 @@ func _ready() -> void:
 		"Retrace to undo. Released early? Press the line's end.",
 		"RIGHT drag pan  Wheel zoom  Space clear  R trim",
 		"F2 road graph  F3 reveal roads  F4 next stage  F5 spawn",
+		"F6 block the road under the mouse (test obstacles)",
 	])
 	_status = _panel(Vector2.ZERO, 0.0)
 	_log = _panel(Vector2.ZERO, 1.0)
 
 	for sig in Events.get_signal_list():
+		if sig["name"] == "road_truth_changed":
+			continue
 		var n: int = sig["args"].size()
 		var cb: Callable
 		match n:
@@ -60,6 +69,11 @@ func _ready() -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event.is_pressed() and (event as InputEventKey).keycode == KEY_F1:
 		visible = not visible
+	if event.is_pressed() and (event as InputEventKey).keycode == KEY_F6:
+		var mouse_world := get_viewport().get_canvas_transform().affine_inverse() * get_viewport().get_mouse_position()
+		var p := RoadGraph.snap(mouse_world, 40.0)
+		if p:
+			World.block(p.edge, "Test roadblock", null, 60.0)
 
 
 func _process(delta: float) -> void:
@@ -88,7 +102,7 @@ func _process(delta: float) -> void:
 	var vp := get_viewport().get_visible_rect().size
 	_help.position = Vector2(vp.x - _help.size.x - 12, 114)
 	_status.position = Vector2(vp.x - _status.size.x - 12, _help.position.y + _help.size.y + 8)
-	_log.position = Vector2(vp.x - _log.size.x - 12, vp.y - _log.size.y - 40)
+	_log.position = Vector2(vp.x - _log.size.x - 12, vp.y - _log.size.y - 100)   # above ticker + credit
 
 
 func _on_event0(sig: String) -> void:

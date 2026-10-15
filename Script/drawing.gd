@@ -58,6 +58,32 @@ extends Node2D
 #    the crew type's colour. Keep the freehand rules, spur removal, undo and
 #    status_text(). Read stations, incidents and the manager through groups
 #    instead of exported node paths."
+# Follow-up prompt (milestone 2 - redraw mid-journey):
+#   "Let the player press on a crew that is en route or stopped at a
+#    blockage and drag a NEW route starting from where the crew is now. The
+#    crew pauses ('held') while its new route is being drawn. Releasing on
+#    its incident (or another open incident, which re-assigns it) hands it
+#    the new route via Crew.reroute. Releasing anywhere else keeps the
+#    unfinished route for a blocked crew (press its end to continue) but
+#    drops it for a moving crew, which carries on with its old route.
+#    Space / clearing also releases a held crew."
+# Follow-up prompt (milestone 3): "Incidents can now take several crews:
+#    allow dispatching to any incident that still needs a crew, and when a
+#    crew is redirected call unassign(crew) on its old incident."
+# Follow-up prompt (bumps): "Little spurs still survive at some junctions,
+#    because a step only counted as a loop when it passed back through
+#    exactly the same point. Treat a step as doubling back when any new
+#    point comes within LOOP_TOL world px of any earlier SEGMENT of the
+#    route (not just its points) after the route has gone at least
+#    2 x LOOP_TOL further, and cut the route back to there."
+# Follow-up prompt: "Bumps still appear (e.g. along Lookout Hill Road):
+#    a short dip into a side street wasn't 'far enough' to count. Reproduce
+#    it with a simulated wobbly drag, then after every step run a clean-up
+#    pass over the end of the route that removes any point where the route
+#    doubles straight back along the line it came in on (the next point
+#    lies on the previous segment, or the previous point lies on the next
+#    segment), plus zero-length duplicates, until nothing changes. Keep the
+#    undo anchors in step with removed points."
 
 @onready var line = $Line
 
@@ -69,11 +95,15 @@ extends Node2D
 @export var max_step_screen := 90.0
 
 const DRAFT_ALPHA := 0.55
+## A new point this close (world px) to an earlier part of the route means
+## the route doubled back: cut out the spur.
+const LOOP_TOL := 3.0
 
 enum State { IDLE, DRAWING }
 var state := State.IDLE
 
 var crew: Crew = null                   # crew the route is for
+var redraw := false                     # route starts at a crew on the road, not a station
 var tips : Array = []                   # accepted RoadGraph.RoadPos samples
 var tip_sizes : Array[int] = []         # route_points.size() after each tip
 var route_points := PackedVector2Array()
@@ -121,6 +151,14 @@ func _idle():
 		state = State.DRAWING
 		return
 
+	# Redraw the route of a crew that is out on the road.
+	var moving = get_tree().get_nodes_in_group("crews").filter(func(c): return c.visible and c.is_redrawable())
+	var out_crew = _nearest(moving, mouse)
+	if out_crew != null:
+		_begin_redraw(out_crew, mouse)
+		state = State.DRAWING
+		return
+
 	# Start a route from a station.
 	var station = _nearest(get_tree().get_nodes_in_group("stations"), mouse)
 	if station != null:
@@ -156,6 +194,23 @@ func _begin(c: Crew, mouse: Vector2):
 	crew = c
 	tips = [start_pos]
 	route_points = PackedVector2Array([c.station.global_position, start_pos.point])
+	route_point_edges = PackedInt32Array([-1, start_pos.edge])
+	tip_sizes = [route_points.size()]
+	_last_sample = mouse
+	_refresh_line()
+	Events.route_drawing_started.emit(c)
+
+
+func _begin_redraw(c: Crew, mouse: Vector2):
+	var start_pos = RoadGraph.snap(c.global_position, 200.0)
+	if start_pos == null:
+		return
+	_clear_route()
+	crew = c
+	redraw = true
+	c.held = true
+	tips = [start_pos]
+	route_points = PackedVector2Array([c.global_position, start_pos.point])
 	route_point_edges = PackedInt32Array([-1, start_pos.edge])
 	tip_sizes = [route_points.size()]
 	_last_sample = mouse
@@ -225,8 +280,8 @@ func _extend_to(snapped) -> bool:
 		var k = loop[0]
 		route_points.resize(k + 1)
 		route_point_edges.resize(k + 1)
-		new_pts = new_pts.slice(loop[1] + 1)
-		new_edges = new_edges.slice(loop[1] + 1)
+		new_pts = new_pts.slice(loop[1])
+		new_edges = new_edges.slice(loop[1])
 		while tip_sizes.size() > 1 and tip_sizes.back() > k + 1:
 			tips.pop_back()
 			tip_sizes.pop_back()
@@ -234,22 +289,68 @@ func _extend_to(snapped) -> bool:
 	route_point_edges.append_array(new_edges)
 	tips.append(snapped)
 	tip_sizes.append(route_points.size())
+	_despur()
 	return true
 
 
-# [route index, new point index] of the first new point that revisits the
-# route (ignoring the current tip itself), or [] if there is no loop.
+# Remove out-and-back spurs: wherever the route turns straight back along
+# the line it arrived on, drop the turning point. Repeats until clean, so a
+# spur of several points unwinds from its tip.
+func _despur() -> void:
+	var changed := true
+	while changed:
+		changed = false
+		var n := route_points.size()
+		for i in range(maxi(1, n - 300), n - 1):
+			var a := route_points[i - 1]
+			var b := route_points[i]
+			var c := route_points[i + 1]
+			if b.distance_to(c) < 0.05:
+				_remove_point(i + 1)
+				changed = true
+				break
+			if a.distance_to(b) < 0.05:
+				continue
+			var back_on_ab := Geometry2D.get_closest_point_to_segment(c, a, b).distance_to(c) < LOOP_TOL * 0.5
+			var back_on_bc := Geometry2D.get_closest_point_to_segment(a, b, c).distance_to(a) < LOOP_TOL * 0.5
+			if (back_on_ab or back_on_bc) and (b - a).dot(c - b) < 0.0:
+				_remove_point(i)
+				changed = true
+				break
+
+
+# Remove one route point, keeping the undo anchors (tip_sizes) in step. The
+# first two points (station + its road) are never removed.
+func _remove_point(i: int) -> void:
+	if i < 2:
+		return
+	route_points.remove_at(i)
+	route_point_edges.remove_at(i)
+	var k := 0
+	while k < tip_sizes.size():
+		if tip_sizes[k] - 1 == i and k > 0:
+			tips.remove_at(k)          # its anchor point is gone
+			tip_sizes.remove_at(k)
+			continue
+		if tip_sizes[k] - 1 >= i:
+			tip_sizes[k] -= 1
+		k += 1
+
+
+# [route index k, new point index j]: new point j lies on (or within
+# LOOP_TOL of) route segment k -> k+1, and the route has travelled on from
+# there, so everything after k is a spur or loop. [] if there is none.
 func _find_loop(new_pts: PackedVector2Array) -> Array:
 	var last = route_points.size() - 1
 	for j in new_pts.size():
-		for k in range(last - 1, maxi(0, last - 400), -1):
-			if route_points[k].distance_to(new_pts[j]) < 1.0:
-				# Must actually have left that point (not a duplicate junction).
-				var away = 0.0
-				for i in range(k + 1, last + 1):
-					away += route_points[i - 1].distance_to(route_points[i])
-				if away > 1.0:
-					return [k, j]
+		var away = 0.0      # route length from segment k's far end to the tip
+		for k in range(last - 1, maxi(-1, last - 400), -1):
+			var a = route_points[k]
+			var b = route_points[k + 1]
+			var p = Geometry2D.get_closest_point_to_segment(new_pts[j], a, b)
+			if p.distance_to(new_pts[j]) < LOOP_TOL and away + p.distance_to(b) > 1.0:
+				return [k, j]
+			away += a.distance_to(b)
 	return []
 
 
@@ -257,13 +358,20 @@ func _on_release(mouse: Vector2):
 	_hint_to = Vector2.INF
 	state = State.IDLE
 	var incident = _nearest(get_tree().get_nodes_in_group("incidents"), mouse)
-	if incident != null and not incident.is_open():
-		_say("%s already has a crew" % incident.title())
+	var own = redraw and crew != null and incident == crew.incident
+	if incident != null and not incident.is_open() and not own:
+		_say("%s already has its crews" % incident.title())
 	elif incident != null:
 		var end_pos = RoadGraph.snap(incident.global_position, 200.0)
 		if end_pos != null and _extend_to(end_pos):
 			_dispatch(incident)
 			return
+	if redraw and crew != null and crew.state != Crew.State.BLOCKED:
+		_say("%s keeps its old route" % crew.callsign)
+		_clear_route()           # moving crew: drop the draft, carry on
+		return
+	if redraw and crew != null:
+		crew.held = false        # blocked crew: keep the draft, it is waiting anyway
 	_refresh_line()   # keep the unfinished route on screen
 
 
@@ -279,6 +387,9 @@ func _trim_tips(count: int):
 
 
 func _clear_route():
+	if crew != null:
+		crew.held = false
+	redraw = false
 	tips = []
 	tip_sizes = []
 	route_points = PackedVector2Array()
@@ -305,7 +416,7 @@ func _draw():
 # --- Dispatch --------------------------------------------------------------------
 
 func _dispatch(incident):
-	if crew == null or not crew.is_available():
+	if crew == null or (not redraw and not crew.is_available()) or (redraw and not crew.is_redrawable()):
 		_say("That crew is no longer available")
 		_clear_route()
 		return
@@ -314,9 +425,16 @@ func _dispatch(incident):
 	var c = crew
 	var pts = route_points
 	var edges = route_point_edges
+	var was_redraw = redraw
 	_clear_route()                      # the crew draws its own remaining route
-	incident.assign(c)
-	c.dispatch(pts, edges, incident)
+	if was_redraw:
+		if c.incident != incident and c.incident != null and is_instance_valid(c.incident):
+			c.incident.unassign(c)      # redirected to a different incident
+		incident.assign(c)
+		c.reroute(pts, edges, incident)
+	else:
+		incident.assign(c)
+		c.dispatch(pts, edges, incident)
 	Events.route_committed.emit(c, pts, Array(edges))
 	Events.crew_selected.emit(null)
 
@@ -329,7 +447,7 @@ func status_text() -> String:
 		return _message
 	if state == State.DRAWING:
 		var e = route_point_edges[route_point_edges.size() - 1]
-		return "Drawing %s route (%d m) - on %s" % [crew.callsign, _route_metres(), RoadGraph.edge_name[e] if e >= 0 else "?"]
+		return "%s %s route (%d m) - on %s" % ["Redrawing" if redraw else "Drawing", crew.callsign, _route_metres(), RoadGraph.edge_name[e] if e >= 0 else "?"]
 	if not tips.is_empty():
 		return "Unfinished %s route (%d m) - press near its end to keep drawing, Space to clear" % [crew.callsign, _route_metres()]
 	return "Click an incident, then drag from a station along the roads to it"
@@ -368,7 +486,7 @@ func _nearest(nodes: Array, world_pos: Vector2):
 	for point in nodes:
 		if not point.visible or not Stage.is_playable(point.global_position):
 			continue
-		if point is Incident and point.status == Incident.Status.RESOLVED:
+		if point is Incident and point.is_finished():
 			continue
 		var d = point.global_position.distance_to(world_pos)
 		if d <= best_d:

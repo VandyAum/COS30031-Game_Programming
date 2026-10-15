@@ -37,6 +37,11 @@ extends Node2D
 #    Only redraw when a road's known traffic changes (not on a timer); the
 #    old 4x-per-second redraw of every road cost ~50% of the frame rate at
 #    stage 3. Keep the F2 debug graph unmasked in a child node."
+# Follow-up prompt (web build): "The web build loses its WebGL context
+#    (GL_OUT_OF_MEMORY on Chrome/Metal): the overlay redraws every known road
+#    as its own wide polyline, thousands of separate GPU buffers, almost
+#    every frame. Batch the roads into one draw_multiline per traffic colour
+#    and road width, and redraw at most every redraw_interval seconds."
 
 # Indexed by World.Traffic (CLEAR, SLOW, JAMMED, BLOCKED).
 const TRAFFIC_COLOURS: Array[Color] = [
@@ -76,6 +81,9 @@ void fragment() {
 var show_debug_graph := false
 var _debug_layer: Node2D
 var _dirty := true
+## Shortest gap between overlay rebuilds (seconds).
+@export var redraw_interval := 0.2
+var _redraw_wait := 0.0
 
 
 func _ready() -> void:
@@ -98,10 +106,12 @@ func _ready() -> void:
 	Events.stage_changed.connect(func(_s: int) -> void: _dirty = true)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	(material as ShaderMaterial).set_shader_parameter("now", Knowledge.clock)
-	if _dirty:
+	_redraw_wait -= delta
+	if _dirty and _redraw_wait <= 0.0:
 		_dirty = false
+		_redraw_wait = redraw_interval
 		queue_redraw()
 
 
@@ -112,17 +122,30 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _draw() -> void:
+	# One batch of segments per (traffic level, road class): ~20 draw calls
+	# instead of one per road.
+	var batches := []           # index level * CLASSES + class -> Array of Vector2
+	var classes := CLASS_WIDTH.size()
+	for i in TRAFFIC_COLOURS.size() * classes:
+		batches.append([])
+	var crosses := PackedVector2Array()
 	for e in RoadGraph.edge_count():
 		if not Knowledge.is_known(e):
 			continue
 		var level := Knowledge.known_level(e)
-		var colour: Color = TRAFFIC_COLOURS[level]
-		var width: float = CLASS_WIDTH[RoadGraph.edge_class(e)]
-		draw_polyline(RoadGraph.edge_pts[e], colour, width)
+		var segs: Array = batches[level * classes + RoadGraph.edge_class(e)]
+		var pts: PackedVector2Array = RoadGraph.edge_pts[e]
+		for i in range(1, pts.size()):
+			segs.append(pts[i - 1])
+			segs.append(pts[i])
 		if level == World.Traffic.BLOCKED:
 			var m := RoadGraph.edge_midpoint(e)
-			draw_line(m + Vector2(-6, -6), m + Vector2(6, 6), colour.darkened(0.4), 3.0)
-			draw_line(m + Vector2(-6, 6), m + Vector2(6, -6), colour.darkened(0.4), 3.0)
+			crosses.append_array([m + Vector2(-6, -6), m + Vector2(6, 6), m + Vector2(-6, 6), m + Vector2(6, -6)])
+	for i in batches.size():
+		if not batches[i].is_empty():
+			draw_multiline(PackedVector2Array(batches[i]), TRAFFIC_COLOURS[i / classes], CLASS_WIDTH[i % classes])
+	if not crosses.is_empty():
+		draw_multiline(crosses, (TRAFFIC_COLOURS[World.Traffic.BLOCKED] as Color).darkened(0.4), 3.0)
 
 
 func _draw_debug() -> void:

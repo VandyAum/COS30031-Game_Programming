@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="IncidentType" format=3]
 
 ; AI-assisted (Claude Opus 5.5): data file written from the prompt in Script/Data/incident_type.gd.
+; Follow-up prompt: "Make incidents take about 20% longer to tick down" (time limit x1.2).
 ; Designers: edit these values in the inspector.
 
 [ext_resource type="Script" path="res://Script/Data/incident_type.gd" id="1"]
@@ -11,7 +12,8 @@ id = &"street_medical"
 display_name = "Medical emergency"
 crew_types = Array[StringName]([&"ambulance"])
 resolve_seconds = 5.0
-time_limit_seconds = 50.0
+time_limit_seconds = 60.0
+min_stage = 0
 weight = 0.7
 where = 0
 road_classes = Array[int]([0, 1])

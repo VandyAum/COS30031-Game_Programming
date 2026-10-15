@@ -1,0 +1,20 @@
+[gd_resource type="Theme" load_steps=4 format=3]
+
+; AI-assisted (Claude Opus 5.5). Prompt: "Make Atkinson Hyperlegible Next (Google Fonts, SIL OFL,
+; UI/Fonts/OFL.txt) the project font: one variable font file, a Regular (wght 400) variation as the
+; default font and a real Bold (wght 700) variation for RichTextLabel [b] text, instead of Godot
+; faking bold from the default font."
+
+[ext_resource type="FontFile" path="res://UI/Fonts/AtkinsonHyperlegibleNext-Variable.ttf" id="1_font"]
+
+[sub_resource type="FontVariation" id="FontVariation_regular"]
+base_font = ExtResource("1_font")
+variation_opentype = {2003265652: 400}
+
+[sub_resource type="FontVariation" id="FontVariation_bold"]
+base_font = ExtResource("1_font")
+variation_opentype = {2003265652: 700}
+
+[resource]
+default_font = SubResource("FontVariation_regular")
+RichTextLabel/fonts/bold_font = SubResource("FontVariation_bold")
