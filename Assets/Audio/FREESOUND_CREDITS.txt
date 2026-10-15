@@ -1,0 +1,12 @@
+Sounds from Freesound (https://freesound.org), all Creative Commons 0 (public domain dedication,
+https://creativecommons.org/publicdomain/zero/1.0/). Downloaded 2026-10-06 as Freesound's
+high-quality OGG previews and renamed; otherwise unmodified.
+
+fs_city_loop_qubodup_223093.ogg        "Seamless City Loop" by qubodup
+                                       https://freesound.org/people/qubodup/sounds/223093/
+fs_emergency_siren_onderwish_470504.ogg "Emergency Siren" by onderwish
+                                       https://freesound.org/people/onderwish/sounds/470504/
+fs_engine_loop_qubodup_54909.ogg       "Bus Motor/Engine Sound Loop" by qubodup
+                                       https://freesound.org/people/qubodup/sounds/54909/
+fs_car_passing_hinzebeat_171447.ogg    "Car passing by.wav" by hinzebeat
+                                       https://freesound.org/people/hinzebeat/sounds/171447/

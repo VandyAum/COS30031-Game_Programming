@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="DebrisType" format=3]
+
+; AI-assisted (Claude Opus 5.5): data file written from the prompt in Script/Data/debris_type.gd.
+; Designers: edit these values in the inspector.
+
+[ext_resource type="Script" path="res://Script/Data/debris_type.gd" id="1"]
+[ext_resource type="PhysicsMaterial" path="res://Data/physics_materials/rubber.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"tyre"
+display_name = "Tyre"
+physics_material = ExtResource("2")
+shape = 0
+size = Vector2(9, 9)
+mass = 1.5
+linear_damp = 1.8
+angular_damp = 0.8
+colour = Color(0.13, 0.13, 0.15, 1)
+accent = Color(0.55, 0.57, 0.6, 1)
+impact_sound = &"hit_rubber"
+impact_fx = &""

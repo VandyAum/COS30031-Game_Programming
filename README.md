@@ -1,77 +1,140 @@
-# COS30031-Game_Programming
-Game_Programming course
+# The Race Against Time
 
-<!-- AI-assisted (Claude Opus 5.5). Prompt: "Add a short team-facing section
-     to the README explaining how the map data is built from Vicmap, which
-     autoloads exist and what each is for, how to test with the debug keys,
-     and the export note for the raw data files."
-     Follow-up prompt: "Update for rectangular stages, fictional names, the
-     colour reveal, and add a data attribution / licence section."
-     Follow-up prompt: "Document the milestone 1 systems: stations, crews,
-     incidents as data, the HUD, and how to add a new incident type." -->
+<!-- AI-assisted (Claude Opus 5.5). Prompt: "Rewrite the README to the
+     assessment's two-page limit: game description, connection to the DTP
+     Vicmap challenge, controls, how to play, how to run the build, key
+     programming systems, team contributions and known issues. Move the
+     long developer notes to docs/DEVELOPMENT.md."
+     Follow-up prompt: "Update team contributions from the commit history
+     (camera pan/zoom was Vandy's); list Ishita in the team." -->
 
-## Map & systems (prototype)
+**Play in the browser:** _itch.io link goes here_ · **Engine:** Godot 4.7 (2D) ·
+**Team:** Vandy, Ishita, Jessie, Leah (COS30031, Semester 2 2026)
 
-The map is **one world** built from real Vicmap open data, with every place,
-road and facility name replaced by a fictional one. Stages are rectangles
-that reveal more of it: 0 a small tutorial around the junction → 1 halfway
-to stage 2 → 2 roughly three suburbs → 3 exactly double stage 2.
+You are an emergency dispatcher in Burrundara, a fictional suburb built from
+real Vicmap data. Calls come in, and you draw each crew's route along the
+roads. But your map only knows what your crews have seen, and everything they
+see fades back to grey. Old traffic and roadblocks may no longer be true, and
+new ones won't show until someone drives past. Pick routes, react when a crew
+hits an obstacle the map didn't show, and keep every call from running out of
+time.
 
-The map is monochrome until a crew looks at it: crews reveal roads (traffic
-colours) and the map's colours within their sight radius, and both fade
-back to grey over `Knowledge.fade_seconds`.
+## The challenge: DTP "Vicmap: The Race Against Time"
 
-**Rebuilding the map data** (only needed if you change the build scripts):
+The brief asks for a game showing that **accurate, reliable spatial
+information** helps people make better decisions in a developing emergency.
+In our game that idea is the core mechanic, not a text box:
 
-```
-python3 tools/fetch_vicmap.py   # downloads raw Vicmap layers to tools/cache (git-ignored)
-python3 tools/build_world.py    # writes the game data (fictional names) to Map/world/
-```
+- **Knowing what is where matters.** Every dispatch is a route you draw
+  yourself, using the roads, street names and Features of Interest on the map.
+- **Reliable information matters.** The map goes stale. A route through a road
+  that *looked* clear can stop a crew at a roadblock, while the call's timer
+  keeps running.
+- **Features of Interest are meaningful places.** Stations, hospitals,
+  schools and shops come from the Vicmap FOI data. Calls happen at them, and
+  the type of place decides which crew is needed.
+- **Authoritative data has public value.** The after-action report ties
+  your result to stale data ("crews stopped by obstacles the map didn't
+  show"), ending with *"Before Vicmap, someone had to build the map. Today,
+  that was you."*
 
-Stage rectangles live at the top of `tools/build_world.py` (`STAGE_RECTS_M`).
+## How to play
 
-**Autoloads** (talk through `Events`, don't reach into each other's nodes):
+1. A call arrives: a pin with a timer ring appears, and a card shows in the
+   incident panel on the left.
+2. Click the pin or card, then press **Send ...** for a crew, or press on a
+   station square.
+3. **Hold the left mouse button** at the station and **drag along the roads**
+   to the incident, then release on it. The crew drives your route exactly.
+4. If the crew hits a road blocked since you last saw it, it stops with a red
+   countdown. **Press on the crew and drag a new route** before the countdown
+   runs out.
+5. Crews resolve the call, drive home and rest. Calls left too long are
+   passed to a neighbouring crew and cost a heart. Lose three hearts and the
+   run ends.
 
-| Autoload | Job |
+**Progress:** a tutorial call, then three stages. Each stage reveals a larger
+part of the map, brings more and harder calls (multi-crew crashes, fires,
+storm damage) and more roadblocks. Resolve every stage to win.
+
+### Controls
+
+| Action | Input |
 | --- | --- |
-| `Events` | Shared signal list: incidents, crews, routes, roads, stage, lives |
-| `Stage` | Current stage rectangle, `stage_at(pos)`, `is_playable(pos)`, `geo_to_world(lon, lat)` |
-| `RoadGraph` | Road network: `snap(pos)`, `route(a, b)`, street names, road classes |
-| `World` | What is TRUE: traffic/blockages per road. Crews feel this |
-| `Knowledge` | What the PLAYER knows: last-seen traffic + age, `sight(pos)` for crew sightings |
+| Select incident / choose crew | Left click (pin, card, "Send" button or station) |
+| Draw a route | Hold left mouse and drag along roads |
+| Undo the last part of a route / clear it | **R** / **Space** |
+| Pan / zoom | Right-drag / mouse wheel |
+| Pause (hides the map) | **Esc** |
+| Mute sound | **M** |
 
-**Gameplay nodes** (in `main.tscn`):
+## Running the game
 
-| Node / file | Job |
+- **Browser:** open the itch.io link above (Chrome, Edge or Firefox). Click
+  once to start audio.
+- **From source:** install Godot **4.7**, open `project.godot` and press
+  **F5** (main scene `main.tscn`).
+- **Building the web version:** install the Godot 4.7.2 export templates,
+  then *Project → Export → Web* (preset included in `export_presets.cfg`, no
+  threads, so it runs on itch.io without extra headers). Zip `build/web/`
+  and upload it as an HTML game. The preset already includes the
+  non-resource map files (`*.json, *.bin, *.txt`).
+- A zipped copy of the project is in `Submission/`.
+
+## Key programming systems
+
+| System | Where | Reused by |
+| --- | --- | --- |
+| **Event bus** (observer pattern) | `Script/Autoload/events.gd` | Every system emits and listens here: HUD, ticker, sound, particles, physics, stats |
+| **Truth vs knowledge** | `World` (what is true), `Knowledge` (what the player has seen, fading) | Crews, map overlay, roadblocks, fog, end report |
+| **Data-driven types** (Resources) | `IncidentType`, `CrewType`, `DebrisType`; `.tres` files in `Data/` | 13 incident types, 4 crew types, 7 debris types, 7 physics materials |
+| **Crew state machine** | `Script/crew.gd` | All crews: available → en route → blocked → on scene → returning → cooldown |
+| **Timers and cooldowns** | Incident timer rings, crew cooldown, blocked countdown | Incidents, crews, stations, HUD bars |
+| **Spawning and pacing** | `Script/incident_manager.gd`, `World` | Incidents and random roadblocks per stage |
+| **2D physics scenes** | `Script/scene_physics.gd`, `Scenes/*.tscn` | Incident debris, roadblocks, crew bumpers and sensors |
+| **Feedback** | `Sfx` autoload, `Fx` particles, ticker | Driven by events, so any new event gets sound and effects in one line |
+
+**Physics and collisions.** Crashes, storms, fallen trees and roadworks
+scatter `RigidBody2D` debris that bounces off concrete barriers and each
+other, and crews' kinematic bumpers shove it aside. Collision layers are
+named in the project settings (barriers, vehicles, debris, incident zones,
+crew sensors). Debris collides only with barriers, vehicles and debris.
+Crews' `Area2D` sensors detect only incident zones, which decide when a crew
+can park and walk in. There are seven `PhysicsMaterial`s in
+`Data/physics_materials/`:
+
+| Material | Behaviour |
 | --- | --- |
-| `Stations` (`Script/station_manager.gd`) | Creates a `Station` at every police/ambulance/fire FOI, each with its `Crew`s |
-| `Crew` (`Script/crew.gd`) | Available → en route → on scene → returning (pathfinds home) → cooldown |
-| `Incidents` (`Script/incident_manager.gd`) | Spawns incidents on a fixed schedule (per-stage interval and cap) |
-| `Incident` (`Script/incident.gd`) | Reported → crew en route → on scene (resolve timer) → resolved; wrong crew type is sent home |
-| `Drawing` (`Script/drawing.gd`) | Map input: select incidents, draw routes, dispatch |
-| `UI/HUD` (`Script/hud.gd` on Jessie's `UI/HUD.tscn`) | Incident cards, tabs, "Send" buttons, crew list |
+| Rubber (tyres) | Bouncy |
+| Glass | Slides, no bounce |
+| Metal | Heavy, dull bounce |
+| Wood (branches) | Rough, high friction |
+| Plastic (cones, bins) | Springy |
+| Sandbag | Absorbent |
+| Concrete (barriers) | Firm, static |
 
-**Data:** crew types live in `Data/crew_types/*.tres` and incident types in
-`Data/incident_types/*.tres`. To add an incident, duplicate a `.tres` in the
-FileSystem dock, change its id, name, crew type, location rules and caller
-descriptions in the inspector. It is picked up automatically.
+## Team contributions
 
-**Testing** (run `main.tscn`): click an incident pin or card, press
-"Send ..." (or press on a station square), then hold the left mouse at the
-station and drag along the roads; release on the incident. Right-drag pans,
-wheel zooms. F1 debug HUD · F2 road network · F3 reveal all roads ·
-F4 next stage · F5 spawn an incident now.
+- **Vandy:** route drawing, camera panning and zoom, stations and crews,
+  crew movement and returns.
+- **Jessie:** HUD and UI design, incident cards.
+- **Leah:** Vicmap world pipeline and map rendering, incidents as data, game
+  systems (knowledge decay, obstacles, timers, stages, tutorial), physics,
+  sound and particles.
+- **Ishita:** team member.
 
-**Exporting:** add `*.json, *.bin` to the export preset's "non-resource files"
-filter so `Map/world/` is included in builds.
+Code was written with AI assistance (Claude, by Anthropic); prompts are kept
+as comments in every script. Asset credits: [ATTRIBUTIONS.md](ATTRIBUTIONS.md).
+Developer notes and debug keys: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
-## Data attribution
+## Known issues
 
-Map data: Vicmap © State of Victoria (Department of Transport and Planning);
-PARKRES © State of Victoria (Department of Energy, Environment and Climate
-Action). Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-The data has been modified (reprojected, simplified, stylised, names made
-fictional); no endorsement by the State of Victoria is implied. The exact
-datasets, layers and retrieval dates are listed in
-[Map/world/ATTRIBUTION.md](Map/world/ATTRIBUTION.md), and the credit line is
-shown in-game bottom-right.
+- **Only one kind of bad data.** Features of Interest are always correct in
+  this prototype, and only live road information goes stale. Moved, missing
+  and misclassified places (such as a hospital that isn't where the map says)
+  are planned for Assessment 3.
+- **One vehicle sprite.** All crew types share it, tinted by colour.
+- **Debris is hard to see zoomed out.** At very low zoom, debris and barriers are
+  small. Zoom in to see the physics.
+- **Browser audio.** Sound starts only after the first click, a browser
+  rule.
