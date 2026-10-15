@@ -76,20 +76,33 @@ class_name Crew extends Node2D
 #    replaces the distance check: a crew can park and walk in once its
 #    sensor overlaps its own incident's scene zone. Crews ignore each other,
 #    barriers and other crews' sensors."
+# Follow up prompt:
+#	 "Find any merge conflicts created from merging leah-work. Keep both sides, 
+#	 and produce a yellow-tinted fire engine sprite for the SES.
 
 enum State { AVAILABLE, EN_ROUTE, ON_SCENE, RETURNING, COOLDOWN, BLOCKED }
 
 const STATE_NAMES := ["Available", "En route", "On scene", "Returning", "Cooldown", "Blocked"]
 const SIGHT_INTERVAL := 0.15
-const CAR_TEXTURE := preload("res://Assets/Police car.svg")
+const POLICE_TEXTURE := preload("res://Assets/police_car.png")
+const AMBULANCE_TEXTURE := preload("res://Assets/ambulance.png")
+const FIRE_TEXTURE := preload("res://Assets/fire_truck.png")
+const SES_TEXTURE := preload("res://Assets/ses_truck.png")
+
+const CREW_TEXTURES := {
+	&"police": POLICE_TEXTURE,
+	&"ambulance": AMBULANCE_TEXTURE,
+	&"fire": FIRE_TEXTURE,
+	&"ses": SES_TEXTURE
+}
 const PHYSICS_SCENE := preload("res://Scenes/crew_physics.tscn")
 ## Car sprite size at scale 1 (texture 159 x 63 at the sprite's 0.32 x 0.34).
 const CAR_SIZE := Vector2(51, 21.5)
 ## Biggest the bumper grows with the zoom-out scale.
 const MAX_BUMPER_SCALE := 1.6
 ## Tint applied to the (black and white) car sprite per crew type.
-const TINTS := {&"police": Color(1, 1, 1), &"ambulance": Color(1.0, 0.93, 0.62), &"fire": Color(1.0, 0.36, 0.26),
-	&"ses": Color(1.0, 0.75, 0.2)}
+#const TINTS := {&"police": Color(1, 1, 1), &"ambulance": Color(1.0, 0.93, 0.62), &"fire": Color(1.0, 0.36, 0.26),
+#	&"ses": Color(1.0, 0.75, 0.2)}
 
 var type: CrewType
 var station: Node2D
