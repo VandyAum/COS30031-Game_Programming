@@ -76,9 +76,24 @@ class_name Crew extends Node2D
 #    replaces the distance check: a crew can park and walk in once its
 #    sensor overlaps its own incident's scene zone. Crews ignore each other,
 #    barriers and other crews' sensors."
-# Follow up prompt:
-#	 "Find any merge conflicts created from merging leah-work. Keep both sides, 
-#	 and produce a yellow-tinted fire engine sprite for the SES.
+# Follow-up prompt (merge fix): "Find any merge conflicts created from
+#    merging leah-work. The constants block in crew.gd conflicted: main's
+#    per-type sprites (POLICE/AMBULANCE/FIRE_TEXTURE and CREW_TEXTURES)
+#    against leah-work's PHYSICS_SCENE, CAR_SIZE, MAX_BUMPER_SCALE and SES
+#    tint, and taking leah-work's side left _ready() using CREW_TEXTURES and
+#    POLICE_TEXTURE, which no longer existed. Keep both sides: restore the
+#    sprite constants next to the physics constants, drop the unused
+#    CAR_TEXTURE, keep TINTS commented out (with the SES entry) since the
+#    sprites are already coloured, and produce a yellow-tinted fire engine
+#    sprite for the SES (Assets/ses_truck.png: fire_truck.png with only its
+#    red body panels recoloured) so SES crews don't fall back to the police
+#    car."
+# Follow-up prompt (police sprite): "The police car is misaligned compared
+#    to the other sprites. Assets/police_car.png was a 1983 x 793 canvas
+#    with the car 28 px above its centre (plus faint stray pixels above it),
+#    so it swung off the road as it turned. Crop it to the car and centre it
+#    on a 159 x 63 canvas facing +x, like ambulance.png and fire_truck.png,
+#    so CAR_SIZE and the 0.32 x 0.34 sprite scale fit it too."
 
 enum State { AVAILABLE, EN_ROUTE, ON_SCENE, RETURNING, COOLDOWN, BLOCKED }
 

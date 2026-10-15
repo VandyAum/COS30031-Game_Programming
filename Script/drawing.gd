@@ -84,6 +84,19 @@ extends Node2D
 #    lies on the previous segment, or the previous point lies on the next
 #    segment), plus zero-length duplicates, until nothing changes. Keep the
 #    undo anchors in step with removed points."
+# Follow-up prompt (freeze fix): "The game froze in the third phase with
+#    several incidents open (Windows logged an Application Hang, not an
+#    out-of-memory crash). Find and fix it. Cause: _despur() repeats while
+#    'changed' is true, but _remove_point() never removes the first two
+#    points (station/crew + its road), so when the doubling-back point was
+#    index 1 nothing was removed, 'changed' stayed true and the loop spun
+#    forever on the same route. It happens when redrawing a crew that is a
+#    fraction of a pixel off its road (e.g. on the link from its station to
+#    the road) and drawing back the way it came, which a headless stress run
+#    of stage 3 hit over a thousand times in two minutes. Make
+#    _remove_point() return whether it removed the point, and only count a
+#    change (and restart the pass) when it did, so a kept point is skipped
+#    and later spurs are still cleaned up."
 
 @onready var line = $Line
 
@@ -313,17 +326,21 @@ func _despur() -> void:
 				continue
 			var back_on_ab := Geometry2D.get_closest_point_to_segment(c, a, b).distance_to(c) < LOOP_TOL * 0.5
 			var back_on_bc := Geometry2D.get_closest_point_to_segment(a, b, c).distance_to(a) < LOOP_TOL * 0.5
-			if (back_on_ab or back_on_bc) and (b - a).dot(c - b) < 0.0:
-				_remove_point(i)
+			# The turning point may be one of the first two points, which are
+			# kept: only count it as a change if something was removed, or this
+			# loop never ends (redrawing a crew a fraction of a px off its road
+			# and drawing back the way it came froze the game).
+			if (back_on_ab or back_on_bc) and (b - a).dot(c - b) < 0.0 and _remove_point(i):
 				changed = true
 				break
 
 
 # Remove one route point, keeping the undo anchors (tip_sizes) in step. The
-# first two points (station + its road) are never removed.
-func _remove_point(i: int) -> void:
+# first two points (station + its road) are never removed. Returns false if
+# the point was kept.
+func _remove_point(i: int) -> bool:
 	if i < 2:
-		return
+		return false
 	route_points.remove_at(i)
 	route_point_edges.remove_at(i)
 	var k := 0
@@ -335,6 +352,7 @@ func _remove_point(i: int) -> void:
 		if tip_sizes[k] - 1 >= i:
 			tip_sizes[k] -= 1
 		k += 1
+	return true
 
 
 # [route index k, new point index j]: new point j lies on (or within
