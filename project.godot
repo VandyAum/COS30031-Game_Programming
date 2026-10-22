@@ -18,13 +18,6 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 [application]
 
-<<<<<<< HEAD
-config/name="Game_Project"
-run/main_scene="uid://cydoy4mfk37xm"
-config/features=PackedStringArray("4.7", "Forward Plus")
-config/icon="res://icon.svg"
-
-=======
 config/name="The Race Against Time"
 config/description="Dispatch emergency crews across a map that goes stale. A COS30031 prototype for the DTP Vicmap Game Challenge."
 run/main_scene="uid://vu3o5p5e144v"
@@ -41,7 +34,6 @@ Knowledge="*res://Script/Autoload/knowledge.gd"
 Run="*res://Script/Autoload/run.gd"
 Sfx="*res://Script/Autoload/sfx.gd"
 
->>>>>>> 5663acc01c870534370e3f4a9055a9a5c08c363a
 [display]
 
 window/size/viewport_width=1920

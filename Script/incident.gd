@@ -1,26 +1,3 @@
-<<<<<<< HEAD
-extends Area2D
-
-var triggered: bool = false
-
-func _ready() -> void:
-	
-	body_entered.connect(_on_body_entered)
-
-
-func _on_body_entered(body: Node2D) -> void:
-
-	
-	if triggered:
-		return
-
-	
-	if body.name == "Player":
-		triggered = true
-
-		
-		get_tree().current_scene.fail_incident()
-=======
 class_name Incident extends Node2D
 ## One live incident on the map. Status:
 ##   REPORTED -> ASSIGNED (crews on the way / some on scene) -> ON_SCENE
@@ -355,4 +332,3 @@ func _draw() -> void:
 			draw_texture_rect(t.icon, Rect2(p - Vector2(5.5, 5.5), Vector2(11, 11)), false)
 		if here:
 			draw_circle(p + Vector2(6, -6), 4.0, Color("2fbf71"))
->>>>>>> 5663acc01c870534370e3f4a9055a9a5c08c363a

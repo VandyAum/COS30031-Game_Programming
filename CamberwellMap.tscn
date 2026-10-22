@@ -195,11 +195,6 @@ polygon = PackedVector2Array(0, 183, 130, 203, 112, 323, -2, 306)
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Collision" unique_id=212502572]
 polygon = PackedVector2Array(0, 318, 111, 336, 52, 760, 0, 705)
 
-<<<<<<< HEAD
-[node name="Locations" type="Node2D" parent="." unique_id=521421413]
-
-=======
->>>>>>> 5663acc01c870534370e3f4a9055a9a5c08c363a
 [node name="RoadPoints" type="Node2D" parent="." unique_id=1310611307]
 
 [node name="Point1" type="Marker2D" parent="RoadPoints" unique_id=515222274]
