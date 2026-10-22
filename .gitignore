@@ -1,3 +1,30 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Godot editor temp/backup files
+*.tmp
+*.translation
+# AI-assisted (Claude Opus 5.5): "Commit the Web export preset, ignore build output."
+# export_presets.cfg is committed (Web preset for itch.io); credentials never are.
+export_credentials.cfg
+
+# Exported builds (upload build/web as a zip to itch.io)
+build/
+
+# Claude Code / AI assistant files
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+**/.claude/
+.claudeignore
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Raw Vicmap downloads (rebuild with tools/fetch_vicmap.py)
+tools/cache/
+__pycache__/

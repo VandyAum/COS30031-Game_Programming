@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://df6svmy0mtp63"]
+[gd_scene format=3 uid="uid://b8i7d8osaktnf"]
 
-[ext_resource type="Script" uid="uid://cmxju77317nbv" path="res://Script/crew_point.gd" id="1_7cs7h"]
+[ext_resource type="Script" path="res://Script/crew_point.gd" id="1_7cs7h"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_7cs7h"]
 font_size = 30

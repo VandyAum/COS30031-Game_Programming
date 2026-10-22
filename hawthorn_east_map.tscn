@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 [gd_scene format=3 uid="uid://mdx3mnnisvpt"]
 
 [ext_resource type="Script" uid="uid://c6fi0vamxg811" path="res://hawthorn_east_map.gd" id="1_kdgyc"]
@@ -5,6 +6,12 @@
 [ext_resource type="Script" uid="uid://045hycnf4t1k" path="res://Script/level_exit.gd" id="2_bi43x"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hghut"]
+=======
+[gd_scene format=3 uid="uid://dr7smkwuyvocx"]
+
+[ext_resource type="Script" path="res://hawthorn_east_map.gd" id="1_kdgyc"]
+[ext_resource type="Texture2D" path="res://Map/hawthorn_east_extension_aligned.svg" id="1_xiyce"]
+>>>>>>> 5663acc01c870534370e3f4a9055a9a5c08c363a
 
 [node name="Hawthorn_East_Map" type="Node2D" unique_id=1196950654]
 script = ExtResource("1_kdgyc")
@@ -83,7 +90,6 @@ color = Color(0.5372549, 0.5372549, 0.5372549, 1)
 polygon = PackedVector2Array(943, 1088, 1012, 1098, 1011, 1854, 831, 1824)
 
 [node name="Collision" type="StaticBody2D" parent="." unique_id=888786381]
-visible = false
 
 [node name="Block1" type="CollisionPolygon2D" parent="Collision" unique_id=548031705]
 polygon = PackedVector2Array(-1, -2, 0, 160, 277, 202, 306, -1)

@@ -4,6 +4,7 @@
 
 [node name="Drawing" type="Node2D" unique_id=1114527525]
 script = ExtResource("1_jortj")
+crew_speed = null
 
 [node name="Line" type="Line2D" parent="." unique_id=1151995881]
 width = 3.0
