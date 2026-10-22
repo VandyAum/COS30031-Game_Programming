@@ -4,7 +4,8 @@
 
 Team: _[group name]_ · itch.io: _[link]_ · Video: _[YouTube link]_ · Repo: VandyAum/COS30031-Game_Programming
 
-**Replace the timestamps with the ones from your final video.**
+**Replace the tim
+estamps with the ones from your final video.**
 
 | Marking area | Evidence in the game | Video | Where to test |
 | --- | --- | --- | --- |
