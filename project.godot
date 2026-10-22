@@ -43,6 +43,10 @@ window/size/mode.web=0
 
 project/assembly_name="The Race Against Time"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/strudel/plugin.cfg")
+
 [gui]
 
 theme/custom="res://UI/game_theme.tres"

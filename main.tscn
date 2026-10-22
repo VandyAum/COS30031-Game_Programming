@@ -1,75 +1,75 @@
 [gd_scene format=3 uid="uid://vu3o5p5e144v"]
 
-; Follow-up prompt (AI-assisted, Claude Opus 5.5): "Add a ScenePhysics node (debris and roadblocks,
-; under the incident pins) and an Effects node (particle bursts, above them) to the main scene."
-
 [ext_resource type="Script" uid="uid://vn48f0lyoxpe" path="res://camera.gd" id="1_272bh"]
+[ext_resource type="Script" uid="uid://3n1njsgy0xf7" path="res://Script/BGM_Test.gd" id="1_yaehf"]
 [ext_resource type="PackedScene" uid="uid://ccg3mp5xcq6ki" path="res://drawing.tscn" id="2_lquwl"]
 [ext_resource type="PackedScene" path="res://world_map.tscn" id="3_world"]
-[ext_resource type="Script" path="res://Script/station_manager.gd" id="4_stations"]
-[ext_resource type="Script" path="res://Script/incident_manager.gd" id="5_incidents"]
+[ext_resource type="Script" uid="uid://cmvu6rqhv1vuc" path="res://Script/station_manager.gd" id="4_stations"]
+[ext_resource type="Script" uid="uid://c5a0jb7xndmk7" path="res://Script/incident_manager.gd" id="5_incidents"]
 [ext_resource type="PackedScene" uid="uid://b775te0qa2655" path="res://UI/HUD.tscn" id="6_hud"]
-[ext_resource type="Script" path="res://Script/hud.gd" id="7_hudscript"]
+[ext_resource type="Script" uid="uid://bvlc1p3p4d6ap" path="res://Script/hud.gd" id="7_hudscript"]
 [ext_resource type="Script" uid="uid://cj6kmsaio06kb" path="res://Script/road_overlay.gd" id="8_overlay"]
-[ext_resource type="Script" path="res://Script/debug_hud.gd" id="9_hud"]
-[ext_resource type="Script" path="res://Script/landmarks.gd" id="10_landmarks"]
-[ext_resource type="Script" path="res://Script/ticker.gd" id="11_ticker"]
-[ext_resource type="Script" path="res://Script/end_screen.gd" id="12_end"]
-[ext_resource type="Script" path="res://Script/tutorial.gd" id="13_tutorial"]
-[ext_resource type="Script" path="res://Script/road_labels.gd" id="14_roadlabels"]
-[ext_resource type="Script" path="res://Script/scene_physics.gd" id="15_physics"]
-[ext_resource type="Script" path="res://Script/effects.gd" id="16_effects"]
+[ext_resource type="Script" uid="uid://cnnbsov0tyqjs" path="res://Script/debug_hud.gd" id="9_hud"]
+[ext_resource type="Script" uid="uid://cd7dhhq5a7hxu" path="res://Script/landmarks.gd" id="10_landmarks"]
+[ext_resource type="Script" uid="uid://doipue187bi2s" path="res://Script/ticker.gd" id="11_ticker"]
+[ext_resource type="Script" uid="uid://cvhr6n7kktlt2" path="res://Script/end_screen.gd" id="12_end"]
+[ext_resource type="Script" uid="uid://bhakojmov14pj" path="res://Script/tutorial.gd" id="13_tutorial"]
+[ext_resource type="Script" uid="uid://d1hqarpsxwwwt" path="res://Script/road_labels.gd" id="14_roadlabels"]
+[ext_resource type="Script" uid="uid://dv2gp0o1csgom" path="res://Script/scene_physics.gd" id="15_physics"]
+[ext_resource type="Script" uid="uid://brgxrh6sj640h" path="res://Script/effects.gd" id="16_effects"]
 
 [node name="Main" type="Node2D" unique_id=1954988479]
+script = ExtResource("1_yaehf")
 
-[node name="WorldMap" parent="." instance=ExtResource("3_world")]
+[node name="WorldMap" parent="." unique_id=943125665 instance=ExtResource("3_world")]
 
-[node name="RoadOverlay" type="Node2D" parent="."]
+[node name="RoadOverlay" type="Node2D" parent="." unique_id=517749674]
 script = ExtResource("8_overlay")
 
-[node name="RoadLabels" type="Node2D" parent="."]
+[node name="RoadLabels" type="Node2D" parent="." unique_id=126979324]
 script = ExtResource("14_roadlabels")
 
-[node name="Landmarks" type="Node2D" parent="."]
+[node name="Landmarks" type="Node2D" parent="." unique_id=983103700]
 z_index = 1
 script = ExtResource("10_landmarks")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=2118934091]
 script = ExtResource("1_272bh")
 
-[node name="Stations" type="Node2D" parent="."]
+[node name="Stations" type="Node2D" parent="." unique_id=790646286]
 z_index = 2
 script = ExtResource("4_stations")
 
-[node name="ScenePhysics" type="Node2D" parent="."]
+[node name="ScenePhysics" type="Node2D" parent="." unique_id=1031664154]
 z_index = 3
 script = ExtResource("15_physics")
 
-[node name="Incidents" type="Node2D" parent="."]
+[node name="Incidents" type="Node2D" parent="." unique_id=497511306]
 z_index = 3
 script = ExtResource("5_incidents")
 
 [node name="Drawing" parent="." unique_id=1114527525 instance=ExtResource("2_lquwl")]
 z_index = 4
 
-[node name="Effects" type="Node2D" parent="."]
+[node name="Effects" type="Node2D" parent="." unique_id=1332762938]
 z_index = 5
 script = ExtResource("16_effects")
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=1969143827]
 
-[node name="HUD" parent="UI" instance=ExtResource("6_hud")]
+[node name="HUD" parent="UI" unique_id=627799059 instance=ExtResource("6_hud")]
 script = ExtResource("7_hudscript")
 
-[node name="Ticker" type="Control" parent="UI"]
+[node name="Ticker" type="Control" parent="UI" unique_id=1894088196]
 layout_mode = 3
+anchors_preset = 0
 script = ExtResource("11_ticker")
 
-[node name="EndScreen" type="CanvasLayer" parent="."]
+[node name="EndScreen" type="CanvasLayer" parent="." unique_id=2088164084]
 script = ExtResource("12_end")
 
-[node name="Tutorial" type="CanvasLayer" parent="."]
+[node name="Tutorial" type="CanvasLayer" parent="." unique_id=1081373571]
 script = ExtResource("13_tutorial")
 
-[node name="DebugHUD" type="CanvasLayer" parent="."]
+[node name="DebugHUD" type="CanvasLayer" parent="." unique_id=1213457019]
 script = ExtResource("9_hud")
