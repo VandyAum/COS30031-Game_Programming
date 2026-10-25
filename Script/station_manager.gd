@@ -74,7 +74,7 @@ func _process(delta: float) -> void:
 func _reveal_home_areas() -> void:
 	for s in get_stations():
 		s.reveal_radius = home_reveal_m * float(Stage.meta["px_per_m"])
-		s.queue_redraw()
+		s.redraw_view()
 	for s in stations_in_play():
 		Knowledge.sight(s.global_position, home_reveal_m)
 

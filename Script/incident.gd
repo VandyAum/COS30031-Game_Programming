@@ -60,6 +60,7 @@ const STATUS_NAMES := ["Reported", "Crew en route", "On scene", "Resolved", "Pas
 const RING_START := Color("f5a623")
 const RING_END := Color("d62828")
 const ZONE_SCENE := preload("res://Scenes/incident_zone.tscn")
+const INCIDENT_VIEW_SCRIPT := preload("res://UI/incident_view.gd")
 ## Timer share at which the call counts as urgent (one warning sound).
 const URGENT_AT := 0.75
 
@@ -68,6 +69,7 @@ const URGENT_AT := 0.75
 ## Area2D the crews' sensors detect (collision layer "incident_zones").
 var zone: Area2D
 var _warned := false
+var _view
 
 var type: IncidentType
 var crew_type: CrewType              # primary crew type (pin colour/icon)
@@ -104,6 +106,10 @@ func setup(t: IncidentType, types: Array[CrewType], pos: Vector2, place_name: St
 
 
 func _ready() -> void:
+	_view = INCIDENT_VIEW_SCRIPT.new()
+	_view.setup(self)
+	add_child(_view)
+
 	zone = ZONE_SCENE.instantiate()
 	zone.top_level = true            # world scale, not the pin's zoom scale
 	var shape := CircleShape2D.new()
@@ -120,6 +126,10 @@ func title() -> String:
 ## 0..1 share of the time limit used.
 func timer() -> float:
 	return clampf(elapsed_active / type.time_limit_seconds, 0.0, 1.0)
+
+
+func pulse_phase() -> float:
+	return _pulse
 
 
 ## Crew type ids still needing a crew assigned.
@@ -245,7 +255,8 @@ func _process(delta: float) -> void:
 				modulate.a = maxf(_fade, 0.0)
 				if _fade <= 0.0:
 					queue_free()
-	queue_redraw()
+	if _view:
+		_view.queue_redraw()
 
 
 func _resolve() -> void:
@@ -283,52 +294,3 @@ func _send_crews_home() -> void:
 	for c in all:
 		if is_instance_valid(c) and c.incident == self:
 			c.go_home()
-
-
-func _draw() -> void:
-	if status == Status.FAILED:
-		draw_circle(Vector2.ZERO, 15.0, Color(0.45, 0.45, 0.45))
-		draw_circle(Vector2.ZERO, 15.0, Color.WHITE, false, 2.5)
-		# Arrow out: handed to a neighbouring crew.
-		draw_line(Vector2(-7, 0), Vector2(7, 0), Color("ffb347"), 4.0)
-		draw_line(Vector2(2, -5), Vector2(7, 0), Color("ffb347"), 4.0)
-		draw_line(Vector2(2, 5), Vector2(7, 0), Color("ffb347"), 4.0)
-		var font := ThemeDB.fallback_font
-		draw_string_outline(font, Vector2(-34, 34), "Passed on", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, 4, Color.WHITE)
-		draw_string(font, Vector2(-34, 34), "Passed on", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("c46a00"))
-		return
-
-	var colour := crew_type.colour if crew_type else Color.RED
-	var waiting := status == Status.REPORTED or status == Status.ASSIGNED
-	# Mini Metro style: pulse in size (and a soft halo) while waiting.
-	var beat := 0.5 + 0.5 * sin(_pulse) if waiting else 0.0
-	var size := 1.0 + 0.12 * beat * (0.5 + timer())
-	if status == Status.REPORTED:
-		draw_circle(Vector2.ZERO, (18.0 + 14.0 * beat) * size, Color(colour, 0.28 * (1.0 - beat)))
-
-	# Timer ring: background track, then the used share from orange to red.
-	var ring_r := 21.0 * size
-	draw_arc(Vector2.ZERO, ring_r, 0, TAU, 48, Color(0, 0, 0, 0.25), 5.0)
-	if timer() > 0.0:
-		draw_arc(Vector2.ZERO, ring_r, -PI / 2, -PI / 2 + TAU * timer(), 48, RING_START.lerp(RING_END, timer()), 5.0)
-	if selected:
-		draw_arc(Vector2.ZERO, ring_r + 5.0, 0, TAU, 48, Color.WHITE, 3.0)
-
-	draw_circle(Vector2.ZERO, 15.0 * size, colour)
-	draw_circle(Vector2.ZERO, 15.0 * size, Color.WHITE, false, 2.5)
-	if crew_type and crew_type.icon:
-		draw_texture_rect(crew_type.icon, Rect2(Vector2(-10, -10) * size, Vector2(20, 20) * size), false)
-	if status == Status.ON_SCENE or status == Status.RESOLVED:
-		draw_arc(Vector2.ZERO, 11.0, -PI / 2, -PI / 2 + TAU * progress, 32, Color("2fbf71"), 4.0)
-
-	# Other crew types needed: small badges below, ticked once on scene.
-	for i in range(1, needed_types.size()):
-		var t := needed_types[i]
-		var p := Vector2(-8.0 + (i - 1) * 18.0, 30.0)
-		var here := on_scene.any(func(c: Crew) -> bool: return c.type.id == t.id)
-		draw_circle(p, 8.0, t.colour)
-		draw_circle(p, 8.0, Color.WHITE, false, 1.5)
-		if t.icon:
-			draw_texture_rect(t.icon, Rect2(p - Vector2(5.5, 5.5), Vector2(11, 11)), false)
-		if here:
-			draw_circle(p + Vector2(6, -6), 4.0, Color("2fbf71"))

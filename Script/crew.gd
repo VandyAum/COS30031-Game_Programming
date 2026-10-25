@@ -81,16 +81,12 @@ enum State { AVAILABLE, EN_ROUTE, ON_SCENE, RETURNING, COOLDOWN, BLOCKED }
 
 const STATE_NAMES := ["Available", "En route", "On scene", "Returning", "Cooldown", "Blocked"]
 const SIGHT_INTERVAL := 0.15
-const CAR_TEXTURE := preload("res://Assets/Police car.svg")
 const PHYSICS_SCENE := preload("res://Scenes/crew_physics.tscn")
 ## Car sprite size at scale 1 (texture 159 x 63 at the sprite's 0.32 x 0.34).
 const CAR_SIZE := Vector2(51, 21.5)
 ## Biggest the bumper grows with the zoom-out scale.
 const MAX_BUMPER_SCALE := 1.6
 ## Tint applied to the (black and white) car sprite per crew type.
-const TINTS := {&"police": Color(1, 1, 1), &"ambulance": Color(1.0, 0.93, 0.62), &"fire": Color(1.0, 0.36, 0.26),
-	&"ses": Color(1.0, 0.75, 0.2)}
-
 var type: CrewType
 var station: Node2D
 var callsign := ""
@@ -111,8 +107,7 @@ var _edges := PackedInt32Array()
 var _index := 0
 var _cooldown := 0.0
 var _sight_timer := 0.0
-var _body: Node2D
-var _trail: Line2D
+var _view: CrewView
 var _alert_t := 0.0
 var _waiting_on := -1     # blocked road a returning crew already tried to avoid
 var _physics: Node2D
@@ -130,20 +125,9 @@ func setup(crew_type: CrewType, home: Node2D, number: int) -> void:
 
 
 func _ready() -> void:
-	_trail = Line2D.new()
-	_trail.top_level = true          # world coordinates, ignores our rotation
-	_trail.width = 3.0
-	_trail.default_color = Color(type.colour, 0.85)
-	_trail.joint_mode = Line2D.LINE_JOINT_ROUND
-	add_child(_trail)
-
-	_body = Node2D.new()
-	add_child(_body)
-	var car := Sprite2D.new()
-	car.texture = CREW_TEXTURES.get(type.id, POLICE_TEXTURE)
-	car.scale = Vector2(0.32, 0.34)
-	#car.modulate = TINTS.get(type.id, Color.WHITE)
-	_body.add_child(car)
+	_view = CrewView.new()
+	_view.setup(self)
+	add_child(_view)
 
 	_physics = PHYSICS_SCENE.instantiate()
 	add_child(_physics)
@@ -156,12 +140,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	# Stay readable at any zoom (between 60% and 160% of natural size).
-	var cam := get_viewport().get_camera_2d()
-	if cam:
-		_body.scale = Vector2.ONE * clampf(1.0 / cam.zoom.x, 0.6, 4.5)
 	_sync_physics()
-	queue_redraw()
 
 	if held:
 		return
@@ -182,35 +161,13 @@ func _process(delta: float) -> void:
 				_set_state(State.AVAILABLE)
 				Events.crew_ready.emit(self)
 
-
-func _draw() -> void:
-	# Round badge with the crew type icon, drawn upright above the car.
-	if not visible:
-		return
-	var vision := Knowledge.sight_radius_m * float(Stage.meta["px_per_m"])
-	DrawUtil.dashed_circle(self, Vector2.ZERO, vision, Color(type.colour, 0.6), 2.0 * _body.scale.x,
-		8.0, Knowledge.clock * 12.0)
-	var s: float = _body.scale.x
-	var c := Vector2(0, -26) * s
-	var badge := 11.0 * s
-	if state == State.BLOCKED:
-		# Countdown dial + pulse: the crew needs a new route, now.
-		var beat := 0.5 + 0.5 * sin(_alert_t)
-		badge *= 1.0 + 0.25 * beat
-		draw_circle(c, badge + (8.0 + 8.0 * beat) * s, Color(0.85, 0.1, 0.1, 0.3 * (1.0 - beat)))
-		draw_arc(c, badge + 4.0 * s, 0, TAU, 40, Color(0, 0, 0, 0.3), 4.0 * s)
-		draw_arc(c, badge + 4.0 * s, -PI / 2, -PI / 2 + TAU * patience_left(), 40, Color("d62828"), 4.0 * s)
-	draw_circle(c, badge, type.colour)
-	draw_circle(c, badge, Color.WHITE, false, 2.0 * s)
-	if type.icon:
-		var half := badge * 0.72
-		draw_texture_rect(type.icon, Rect2(c - Vector2(half, half), Vector2(half, half) * 2.0), false, Color.WHITE)
-
-
 # --- Commands ------------------------------------------------------------------
 
 func is_available() -> bool:
 	return state == State.AVAILABLE
+
+func is_blocked() -> bool:
+	return state == State.BLOCKED
 
 
 ## Follow a drawn route (world points + the road edge of each point).
@@ -280,6 +237,9 @@ func cooldown_left() -> float:
 func patience_left() -> float:
 	return clampf(_patience / blocked_patience, 0.0, 1.0) if state == State.BLOCKED else 1.0
 
+func alert_phase() -> float:
+	return _alert_t
+
 
 func _give_up() -> void:
 	var inc := incident
@@ -346,7 +306,7 @@ func _drive(delta: float) -> void:
 	var target := _points[_index]
 	var to_target := target - global_position
 	if to_target.length() > 0.01:
-		_body.rotation = to_target.angle()
+		_view.set_heading(to_target.angle())
 
 	var speed := type.speed_mps * float(Stage.meta["px_per_m"])
 	if edge >= 0:
@@ -363,7 +323,7 @@ func _drive(delta: float) -> void:
 	# Only the route still ahead of the crew.
 	var ahead := PackedVector2Array([global_position])
 	ahead.append_array(_points.slice(_index))
-	_trail.points = ahead
+	_view.set_route(ahead)
 
 
 # Near enough to walk in from here? (Our sensor is inside its scene zone.)
@@ -374,8 +334,8 @@ func _close_enough() -> bool:
 
 # Bumper follows the car: same heading, same size (capped), off when parked.
 func _sync_physics() -> void:
-	_physics.rotation = _body.rotation
-	var s := minf(_body.scale.x, MAX_BUMPER_SCALE)
+	_physics.rotation = _view.vehicle_rotation()
+	var s := minf(_view.vehicle_scale(), MAX_BUMPER_SCALE)
 	if not is_equal_approx(s, _bumper_scale):
 		_bumper_scale = s
 		(_bumper_shape.shape as RectangleShape2D).size = CAR_SIZE * s
@@ -384,7 +344,7 @@ func _sync_physics() -> void:
 
 
 func _finish_leg() -> void:
-	_trail.clear_points()
+	_view.clear_route()
 	if state == State.EN_ROUTE:
 		_set_state(State.ON_SCENE)
 		Events.crew_arrived.emit(self, incident)

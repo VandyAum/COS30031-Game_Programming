@@ -5,8 +5,8 @@
      Vicmap challenge, controls, how to play, how to run the build, key
      programming systems, team contributions and known issues. Move the
      long developer notes to docs/DEVELOPMENT.md."
-     Follow-up prompt: "Update team contributions from the commit history
-     (camera pan/zoom was Vandy's); list Ishita in the team." -->
+	 Follow-up prompt: "Update team contributions from the commit history
+	 (camera pan/zoom was Vandy's); list Ishita in the team." -->
 
 **Play in the browser:** _itch.io link goes here_ · **Engine:** Godot 4.7 (2D) ·
 **Team:** Vandy, Ishita, Jessie, Leah (COS30031, Semester 2 2026)

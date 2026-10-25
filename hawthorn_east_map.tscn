@@ -4,7 +4,6 @@
 [ext_resource type="Texture2D" path="res://Map/hawthorn_east_extension_aligned.svg" id="1_xiyce"]
 
 [node name="Hawthorn_East_Map" type="Node2D" unique_id=1196950654]
-script = ExtResource("1_kdgyc")
 
 [node name="Map" type="Sprite2D" parent="." unique_id=1355429324]
 texture = ExtResource("1_xiyce")

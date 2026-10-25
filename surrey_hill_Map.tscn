@@ -13,6 +13,9 @@ centered = false
 
 [node name="MapCover" type="Node2D" parent="." unique_id=393936574]
 
+<<<<<<< HEAD
+[node name="Block1" type="CollisionPolygon2D" parent="Map/StaticBody2D" unique_id=42665623]
+=======
 [node name="Base" type="Polygon2D" parent="MapCover" unique_id=1410482104]
 polygon = PackedVector2Array(-1, -1, 1765, 0, 1764, 1901, 0, 1900)
 
@@ -60,6 +63,7 @@ polygon = PackedVector2Array(384, 1126, 560, 1161, 605, 1173, 1054, 1237, 1076, 
 position = Vector2(1, 0)
 
 [node name="Block1" type="CollisionPolygon2D" parent="Collision" unique_id=2083995360]
+>>>>>>> 5663acc01c870534370e3f4a9055a9a5c08c363a
 polygon = PackedVector2Array(-2, -1, 0, 317, 312, 365, 369, -1)
 
 [node name="Block2" type="CollisionPolygon2D" parent="Collision" unique_id=1727202077]

@@ -6,10 +6,6 @@
 ;   [section] ; section goes between []
 ;   param=value ; assign values to parameters
 
-; Follow-up prompt (AI-assisted, Claude Opus 5.5): "Name the game, register the Sfx autoload,
-; name the 2D physics layers (barriers, vehicles, debris, incident_zones, crew_sensors), set
-; top-down physics (no gravity, damping set per debris type), and don't force fullscreen on web."
-
 config_version=5
 
 [animation]
