@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://bph1q0yfhhagf"]
+
+[ext_resource type="Script" uid="uid://6ols10tt811" path="res://UI/crew_view.gd" id="1_f3eua"]
+[ext_resource type="Script" uid="uid://dj8hoxl2efqls" path="res://UI/incident_view.gd" id="2_tm18p"]
+[ext_resource type="Script" uid="uid://bvwcevwwmxd5c" path="res://UI/station_view.gd" id="3_lputm"]
+[ext_resource type="Resource" path="res://Data/crew_types/ambulance.tres" id="6_4pnr7"]
+
+[node name="Node2D" type="Node2D" unique_id=368800939]
+
+[node name="Node2D" type="Node2D" parent="." unique_id=1688540330]
+position = Vector2(200, 200)
+script = ExtResource("1_f3eua")
+
+[node name="Node2D2" type="Node2D" parent="." unique_id=1208253591]
+position = Vector2(400, 200)
+script = ExtResource("2_tm18p")
+
+[node name="Node2D3" type="Node2D" parent="." unique_id=1995215020]
+position = Vector2(600, 200)
+script = ExtResource("3_lputm")
+crew_type = ExtResource("6_4pnr7")
