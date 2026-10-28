@@ -16,6 +16,11 @@ extends Camera3D
 #    of the junction (full turn, distance easing in and out) so frame-rate
 #    numbers can be compared between builds. Keep working while the tree is
 #    paused."
+# Follow-up prompt (chase camera): "Add a chase mode on C that follows the
+#    demo traffic's ChaseTarget (city_3d_traffic.gd) from behind and above,
+#    smoothed; C again returns to orbiting where the camera is. The
+#    benchmark turns it off. start_chase() turns it on from code (for
+#    scripted screenshots)."
 
 @export var min_distance := 60.0
 @export var max_distance := 3000.0
@@ -27,18 +32,52 @@ var yaw := deg_to_rad(-30.0)
 var pitch := deg_to_rad(55.0)
 var distance := 900.0
 var bounds := Rect2(-2000, -2000, 4000, 4000)
+var chasing := false                    # C: follow the demo traffic's chase car
+
+var _city: Node
+var _chase_target: Node3D
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	far = 8000.0
-	near = 1.0
-	var city := get_parent()
-	if city and not city.is_node_ready():
-		await city.ready                  # the city builds after its children
-	if city and city.has_method("extent_m"):
-		bounds = city.extent_m()
+	near = 0.5
+	_city = get_parent()
+	if _city and not _city.is_node_ready():
+		await _city.ready                 # the city builds after its children
+	if _city and _city.has_method("extent_m"):
+		bounds = _city.extent_m()
 	_apply()
+
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	var k := event as InputEventKey
+	if k and k.pressed and not k.echo and k.keycode == KEY_C:
+		if chasing:
+			chasing = false
+			focus = Vector3(_chase_target.global_position.x, 0.0, _chase_target.global_position.z)
+			distance = maxf(distance, 200.0)
+			_apply()
+		else:
+			start_chase()
+
+
+func start_chase() -> void:
+	_chase_target = _city.get_node_or_null("Traffic/ChaseTarget") if _city else null
+	chasing = _chase_target != null
+	if chasing:
+		global_position = _chase_target.global_position + Vector3(0, 30, 30)
+
+
+# Behind and above the car, smoothed.
+func _chase(delta: float) -> void:
+	var car := _chase_target.global_transform
+	var fwd := -car.basis.z
+	fwd.y = 0.0
+	fwd = fwd.normalized() if fwd.length() > 0.01 else Vector3.FORWARD
+	var want := car.origin - fwd * 11.0 + Vector3.UP * 4.0
+	global_position = global_position.lerp(want, 1.0 - exp(-6.0 * delta))
+	look_at(car.origin + Vector3.UP * 1.2, Vector3.UP)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -60,6 +99,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
+	if chasing and is_instance_valid(_chase_target):
+		_chase(delta)
+		return
 	var move := Vector2(
 		Input.get_axis(&"ui_left", &"ui_right") + float(Input.is_key_pressed(KEY_D)) - float(Input.is_key_pressed(KEY_A)),
 		Input.get_axis(&"ui_up", &"ui_down") + float(Input.is_key_pressed(KEY_S)) - float(Input.is_key_pressed(KEY_W)))
@@ -73,6 +115,7 @@ func _process(delta: float) -> void:
 ## Benchmark path, t in 0..1: one full turn round the junction, swinging
 ## from 1.2 km out to 350 m and back, so near and far detail both count.
 func set_bench_angle(t: float) -> void:
+	chasing = false
 	focus = Vector3.ZERO
 	yaw = deg_to_rad(-30.0) + TAU * t
 	pitch = deg_to_rad(lerpf(60.0, 35.0, sin(PI * t)))

@@ -62,6 +62,12 @@ extends Node3D
 # Follow-up prompt: "osm_buildings.json records are now [kind, base m, top m,
 #    from data, x0, y0, ...] (building parts can start above a podium):
 #    extrude from base to top and give lifted shapes an underside."
+# Follow-up prompt (rail, tram, traffic): "Draw the train and tram lines
+#    from areas.json: trains as a ballast corridor with two darker tracks,
+#    just under the roads so level crossings and road bridges read right;
+#    trams as two pale tracks on top of the street. Add the demo traffic
+#    (city_3d_traffic.gd) for the chase camera. (A terrain version of this
+#    scene is archived in archive/terrain_prototype/.)"
 
 const META_PATH := "res://Map/world/world_meta.json"
 const OSM_PATH := "res://Map/world/osm_buildings.json"
@@ -83,6 +89,9 @@ const GROUND := Color(0.33, 0.33, 0.32)
 const ROAD := Color(0.17, 0.18, 0.19)
 const PARK := Color(0.30, 0.38, 0.28)
 const WATER := Color(0.22, 0.30, 0.38)
+const RAIL_BALLAST := Color(0.40, 0.36, 0.32)
+const RAIL_TRACK := Color(0.24, 0.22, 0.21)
+const TRAM_TRACK := Color(0.66, 0.62, 0.55)
 ## Road ribbon width per class (local, collector, arterial, freeway), metres.
 const ROAD_WIDTH_M := [9.0, 12.0, 16.0, 20.0]
 
@@ -147,13 +156,19 @@ func _ready() -> void:
 	var areas: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(AREAS_PATH))
 	_add_flat_polygons(areas["water"], WATER, 0.03)
 	_add_flat_polygons(areas["parks"], PARK, 0.06)
-	_add_roads(JSON.parse_string(FileAccess.get_file_as_string(ROADS_PATH)))
+	_add_rail(areas)
+	var roads: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ROADS_PATH))
+	_add_roads(roads)
 	_base["chunks"] = _commit_chunks(self)
 	_base["triangles"] = _count["triangles"]
 	stats["roads"] = _count["roads"]
 	_add_lighting()
 	_base["build_ms"] = Time.get_ticks_msec() - t0
 	show_source(building_source)
+	var traffic := City3DTraffic.new()
+	traffic.name = "Traffic"
+	add_child(traffic)
+	traffic.setup(self, roads)
 
 
 ## Shows one building source, building it the first time it is asked for.
@@ -270,6 +285,45 @@ func _add_flat_polygons(polys: Array, col: Color, y: float) -> void:
 
 
 # --- Roads: flat ribbons, one quad per segment plus a square join cap -------
+## Train lines: ballast corridor plus two darker tracks, under the roads
+## (roads are at 0.10-0.16 m). Tram lines: two pale tracks on top of the
+## street. Each strip: [offset from the centreline m, half width m, height
+## m, colour].
+func _add_rail(areas: Dictionary) -> void:
+	var rail_strips := [[0.0, 4.5, 0.07, RAIL_BALLAST], [-2.2, 0.8, 0.09, RAIL_TRACK], [2.2, 0.8, 0.09, RAIL_TRACK]]
+	var tram_strips := [[-1.8, 0.75, 0.2, TRAM_TRACK], [1.8, 0.75, 0.2, TRAM_TRACK]]
+	for line: Array in areas["rail"]:
+		_add_strips(line, rail_strips)
+		_count["rail"] = _count.get("rail", 0) + 1
+	for line: Array in areas["tram"]:
+		_add_strips(line, tram_strips)
+		_count["tram"] = _count.get("tram", 0) + 1
+
+
+func _add_strips(line: Array, strips: Array) -> void:
+	for i in line.size() - 1:
+		var clipped := _clip_segment(Vector2(line[i][0], line[i][1]), Vector2(line[i + 1][0], line[i + 1][1]))
+		if clipped.is_empty():
+			continue
+		var a := _m(clipped[0])
+		var b := _m(clipped[1])
+		if a.is_equal_approx(b):
+			continue
+		var dir := (b - a).normalized()
+		var normal := Vector2(-dir.y, dir.x)
+		var bucket := _bucket((a + b) * 0.5)
+		for s: Array in strips:
+			var w: float = s[1]
+			var y: float = s[2]
+			var col: Color = s[3]
+			var o: Vector2 = normal * float(s[0])
+			var side := normal * w
+			var pa := a + o - dir * w          # overlap at bends so curves don't gap
+			var pb := b + o + dir * w
+			bucket.tri(_v3(pa + side, y), _v3(pb + side, y), _v3(pb - side, y), Vector3.UP, col)
+			bucket.tri(_v3(pa + side, y), _v3(pb - side, y), _v3(pa - side, y), Vector3.UP, col)
+
+
 func _add_roads(roads: Dictionary) -> void:
 	for list_name in ["edges", "decor"]:
 		for e: Dictionary in roads[list_name]:

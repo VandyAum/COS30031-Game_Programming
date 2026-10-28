@@ -17,9 +17,9 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 config/name="The Race Against Time"
 config/description="Dispatch emergency crews across a map that goes stale. A COS30031 prototype for the DTP Vicmap Game Challenge."
 run/main_scene="uid://vu3o5p5e144v"
-run/main_scene.city3d="res://Scenes/city_3d.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
+run/main_scene.city3d="res://Scenes/city_3d.tscn"
 
 [autoload]
 

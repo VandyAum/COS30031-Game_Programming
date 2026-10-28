@@ -31,6 +31,10 @@ extends CanvasLayer
 #    save <prefix>_near.png and <prefix>_far.png from fixed points on the
 #    benchmark path so sources can be compared side by side) and '--quit'
 #    (exit once the benchmark and screenshots are done) for scripted runs."
+# Follow-up prompt (chase camera): "Show the chase car's status line from
+#    the demo traffic, list C (chase) in the key help, and with '--shot'
+#    also save <prefix>_chase.png from the chase camera after a few seconds
+#    of driving."
 
 @export var auto_bench := true
 @export var warmup_seconds := 2.0
@@ -136,7 +140,7 @@ func _process(delta: float) -> void:
 
 func _after_bench() -> void:
 	if _shot_prefix != "":
-		_shots = [[0.5, "_near"], [0.0, "_far"]]
+		_shots = [[0.5, "_near"], [0.0, "_far"], [-1.0, "_chase"]]
 		_shot_frames = 0
 		_state = "shot"
 	elif "--quit" in OS.get_cmdline_user_args():
@@ -151,10 +155,14 @@ func _take_shots() -> void:
 		if "--quit" in OS.get_cmdline_user_args():
 			get_tree().quit()
 		return
-	if _camera and _camera.has_method("set_bench_angle"):
+	var chase_shot: bool = _shots[0][0] < 0.0
+	if chase_shot:
+		if _shot_frames == 0 and _camera and _camera.has_method("start_chase"):
+			_camera.start_chase()
+	elif _camera and _camera.has_method("set_bench_angle"):
 		_camera.set_bench_angle(_shots[0][0])
 	_shot_frames += 1
-	if _shot_frames < 6:
+	if _shot_frames < (240 if chase_shot else 6):   # let the chase car drive a while
 		return
 	var path: String = _shot_prefix + _shots[0][1] + ".png"
 	get_viewport().get_texture().get_image().save_png(path)
@@ -217,5 +225,8 @@ func _panel_text() -> String:
 		_:
 			if _result != "":
 				lines.append(_result)
-	lines.append("Right-drag orbit · left-drag pan · wheel zoom · WASD · O buildings · B bench · F shadows · V vsync · H hide")
+	var traffic := _city.get_node_or_null("Traffic") if _city else null
+	if traffic and str(traffic.get("status")) != "":
+		lines.append(str(traffic.get("status")))
+	lines.append("Right-drag orbit · left-drag pan · wheel zoom · WASD · O buildings · C chase · B bench · F shadows · V vsync · H hide")
 	return "\n".join(lines)
