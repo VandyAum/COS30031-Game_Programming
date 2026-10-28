@@ -1,0 +1,21 @@
+[gd_scene format=3]
+
+; AI-assisted (Claude Opus 5.5). Prompt: "Make a test scene for the greybox
+; 3D Cambermere: a City3D root (Script/city_3d.gd, which builds the meshes,
+; sun and environment from Map/world/ at load), an orbit Camera3D
+; (Script/city_3d_camera.gd) and the FPS probe (Script/fps_probe.gd). The
+; Web (3D city test) export preset opens this scene instead of main.tscn."
+
+[ext_resource type="Script" path="res://Script/city_3d.gd" id="1_city"]
+[ext_resource type="Script" path="res://Script/city_3d_camera.gd" id="2_cam"]
+[ext_resource type="Script" path="res://Script/fps_probe.gd" id="3_fps"]
+
+[node name="City3D" type="Node3D"]
+script = ExtResource("1_city")
+
+[node name="Camera" type="Camera3D" parent="."]
+current = true
+script = ExtResource("2_cam")
+
+[node name="FpsProbe" type="CanvasLayer" parent="."]
+script = ExtResource("3_fps")

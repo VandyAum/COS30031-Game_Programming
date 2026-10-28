@@ -23,9 +23,21 @@ extends CanvasLayer
 # Follow-up prompt (credits): "Add a 'Credits' button next to 'Play again'
 #    on the end screen, and one on the pause screen, opening the credits
 #    and licences overlay (Credits.make_overlay) with a Back button."
+# Follow-up prompt (bug fix, GitHub issue #4 "Credits Back button fails",
+#    AI-assisted, Claude Opus 5.5): "The Credits Back button does nothing
+#    from the pause and end screens. Inspect credits.gd, end_screen.gd, the
+#    callback wiring, input interception and processing while paused, and
+#    fix it." Cause: _show_credits built the Back callback as a lambda that
+#    captured the local 'overlay' while it was still null (GDScript lambdas
+#    capture locals by value), so Back called queue_free() on null. Fix: keep
+#    the overlay in a member, close it through a method, let Esc close it
+#    too, and set Run.modal while it is open so Esc can't unpause the game
+#    behind the credits (which left the credits floating over live play).
 
 var _pause: Control
 var _end: Control
+var _credits: Control
+var _modal_before_credits := false
 
 
 func _ready() -> void:
@@ -123,9 +135,30 @@ func _credits_button() -> Button:
 
 
 func _show_credits() -> void:
-	var overlay: Control
-	overlay = Credits.make_overlay(func() -> void: overlay.queue_free())
-	add_child(overlay)
+	if is_instance_valid(_credits):
+		return
+	_credits = Credits.make_overlay(_close_credits)
+	add_child(_credits)
+	# Esc belongs to the credits while they are open (see _unhandled_key_input).
+	_modal_before_credits = Run.modal
+	Run.modal = true
+
+
+func _close_credits() -> void:
+	if not is_instance_valid(_credits):
+		return
+	_credits.queue_free()
+	_credits = null
+	Run.modal = _modal_before_credits
+
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	# This node is later in the tree than the Run autoload, so it sees Esc
+	# first; consume it so Run doesn't also toggle pause.
+	if is_instance_valid(_credits) and event.is_pressed() and not event.is_echo() \
+			and (event as InputEventKey).keycode == KEY_ESCAPE:
+		_close_credits()
+		get_viewport().set_input_as_handled()
 
 
 func _count(n: int, noun: String) -> String:
