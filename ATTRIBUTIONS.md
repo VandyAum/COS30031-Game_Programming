@@ -1,7 +1,8 @@
 # Attributions
 
 <!-- AI-assisted (Claude Opus 5.5). Prompt: "Write ATTRIBUTIONS.md listing every third-party asset (source, author, licence) and the team-created assets, matching the in-game credits."
-     Follow-up prompt: "Make sure all audio is listed, including the Freesound ambience and travel sounds." -->
+     Follow-up prompt: "Make sure all audio is listed, including the Freesound ambience and travel sounds."
+     Follow-up prompt: "Credit OpenStreetMap (ODbL) for the 3D city prototype's building data." -->
 
 Every asset in **The Race Against Time**, who made it and under what licence.
 The same credits are shown in-game (**Credits** on the pause and end screens).
@@ -12,6 +13,7 @@ The same credits are shown in-game (**Credits** on the pause and end screens).
 | --- | --- | --- | --- | --- |
 | Map data: roads, rail, parcels, buildings, land use, water, suburbs, Features of Interest | `Map/world/*`, `Map/boroondara_foi_game_data.json` | [Vicmap](https://discover.data.vic.gov.au/) via DataVic; FOI extract supplied by the unit | © State of Victoria (Department of Transport and Planning) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), **modified** (reprojected, simplified, stylised, all names made fictional). Full dataset list: [Map/world/ATTRIBUTION.md](Map/world/ATTRIBUTION.md) |
 | Map data: parks and reserves (PARKRES) | `Map/world/*` | [DataVic](https://discover.data.vic.gov.au/dataset/parks-and-conservation-reserves-parkres) | © State of Victoria (DEECA) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), modified |
+| Building outlines and heights (3D city prototype only; not in the game build) | `Map/world/osm_buildings.json` (made by `tools/fetch_osm_buildings.py`) | [OpenStreetMap](https://www.openstreetmap.org/copyright) via the Overpass API | © OpenStreetMap contributors | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/), **modified** (reprojected, simplified, heights estimated where untagged, names and other tags dropped). The data file stays under ODbL. |
 | Font: Atkinson Hyperlegible Next | `UI/Fonts/` | [Google Fonts](https://github.com/google/fonts/tree/main/ofl/atkinsonhyperlegiblenext) | The Atkinson Hyperlegible Next Project Authors (Braille Institute) | [SIL OFL 1.1](UI/Fonts/OFL.txt) |
 | Landmark icons and hearts | `UI/Icons/map/*.svg` | [Maki](https://github.com/mapbox/maki) | Mapbox | [CC0 1.0](UI/Icons/map/MAKI_LICENSE.txt), recoloured |
 | SES hard-hat icon | `UI/Icons/hard-hat-fill.svg` | [Phosphor Icons](https://github.com/phosphor-icons/core) | © 2023 Phosphor Icons | [MIT](UI/Icons/PHOSPHOR_LICENSE.txt), recoloured |

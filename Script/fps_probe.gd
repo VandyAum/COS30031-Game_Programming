@@ -25,6 +25,12 @@ extends CanvasLayer
 #    tree is paused."
 # Follow-up prompt: "Add a '--vsync=off' command-line flag so the desktop
 #    benchmark measures headroom instead of the monitor's refresh cap."
+# Follow-up prompt (OpenStreetMap prototype): "Show which building source
+#    is visible (vicmap / osm / hybrid) and its OSM counts in the panel, list
+#    O in the key help, and add '--shot=<path prefix>' (after the benchmark,
+#    save <prefix>_near.png and <prefix>_far.png from fixed points on the
+#    benchmark path so sources can be compared side by side) and '--quit'
+#    (exit once the benchmark and screenshots are done) for scripted runs."
 
 @export var auto_bench := true
 @export var warmup_seconds := 2.0
@@ -41,6 +47,9 @@ var _window_time := 0.0
 var _window_frames := 0
 var _frame_ms := 0.0
 var _result := ""
+var _shot_prefix := ""                  # --shot=<prefix>
+var _shots: Array = []                  # pending [bench t, file suffix]
+var _shot_frames := 0
 
 
 func _ready() -> void:
@@ -60,11 +69,16 @@ func _ready() -> void:
 	_sun = _city.get_node_or_null("Sun") as DirectionalLight3D
 	if "--vsync=off" in OS.get_cmdline_user_args():
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--shot="):
+			_shot_prefix = arg.get_slice("=", 1)
 	var disabled := "--no-bench" in OS.get_cmdline_user_args()
 	if OS.has_feature("web"):
 		disabled = disabled or str(JavaScriptBridge.eval("new URLSearchParams(location.search).get('bench')")) == "0"
 	if auto_bench and not disabled:
 		start_bench()
+	else:
+		_after_bench()                  # --shot / --quit still work with --no-bench
 
 
 func start_bench() -> void:
@@ -114,7 +128,39 @@ func _process(delta: float) -> void:
 			if _clock >= bench_seconds:
 				_state = "idle"
 				_finish_bench()
+				_after_bench()
+		"shot":
+			_take_shots()
 	_label.text = _panel_text()
+
+
+func _after_bench() -> void:
+	if _shot_prefix != "":
+		_shots = [[0.5, "_near"], [0.0, "_far"]]
+		_shot_frames = 0
+		_state = "shot"
+	elif "--quit" in OS.get_cmdline_user_args():
+		get_tree().quit()
+
+
+# Moves the camera to each fixed point, lets a few frames settle (shadows),
+# then saves the viewport.
+func _take_shots() -> void:
+	if _shots.is_empty():
+		_state = "idle"
+		if "--quit" in OS.get_cmdline_user_args():
+			get_tree().quit()
+		return
+	if _camera and _camera.has_method("set_bench_angle"):
+		_camera.set_bench_angle(_shots[0][0])
+	_shot_frames += 1
+	if _shot_frames < 6:
+		return
+	var path: String = _shot_prefix + _shots[0][1] + ".png"
+	get_viewport().get_texture().get_image().save_png(path)
+	print("CITY_SHOT ", path)
+	_shots.pop_front()
+	_shot_frames = 0
 
 
 func _finish_bench() -> void:
@@ -159,9 +205,9 @@ func _panel_text() -> String:
 	var s: Dictionary = _city.get("stats") if _city else {}
 	var lines := [
 		"%d FPS   %.1f ms   %d draw calls   %dk tris" % [fps, _frame_ms, calls, prims / 1000],
-		"Cambermere greybox: %d buildings, %d footprints, %d road segs, %dk tris, %d chunks, built in %d ms" % [
-			s.get("buildings", 0), s.get("footprints", 0), s.get("roads", 0), s.get("triangles", 0) / 1000,
-			s.get("chunks", 0), s.get("build_ms", 0)],
+		"Cambermere greybox [%s]: %d Vicmap boxes, %d OSM (%d real heights), %d footprints, %d road segs, %dk tris, %d chunks, built in %d ms" % [
+			s.get("source", "?"), s.get("buildings", 0), s.get("osm", 0), s.get("osm_tagged", 0), s.get("footprints", 0),
+			s.get("roads", 0), s.get("triangles", 0) / 1000, s.get("chunks", 0), s.get("build_ms", 0)],
 	]
 	match _state:
 		"warmup":
@@ -171,5 +217,5 @@ func _panel_text() -> String:
 		_:
 			if _result != "":
 				lines.append(_result)
-	lines.append("Right-drag orbit · left-drag pan · wheel zoom · WASD · B bench · F shadows · V vsync · H hide")
+	lines.append("Right-drag orbit · left-drag pan · wheel zoom · WASD · O buildings · B bench · F shadows · V vsync · H hide")
 	return "\n".join(lines)
