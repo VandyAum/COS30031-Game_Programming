@@ -301,7 +301,7 @@ func _despur() -> void:
 	while changed:
 		changed = false
 		var n := route_points.size()
-		for i in range(maxi(1, n - 300), n - 1):
+		for i in range(maxi(2, n - 300), n - 1):
 			var a := route_points[i - 1]
 			var b := route_points[i]
 			var c := route_points[i + 1]

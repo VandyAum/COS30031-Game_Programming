@@ -81,7 +81,14 @@ enum State { AVAILABLE, EN_ROUTE, ON_SCENE, RETURNING, COOLDOWN, BLOCKED }
 
 const STATE_NAMES := ["Available", "En route", "On scene", "Returning", "Cooldown", "Blocked"]
 const SIGHT_INTERVAL := 0.15
-const CAR_TEXTURE := preload("res://Assets/Police car.svg")
+const POLICE_TEXTURE := preload("res://Assets/police_car.png")
+const AMBULANCE_TEXTURE := preload("res://Assets/ambulance.png")
+const FIRE_TEXTURE := preload("res://Assets/fire_truck.png")
+const CREW_TEXTURES := {
+	&"police": POLICE_TEXTURE,
+	&"ambulance": AMBULANCE_TEXTURE,
+	&"fire": FIRE_TEXTURE,
+}
 const PHYSICS_SCENE := preload("res://Scenes/crew_physics.tscn")
 ## Car sprite size at scale 1 (texture 159 x 63 at the sprite's 0.32 x 0.34).
 const CAR_SIZE := Vector2(51, 21.5)
