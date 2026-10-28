@@ -77,6 +77,17 @@
 #    stage 2. Add a small table of station moves (final fictional name ->
 #    metres east/south of the junction), apply it after naming, mark moved
 #    stations in foi.json and mention the move in the attribution changes."
+# Follow-up prompt (building boxes shaped from OpenStreetMap measurements):
+#   "Measured against ~2,900 houses and ~500 shops in OpenStreetMap that
+#    stand on our Vicmap parcels, the boxes are the wrong shape: centred and
+#    shrunk to 70% x 70%, when real houses fill ~80% of the lot's width, sit
+#    ~8-9 m back from the front boundary and are ~20 m deep (on shallow lots
+#    ~2 m back and ~77% of the depth), and real shops fill the full width,
+#    stand on the front boundary and fill ~80-100% of the depth. Find each
+#    lot's front (the side of its oriented rectangle nearest a road) and lay
+#    out residential and commercial boxes from it with those numbers; keep
+#    the old centred box for public / industrial lots and for lots with no
+#    road nearby. Still clip every box to its parcel."
 #
 # Usage (from the project root):  python3 tools/build_world.py
 
@@ -817,7 +828,68 @@ def pack_tris(out, kind, tris):
     return 1
 
 
-def build_buildings(zindex):
+class RoadIndex:
+    """Grid of road centreline segments (map px) for 'which side faces the street'."""
+    CELL = 60.0
+
+    def __init__(self, lines):
+        self.segs = []
+        self.grid = defaultdict(list)
+        for pts in lines:
+            for a, b in zip(pts, pts[1:]):
+                k = len(self.segs)
+                self.segs.append((tuple(a), tuple(b)))
+                for gx in range(int(min(a[0], b[0]) // self.CELL) - 1, int(max(a[0], b[0]) // self.CELL) + 2):
+                    for gy in range(int(min(a[1], b[1]) // self.CELL) - 1, int(max(a[1], b[1]) // self.CELL) + 2):
+                        self.grid[(gx, gy)].append(k)
+
+    @staticmethod
+    def seg_dist(p, a, b):
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        l2 = dx * dx + dy * dy
+        t = 0.0 if l2 == 0 else max(0.0, min(1.0, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2))
+        return math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy)
+
+    def dist(self, p):
+        """Distance from p to the nearest road within ~1.5 cells, or None."""
+        ds = [self.seg_dist(p, *self.segs[k])
+              for k in set(self.grid.get((int(p[0] // self.CELL), int(p[1] // self.CELL)), ()))]
+        return min(ds) if ds else None
+
+
+def street_box(rect, kind, roads):
+    """Box laid out from the lot's street front, using the OSM measurements in
+    the header (metres converted to px). None if no road is near the lot."""
+    sides = [(rect[i], rect[(i + 1) % 4]) for i in range(4)]
+    dists = [roads.dist(((p[0] + q[0]) / 2, (p[1] + q[1]) / 2)) for p, q in sides]
+    if all(d is None for d in dists):
+        return None
+    i = min((j for j in range(4) if dists[j] is not None), key=lambda j: dists[j])
+    p, q = sides[i]
+    far = rect[(i + 2) % 4]
+    width = math.dist(p, q)
+    ux, uy = (q[0] - p[0]) / width, (q[1] - p[1]) / width
+    vx, vy = -uy, ux                                   # into the lot
+    depth = (far[0] - p[0]) * vx + (far[1] - p[1]) * vy
+    if depth < 0:
+        vx, vy, depth = -vx, -vy, -depth
+    d_m = depth / PX_PER_M
+    if kind == KIND_COMMERCIAL:
+        u0, u1 = 0.0, 1.0                              # party walls: full width
+        front_m = 0.0                                  # built to the boundary
+        deep_m = min(d_m, max(0.78 * d_m, 28.0))
+    else:                                              # residential
+        u0, u1 = 0.10, 0.90                            # ~80% of the width
+        front_m = min(9.0, max(2.0, (d_m - 20.0) * 0.45))
+        deep_m = min(d_m - front_m - 2.5, max(0.49 * d_m, 19.0))
+    if deep_m < 3.0:
+        return None
+    v0, v1 = front_m * PX_PER_M, (front_m + deep_m) * PX_PER_M
+    return [(p[0] + ux * width * u + vx * v, p[1] + uy * width * u + vy * v)
+            for u, v in ((u0, v0), (u1, v0), (u1, v1), (u0, v1))]
+
+
+def build_buildings(zindex, roads):
     sites, boxes = bytearray(), bytearray()
     seen = set()
     n_sites = n_boxes = 0
@@ -847,11 +919,14 @@ def build_buildings(zindex):
             rect = min_area_rect(ring)
             if rect is None:
                 continue
-            w = math.dist(rect[0], rect[1])
-            h = math.dist(rect[1], rect[2])
-            shrink = 0.7 if min(w, h) < 30 else max(0.55, 1 - 18 / min(w, h))
-            rcx, rcy = centroid(rect)
-            box = ccw([(rcx + (x - rcx) * shrink, rcy + (y - rcy) * shrink) for x, y in rect])
+            box = street_box(rect, kind, roads) if kind in (KIND_RESIDENTIAL, KIND_COMMERCIAL) else None
+            if box is None:
+                w = math.dist(rect[0], rect[1])
+                h = math.dist(rect[1], rect[2])
+                shrink = 0.7 if min(w, h) < 30 else max(0.55, 1 - 18 / min(w, h))
+                rcx, rcy = centroid(rect)
+                box = [(rcx + (x - rcx) * shrink, rcy + (y - rcy) * shrink) for x, y in rect]
+            box = ccw(box)
             # Never spill outside the parcel (L-shaped / skewed lots).
             shape = clip_convex(parcel, box)
             if len(shape) >= 3 and poly_area(shape) > 4:
@@ -893,7 +968,8 @@ def main():
                 parks.append(rr(c))
     zindex = ZoneIndex(zones)
 
-    blob, n_sites, n_boxes = build_buildings(zindex)
+    road_index = RoadIndex([e["pts"] for e in edges] + [d["pts"] for d in decor])
+    blob, n_sites, n_boxes = build_buildings(zindex, road_index)
     with open(os.path.join(OUT, "buildings.bin"), "wb") as f:
         f.write(blob)
 

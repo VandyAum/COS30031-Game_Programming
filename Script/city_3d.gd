@@ -59,6 +59,9 @@ extends Node3D
 #    buildings against the Vicmap parcels they stand on (size, lot cover,
 #    setback, width, orientation, storeys by land use and distance from the
 #    junction) and recalibrate the Vicmap box heights to match."
+# Follow-up prompt: "osm_buildings.json records are now [kind, base m, top m,
+#    from data, x0, y0, ...] (building parts can start above a podium):
+#    extrude from base to top and give lifted shapes an underside."
 
 const META_PATH := "res://Map/world/world_meta.json"
 const OSM_PATH := "res://Map/world/osm_buildings.json"
@@ -395,7 +398,9 @@ func _add_slab(tris: PackedVector2Array, y: float, col: Color) -> void:
 ## Roof from the stored triangles, walls from the outline: an edge shared by
 ## two triangles is inside the roof, an edge used once is a wall. The wall
 ## faces away from the triangle it came from.
-func _extrude(tris: PackedVector2Array, height: float, col: Color) -> void:
+## 'base' lifts the walls off the ground (OSM building parts that start
+## above a podium); a lifted shape also gets an underside.
+func _extrude(tris: PackedVector2Array, height: float, col: Color, base := 0.0) -> void:
 	var uses := {}
 	for t in range(0, tris.size(), 3):
 		for k in 3:
@@ -408,23 +413,26 @@ func _extrude(tris: PackedVector2Array, height: float, col: Color) -> void:
 		var b := _m(tris[t + 1])
 		var c := _m(tris[t + 2])
 		bucket.tri(_v3(a, height), _v3(b, height), _v3(c, height), Vector3.UP, col)
+		if base > 0.0:
+			bucket.tri(_v3(a, base), _v3(b, base), _v3(c, base), Vector3.DOWN, wall_col)
 		for k in 3:
 			var p := tris[t + k]
 			var q := tris[t + (k + 1) % 3]
 			if uses[_edge_key(p, q)] != 1:
 				continue
 			var opposite := _m(tris[t + (k + 2) % 3])
-			_wall(bucket, _m(p), _m(q), opposite, height, wall_col)
+			_wall(bucket, _m(p), _m(q), opposite, height, wall_col, base)
 
 
-func _wall(bucket: _MeshBucket, a: Vector2, b: Vector2, inside: Vector2, height: float, col: Color) -> void:
+func _wall(bucket: _MeshBucket, a: Vector2, b: Vector2, inside: Vector2, height: float, col: Color,
+		base := 0.0) -> void:
 	var d := b - a
 	var n2 := Vector2(-d.y, d.x).normalized()
 	if n2.dot(inside - a) > 0.0:
 		n2 = -n2
 	var n := Vector3(n2.x, 0.0, n2.y)
-	bucket.tri(_v3(a, 0.0), _v3(b, 0.0), _v3(b, height), n, col)
-	bucket.tri(_v3(a, 0.0), _v3(b, height), _v3(a, height), n, col)
+	bucket.tri(_v3(a, base), _v3(b, base), _v3(b, height), n, col)
+	bucket.tri(_v3(a, base), _v3(b, height), _v3(a, height), n, col)
 
 
 func _edge_key(p: Vector2, q: Vector2) -> Vector4:
@@ -465,7 +473,7 @@ func _add_footprints(footprints: Array, skip_covered := false) -> void:
 # --- OpenStreetMap buildings (osm_buildings.json) ---------------------------
 ## Reads the outlines inside the built area once and indexes them on a grid
 ## for the hybrid coverage test. Heights and kinds live alongside.
-var _osm_meta: Array[Vector3] = []      # per outline: kind, height m, from data 0/1
+var _osm_meta: Array[Vector4] = []      # per outline: kind, base m, top m, from data 0/1
 
 
 func _load_osm() -> void:
@@ -475,7 +483,7 @@ func _load_osm() -> void:
 	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(OSM_PATH))
 	for rec: Array in data["buildings"]:
 		var pts := PackedVector2Array()
-		for j in range(3, rec.size() - 1, 2):
+		for j in range(4, rec.size() - 1, 2):
 			pts.append(Vector2(rec[j], rec[j + 1]))
 		var box := Rect2(pts[0], Vector2.ZERO)
 		for p in pts:
@@ -484,7 +492,7 @@ func _load_osm() -> void:
 			continue
 		var index := _osm_polys.size()
 		_osm_polys.append(pts)
-		_osm_meta.append(Vector3(rec[0], rec[1], rec[2]))
+		_osm_meta.append(Vector4(rec[0], rec[1], rec[2], rec[3]))
 		for cx in range(floori(box.position.x / OSM_CELL_PX), floori(box.end.x / OSM_CELL_PX) + 1):
 			for cy in range(floori(box.position.y / OSM_CELL_PX), floori(box.end.y / OSM_CELL_PX) + 1):
 				var cell := Vector2i(cx, cy)
@@ -509,9 +517,9 @@ func _add_osm() -> void:
 		for k in idx:
 			tris.append(pts[k])
 		var m := _osm_meta[i]
-		_extrude(tris, m.y, KIND_GREY[clampi(int(m.x), 0, 3)])
+		_extrude(tris, m.z, KIND_GREY[clampi(int(m.x), 0, 3)], m.y)
 		_count["osm"] += 1
-		_count["osm_tagged"] += int(m.z)
+		_count["osm_tagged"] += int(m.w)
 
 
 ## True if an OSM building stands on this Vicmap shape. Shapes are compared
