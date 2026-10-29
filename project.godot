@@ -69,10 +69,17 @@ clear_draw={
 [layer_names]
 
 2d_physics/layer_1="barriers"
+3d_physics/layer_1="world"
 2d_physics/layer_2="vehicles"
+3d_physics/layer_2="barriers"
 2d_physics/layer_3="debris"
+3d_physics/layer_3="vehicles"
 2d_physics/layer_4="incident_zones"
+3d_physics/layer_4="debris"
 2d_physics/layer_5="crew_sensors"
+3d_physics/layer_5="incident_zones"
+3d_physics/layer_6="crew_sensors"
+3d_physics/layer_7="click_targets"
 
 [physics]
 
