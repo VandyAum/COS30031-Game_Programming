@@ -50,13 +50,13 @@ func _draw() -> void:
 		)
 		return
 
-	var colour := incident.crew_type.colour if incident.crew_type else Color.RED
-	var waiting := (
+	var colour: Color = incident.crew_type.colour if incident.crew_type else Color.RED
+	var waiting: bool = (
 		incident.status == Status.REPORTED
 		or incident.status == Status.ASSIGNED
 	)
-	var beat := 0.5 + 0.5 * sin(incident.pulse_phase()) if waiting else 0.0
-	var size := 1.0 + 0.12 * beat * (0.5 + incident.timer())
+	var beat: float = 0.5 + 0.5 * sin(incident.pulse_phase()) if waiting else 0.0
+	var size: float = 1.0 + 0.12 * beat * (0.5 + incident.timer())
 
 	if incident.status == Status.REPORTED:
 		draw_circle(
@@ -127,7 +127,7 @@ func _draw() -> void:
 	for i in range(1, incident.needed_types.size()):
 		var crew_type = incident.needed_types[i]
 		var badge_position := Vector2(-8.0 + (i - 1) * 18.0, 30.0)
-		var crew_is_here := incident.on_scene.any(
+		var crew_is_here: bool = incident.on_scene.any(
 			func(c): return c.type.id == crew_type.id
 		)
 

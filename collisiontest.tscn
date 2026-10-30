@@ -1,0 +1,78 @@
+[gd_scene format=3 uid="uid://bdnb36ih5fggm"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hghut"]
+size = Vector3(20, 1, 20)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hal82"]
+size = Vector3(2, 2, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4ox2j"]
+size = Vector3(2, 2, 2)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hghut"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_4ox2j"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hghut"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hal82"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_by50e"]
+size = Vector3(2, 2, 2)
+
+[node name="Collisiontest" type="Node3D" unique_id=1363711650]
+
+[node name="WorldGround" type="StaticBody3D" parent="." unique_id=893587797]
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WorldGround" unique_id=955586699]
+shape = SubResource("BoxShape3D_hghut")
+
+[node name="Barrier" type="StaticBody3D" parent="." unique_id=2003903599]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Barrier" unique_id=747787397]
+shape = SubResource("BoxShape3D_hal82")
+
+[node name="ClickTarget" type="Area3D" parent="." unique_id=2093951618]
+collision_layer = 64
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ClickTarget" unique_id=423882600]
+shape = SubResource("BoxShape3D_4ox2j")
+
+[node name="TestVehicle" type="CharacterBody3D" parent="." unique_id=1927582722]
+collision_layer = 4
+collision_mask = 11
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TestVehicle" unique_id=360752937]
+shape = SubResource("CapsuleShape3D_hghut")
+
+[node name="CrewSensor" type="Area3D" parent="TestVehicle" unique_id=1128780922]
+collision_layer = 32
+collision_mask = 16
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TestVehicle/CrewSensor" unique_id=1163630485]
+shape = SubResource("SphereShape3D_4ox2j")
+
+[node name="TestDebris" type="RigidBody3D" parent="." unique_id=816551648]
+collision_layer = 8
+collision_mask = 15
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TestDebris" unique_id=1356931317]
+shape = SubResource("SphereShape3D_hghut")
+
+[node name="IncidentZone" type="Area3D" parent="." unique_id=1627884595]
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="IncidentZone" unique_id=390365289]
+shape = SubResource("SphereShape3D_hal82")
+
+[node name="ClickTarget2" type="Area3D" parent="." unique_id=1207623780]
+collision_layer = 64
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ClickTarget2" unique_id=1861264976]
+shape = SubResource("BoxShape3D_by50e")
