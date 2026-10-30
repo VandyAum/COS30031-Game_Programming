@@ -34,6 +34,7 @@ on another layer. Keep the click target shape separate from the physical body
 when its selection bounds need to differ from its collision bounds.
 
 These names are configured in Project Settings under **Layer Names > 3D
-Physics**. Assign the object layers and masks when the corresponding 3D
-collision nodes are added to scenes. The current project has no 3D physics
-nodes yet, so this document records the initial matrix for the 3D port.
+Physics**. In the isolated `main_3d.tscn` prototype, incident and crew views
+use `Area3D` targets on layer 7, and the generated road mesh has a pick-only
+static collider on layer 7. The mouse ray queries that layer, then resolves a
+road hit to a playable `RoadGraph` edge. The live 2D startup scene is unchanged.

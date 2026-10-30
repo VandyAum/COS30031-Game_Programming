@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Script/incident_view_3d.gd" id="1_incident_view_3d"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_incident"]
+top_radius = 0.45
+bottom_radius = 0.28
+height = 1.2
+radial_segments = 12
+
+[sub_resource type="TorusMesh" id="TorusMesh_selection"]
+inner_radius = 0.72
+outer_radius = 0.86
+rings = 24
+ring_segments = 8
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_click_target"]
+radius = 0.95
+
+[node name="IncidentView3D" type="Node3D"]
+script = ExtResource("1_incident_view_3d")
+
+[node name="Beacon" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.6, 0)
+mesh = SubResource("CylinderMesh_incident")
+
+[node name="SelectionRing" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.04, 0)
+visible = false
+mesh = SubResource("TorusMesh_selection")
+
+[node name="ClickTarget" type="Area3D" parent="."]
+position = Vector3(0, 0.6, 0)
+collision_layer = 64
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ClickTarget"]
+shape = SubResource("SphereShape3D_click_target")

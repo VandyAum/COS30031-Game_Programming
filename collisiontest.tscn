@@ -1,5 +1,15 @@
 [gd_scene format=3 uid="uid://bdnb36ih5fggm"]
 
+[ext_resource type="Script" uid="uid://vb0rkmxp1h0k" path="res://Script/ground_plane_raycast_3d.gd" id="1_raycast"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_raycast_marker"]
+radius = 0.18
+height = 0.36
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_raycast_marker"]
+shading_mode = 0
+albedo_color = Color(1, 0.85, 0.1, 1)
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_hghut"]
 size = Vector3(20, 1, 20)
 
@@ -20,7 +30,30 @@ size = Vector3(2, 2, 2)
 [sub_resource type="BoxShape3D" id="BoxShape3D_by50e"]
 size = Vector3(2, 2, 2)
 
+[sub_resource type="BoxMesh" id="BoxMesh_click_target"]
+size = Vector3(2, 2, 2)
+
+[sub_resource type="StandardMaterial3D" id="Material_click_target_one"]
+shading_mode = 0
+albedo_color = Color(0.15, 0.55, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_click_target_two"]
+shading_mode = 0
+albedo_color = Color(1, 0.35, 0.12, 1)
+
 [node name="Collisiontest" type="Node3D" unique_id=1363711650]
+script = ExtResource("1_raycast")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1755086632]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12, 16)
+current = true
+
+[node name="RaycastMarker" type="MeshInstance3D" parent="." unique_id=1755086633]
+visible = false
+mesh = SubResource("SphereMesh_raycast_marker")
+surface_material_override/0 = SubResource("StandardMaterial3D_raycast_marker")
+
+[node name="IncidentViews" type="Node3D" parent="."]
 
 [node name="WorldGround" type="StaticBody3D" parent="." unique_id=893587797]
 collision_mask = 0
@@ -36,11 +69,16 @@ collision_mask = 0
 shape = SubResource("BoxShape3D_hal82")
 
 [node name="ClickTarget" type="Area3D" parent="." unique_id=2093951618]
+position = Vector3(-3, 1.5, 0)
 collision_layer = 64
 collision_mask = 0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="ClickTarget" unique_id=423882600]
 shape = SubResource("BoxShape3D_4ox2j")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ClickTarget"]
+mesh = SubResource("BoxMesh_click_target")
+surface_material_override/0 = SubResource("Material_click_target_one")
 
 [node name="TestVehicle" type="CharacterBody3D" parent="." unique_id=1927582722]
 collision_layer = 4
@@ -71,8 +109,13 @@ collision_mask = 0
 shape = SubResource("SphereShape3D_hal82")
 
 [node name="ClickTarget2" type="Area3D" parent="." unique_id=1207623780]
+position = Vector3(3, 1.5, 0)
 collision_layer = 64
 collision_mask = 0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="ClickTarget2" unique_id=1861264976]
 shape = SubResource("BoxShape3D_by50e")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ClickTarget2"]
+mesh = SubResource("BoxMesh_click_target")
+surface_material_override/0 = SubResource("Material_click_target_two")

@@ -82,6 +82,7 @@ enum State { AVAILABLE, EN_ROUTE, ON_SCENE, RETURNING, COOLDOWN, BLOCKED }
 const STATE_NAMES := ["Available", "En route", "On scene", "Returning", "Cooldown", "Blocked"]
 const SIGHT_INTERVAL := 0.15
 const PHYSICS_SCENE := preload("res://Scenes/crew_physics.tscn")
+const CREW_VIEW_3D_SCENE := preload("res://Scenes/crew_view_3d.tscn")
 ## Car sprite size at scale 1 (texture 159 x 63 at the sprite's 0.32 x 0.34).
 const CAR_SIZE := Vector2(51, 21.5)
 ## Biggest the bumper grows with the zoom-out scale.
@@ -122,6 +123,14 @@ func setup(crew_type: CrewType, home: Node2D, number: int) -> void:
 	callsign = "%s %d" % [type.display_name, number]
 	name = callsign.replace(" ", "")
 	add_to_group("crews")
+
+
+## Create a selectable 3D proxy under a 3D view container.
+func create_3d_view(parent: Node3D, world_position: Vector3) -> Node3D:
+	var view := CREW_VIEW_3D_SCENE.instantiate() as Node3D
+	parent.add_child(view)
+	view.call("setup", self, world_position)
+	return view
 
 
 func _ready() -> void:

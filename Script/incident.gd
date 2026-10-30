@@ -61,6 +61,7 @@ const RING_START := Color("f5a623")
 const RING_END := Color("d62828")
 const ZONE_SCENE := preload("res://Scenes/incident_zone.tscn")
 const INCIDENT_VIEW_SCRIPT := preload("res://UI/incident_view.gd")
+const INCIDENT_VIEW_3D_SCENE := preload("res://Scenes/incident_view_3d.tscn")
 ## Timer share at which the call counts as urgent (one warning sound).
 const URGENT_AT := 0.75
 
@@ -117,6 +118,15 @@ func _ready() -> void:
 	(zone.get_node("Shape") as CollisionShape2D).shape = shape
 	add_child(zone)
 	zone.global_position = global_position
+
+
+## Create the 3D proxy under a 3D view container. The caller supplies the
+## agreed map-to-world position; this keeps coordinate conversion out of logic.
+func create_3d_view(parent: Node3D, world_position: Vector3) -> Node3D:
+	var view := INCIDENT_VIEW_3D_SCENE.instantiate() as Node3D
+	parent.add_child(view)
+	view.call("setup", self, world_position)
+	return view
 
 
 func title() -> String:

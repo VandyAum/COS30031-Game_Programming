@@ -1,0 +1,42 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://Scenes/city_map_3d.tscn" id="1_city_map_3d"]
+[ext_resource type="Script" path="res://Script/main_3d.gd" id="2_main_3d"]
+
+[sub_resource type="Environment" id="Environment_main_3d"]
+background_mode = 1
+background_color = Color(0.12, 0.14, 0.18, 1)
+ambient_light_source = 1
+ambient_light_color = Color(0.72, 0.76, 0.84, 1)
+ambient_light_energy = 0.65
+
+[node name="Main3D" type="Node3D"]
+script = ExtResource("2_main_3d")
+
+[node name="CityMap3D" parent="." instance=ExtResource("1_city_map_3d")]
+
+[node name="Gameplay3D" type="Node3D" parent="."]
+
+[node name="Incidents" type="Node3D" parent="Gameplay3D"]
+
+[node name="Crews" type="Node3D" parent="Gameplay3D"]
+
+[node name="Stations" type="Node3D" parent="Gameplay3D"]
+
+[node name="CameraRig" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+position = Vector3(0, 350, 450)
+rotation_degrees = Vector3(-37.875, 0, 0)
+current = true
+
+[node name="Lighting" type="Node3D" parent="."]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Lighting"]
+rotation_degrees = Vector3(-55, -30, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Lighting"]
+environment = SubResource("Environment_main_3d")
+
+[node name="UI" type="CanvasLayer" parent="."]
